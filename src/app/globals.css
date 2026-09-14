@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
+@theme {
+  --color-solly-cream: #FAF7F2;
+  --color-solly-cream-card: #FFFFFF;
+  --color-solly-cream-soft: #F5EFEB;
+  --color-solly-cream-dark: #EDE4D8;
+  --color-solly-yellow: #FFD233;
+  --color-solly-yellow-hover: #EBBF1E;
+  --color-solly-yellow-soft: #FFF8E3;
+  --color-solly-pink: #DE1B52;
+  --color-solly-pink-hover: #C71445;
+  --color-solly-pink-soft: #FDF1F4;
+  --color-solly-pink-blush: #FCECEF;
+  --color-solly-charcoal: #2E1C14;
+  --color-solly-muted: #7A665D;
+  --color-solly-border: #EFE6DA;
+  --color-solly-parasol: #F3ECE2;
+  --color-solly-white: #FFFFFF;
+
+  --font-sans: var(--font-sans), 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-display), 'Fredoka', var(--font-sans), sans-serif;
+  --font-handwriting: var(--font-handwriting), 'Caveat', 'Segoe Print', cursive;
+
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+  --radius-3xl: 2.25rem;
+  --radius-full: 9999px;
+
+  --shadow-solly-soft: 0 10px 30px -10px rgba(46, 28, 20, 0.05);
+  --shadow-solly-card: 0 16px 40px -15px rgba(46, 28, 20, 0.07);
+  --shadow-solly-pink: 0 14px 32px -8px rgba(222, 27, 82, 0.28);
+  --shadow-solly-yellow: 0 14px 32px -8px rgba(255, 210, 51, 0.35);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAF7F2;
+  --foreground: #2E1C14;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  background-color: #FAF7F2;
+  color: #2E1C14;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FAF7F2;
+  color: #2E1C14;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+}
+
+/* Headings use the bold rounded display font */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.font-handwriting {
+  font-family: var(--font-handwriting);
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8DFD3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D8CDBD;
+}
+
+/* Selection highlight in warm pink */
+::selection {
+  background-color: #FFDDE6;
+  color: #2E1C14;
 }
