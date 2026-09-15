@@ -270,7 +270,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
     text += `\nMerci et à très vite ! ♡`;
 
-    return `https://wa.me/?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/221776900458?text=${encodeURIComponent(text)}`;
   };
 
   return (

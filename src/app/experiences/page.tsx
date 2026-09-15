@@ -568,7 +568,127 @@ export default function CakeBarPage() {
         </div>
       </section>
 
-      {/* 3. INTERACTIVE CONFIGURATOR: Composez votre cake bar */}
+      {/* 3. PACKAGES SECTION: Le Cake Bar pour votre fête (Formules & Tarifs) */}
+      <section id="formules" className="relative w-full">
+        <ScallopEdge color="#FCECEF" height={14} />
+        <div className="bg-[#FCECEF] py-16 sm:py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Section Heading */}
+            <div className="text-center mb-12 flex items-center justify-center gap-2">
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+                Le Cake Bar pour votre fête.
+              </h2>
+              <div className="-mt-3 select-none pointer-events-none">
+                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+              </div>
+            </div>
+
+            {/* 2 Packages Cards Side-by-Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
+              {/* Package 1: L'expérience Solly */}
+              <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
+                <div>
+                  <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
+                    <SollyImage
+                      src={CAKE_ASSETS.packageSolly.src}
+                      alt={CAKE_ASSETS.packageSolly.alt}
+                      category="cake-bar"
+                      aspectRatioClass="aspect-[16/10]"
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                  <div className="text-left mb-6">
+                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
+                      L’expérience Solly
+                    </h3>
+                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
+                      À partir de <span className="text-solly-pink">80 000 FCFA</span>
+                    </p>
+                    <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>Cakes décorés</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>Chariot aux couleurs Solly</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>Installation et service</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <Button
+                  variant="pink"
+                  size="md"
+                  fullWidth
+                  onClick={() => handleAddToBooking("L’expérience Solly (80 000 FCFA)")}
+                  className="!py-3 text-sm font-bold"
+                >
+                  Choisir cette formule →
+                </Button>
+              </div>
+
+              {/* Package 2: L'expérience personnalisée */}
+              <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
+                <div>
+                  <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
+                    <SollyImage
+                      src={CAKE_ASSETS.packageCustom.src}
+                      alt={CAKE_ASSETS.packageCustom.alt}
+                      category="cake-bar"
+                      aspectRatioClass="aspect-[16/10]"
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                  <div className="text-left mb-6">
+                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
+                      L’expérience personnalisée
+                    </h3>
+                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
+                      À partir de <span className="text-solly-pink">100 000 FCFA</span>
+                    </p>
+                    <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>L’expérience Solly incluse</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>Façade au thème de votre fête</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-solly-pink font-bold">✓</span>
+                        <span>Contenants personnalisés</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <Button
+                  variant="pink"
+                  size="md"
+                  fullWidth
+                  onClick={() => handleAddToBooking("L’expérience personnalisée (100 000 FCFA)")}
+                  className="!py-3 text-sm font-bold"
+                >
+                  Personnaliser ma fête →
+                </Button>
+              </div>
+            </div>
+
+            {/* Footnote */}
+            <p className="text-center text-[11px] sm:text-xs text-solly-charcoal/70 font-medium">
+              Quantités, durée et déplacement précisés dans votre devis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. INTERACTIVE CONFIGURATOR: Composez votre cake bar */}
       <section id="cake-bar" className="py-16 sm:py-24 bg-solly-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Heading */}
@@ -957,126 +1077,6 @@ export default function CakeBarPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. PACKAGES SECTION: Le Cake Bar pour votre fête. */}
-      <section className="relative w-full">
-        <ScallopEdge color="#FCECEF" height={14} />
-        <div className="bg-[#FCECEF] py-16 sm:py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* Section Heading */}
-            <div className="text-center mb-12 flex items-center justify-center gap-2">
-              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-                Le Cake Bar pour votre fête.
-              </h2>
-              <div className="-mt-3 select-none pointer-events-none">
-                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
-              </div>
-            </div>
-
-            {/* 2 Packages Cards Side-by-Side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
-              {/* Package 1: L'expérience Solly */}
-              <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
-                <div>
-                  <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
-                    <SollyImage
-                      src={CAKE_ASSETS.packageSolly.src}
-                      alt={CAKE_ASSETS.packageSolly.alt}
-                      category="cake-bar"
-                      aspectRatioClass="aspect-[16/10]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-6">
-                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
-                      L’expérience Solly
-                    </h3>
-                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
-                      À partir de <span className="text-solly-pink">80 000 FCFA</span>
-                    </p>
-                    <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Cakes décorés</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot aux couleurs Solly</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Installation et service</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("L’expérience Solly (80 000 FCFA)")}
-                  className="!py-3 text-sm font-bold"
-                >
-                  Choisir cette formule →
-                </Button>
-              </div>
-
-              {/* Package 2: L'expérience personnalisée */}
-              <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
-                <div>
-                  <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
-                    <SollyImage
-                      src={CAKE_ASSETS.packageCustom.src}
-                      alt={CAKE_ASSETS.packageCustom.alt}
-                      category="cake-bar"
-                      aspectRatioClass="aspect-[16/10]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-6">
-                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
-                      L’expérience personnalisée
-                    </h3>
-                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
-                      À partir de <span className="text-solly-pink">100 000 FCFA</span>
-                    </p>
-                    <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>L’expérience Solly incluse</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Façade au thème de votre fête</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Contenants personnalisés</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("L’expérience personnalisée (100 000 FCFA)")}
-                  className="!py-3 text-sm font-bold"
-                >
-                  Personnaliser ma fête →
-                </Button>
-              </div>
-            </div>
-
-            {/* Footnote */}
-            <p className="text-center text-[11px] sm:text-xs text-solly-charcoal/70 font-medium">
-              Quantités, durée et déplacement précisés dans votre devis.
-            </p>
           </div>
         </div>
       </section>
