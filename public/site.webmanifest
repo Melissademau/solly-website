@@ -1,0 +1,19 @@
+{
+  "name": "SOLLY — La beauté en bouchées",
+  "short_name": "SOLLY",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#DE1B52",
+  "background_color": "#FAF7F2",
+  "display": "standalone"
+}

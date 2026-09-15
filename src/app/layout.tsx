@@ -45,11 +45,23 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'SOLLY — La beauté en bouchées',
     description: 'Chariot gourmand modulaire et raffiné pour célébrations d’exception à Dakar.',
-    url: 'https://solly.events',
+    url: 'https://www.monsolly.com',
     siteName: 'SOLLY',
     locale: 'fr_FR',
     type: 'website',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+  },
+  manifest: '/site.webmanifest',
 };
 
 export default function RootLayout({
