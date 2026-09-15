@@ -41,16 +41,17 @@ export interface BookingFormData {
   firstName: string;
   lastName: string;
   phone: string;
-  email: string;
+  countryCode: string; // e.g. '+221'
+  email?: string;
   eventDate: string;
-  eventTime: string; // e.g. '16:00'
+  eventTime: string;
   eventType: EventType | '';
   guestCount: number | '';
   address: string; // Strictly "Adresse de l'événement"
   experience: ExperienceType | '';
   selectedBars: SelectedBarType[];
   isAdvised: boolean;
-  personalization: 'oui' | 'non' | 'a-definir';
+  personalization: 'oui' | 'non' | 'a-definir' | '';
   themeColor: string;
   message: string;
 }
@@ -91,34 +92,27 @@ const initialFormData: BookingFormData = {
   firstName: '',
   lastName: '',
   phone: '',
+  countryCode: '+221',
   email: '',
-  eventDate: '2026-10-24',
-  eventTime: '16:00',
-  eventType: "Anniversaire d'enfant",
-  guestCount: 30,
-  address: 'Salle de réception, Dakar',
-  experience: 'Cake Bar',
-  selectedBars: ['cake-bar', 'drinks'],
+  eventDate: '',
+  eventTime: '',
+  eventType: '',
+  guestCount: '',
+  address: '',
+  experience: '',
+  selectedBars: [],
   isAdvised: false,
-  personalization: 'oui',
-  themeColor: 'Dinosaures, vert et beige',
+  personalization: '',
+  themeColor: '',
   message: '',
 };
 
 const initialOrderChoices: OrderChoices = {
   packageType: '',
-  cakeBar: {
-    barquette: 'Barquette standard Solly',
-    base: 'Vanille',
-    sauces: ['Chocolat'],
-    composants: ['Oreo', 'Vermicelles'],
-  },
-  drinks: ['Bissap', 'Ananas'],
-  charcuterie: {
-    format: 'Le Cornet',
-    composants: ['Rosettes de salami', 'Gouda doré', 'Olives marinées', 'Raisins frais'],
-  },
-  eventInspiration: 'Dinosaures, vert et beige',
+  cakeBar: undefined,
+  drinks: [],
+  charcuterie: undefined,
+  eventInspiration: '',
 };
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -232,19 +226,22 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     if (formData.selectedBars.includes('drinks')) barsLabels.push('Bar à boissons');
     if (formData.selectedBars.includes('charcuterie')) barsLabels.push('Bar à charcuterie');
 
+    const phoneWithCountry = formData.countryCode
+      ? `${formData.countryCode} ${formData.phone}`.trim()
+      : formData.phone;
+
     let text = `Bonjour Solly ! ✨ Je souhaite organiser un événement gourmand.\n\n` +
       `🎉 Type d'événement : ${formData.eventType || 'À préciser'}\n` +
-      `📅 Date : ${formData.eventDate || 'À définir'} à ${formData.eventTime || '16:00'}\n` +
-      `👥 Invités : ${formData.guestCount || 30} personnes\n` +
+      `📅 Date : ${formData.eventDate || 'À définir'} ${formData.eventTime ? `à ${formData.eventTime}` : ''}\n` +
+      `👥 Invités : ${formData.guestCount || 'À préciser'} personnes\n` +
       `📍 Lieu : ${formData.address || 'Dakar'}\n\n` +
       `🍰 Bars sélectionnés : ${barsLabels.join(' + ') || 'À composer'}\n` +
-      (formData.isAdvised ? `💡 Demande : Je souhaite être conseillé(e)\n` : '') +
+      (formData.isAdvised ? `💡 Demande : Je souhaite être conseillé(e) sur les quantités et choix\n` : '') +
       `🎨 Personnalisation : ${formData.personalization === 'oui' ? 'Oui' : formData.personalization === 'non' ? 'Non' : 'À définir'}\n` +
       (formData.themeColor ? `🎈 Thème / Couleurs : ${formData.themeColor}\n\n` : '\n') +
       `👤 Contact :\n` +
       `• Nom : ${formData.firstName || ''} ${formData.lastName || ''}\n` +
-      `• Téléphone : ${formData.phone || ''}\n` +
-      `• Email : ${formData.email || ''}\n`;
+      `• Téléphone (WhatsApp) : ${phoneWithCountry || 'Non renseigné'}\n`;
 
     if (orderChoices.cakeBar && formData.selectedBars.includes('cake-bar')) {
       text += `\n🍰 Détails Cake Bar :\n` +

@@ -19,15 +19,16 @@ import {
   Pencil,
   Info,
   ChevronDown,
+  ChevronUp,
   Plus,
   Minus,
   Phone,
-  Mail,
   User,
   CheckCircle2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
-import { useBooking, EventType, SelectedBarType } from '@/context/BookingContext';
+import { useBooking, EventType, SelectedBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
 
 interface GamifiedBookingFlowProps {
   onClose?: () => void;
@@ -48,8 +49,60 @@ const TIME_SLOTS = [
   { label: 'Soirée (19h - 23h)', value: 'Soirée (19h - 23h)' },
 ];
 
-const GUEST_PRESETS = [15, 30, 50, 75, 100];
+const GUEST_PRESETS = [10, 15, 20, 25, 30, 50];
 const DAKAR_QUICK_AREAS = ['Almadies', 'Plateau', 'Ngor', 'Point E', 'Mamelles'];
+
+const COUNTRY_CODES = [
+  { country: 'Sénégal', code: '+221', flag: '🇸🇳' },
+  { country: 'France', code: '+33', flag: '🇫🇷' },
+  { country: "Côte d'Ivoire", code: '+225', flag: '🇨🇮' },
+  { country: 'Mali', code: '+223', flag: '🇲🇱' },
+  { country: 'Guinée', code: '+224', flag: '🇬🇳' },
+  { country: 'Gabon', code: '+241', flag: '🇬🇦' },
+  { country: 'Cameroun', code: '+237', flag: '🇨🇲' },
+  { country: 'Maroc', code: '+212', flag: '🇲🇦' },
+  { country: 'États-Unis / Canada', code: '+1', flag: '🇺🇸' },
+  { country: 'Belgique', code: '+32', flag: '🇧🇪' },
+  { country: 'Suisse', code: '+41', flag: '🇨🇭' },
+  { country: 'Royaume-Uni', code: '+44', flag: '🇬🇧' },
+];
+
+// Bar items data matching the experiences pages
+const CAKE_OPTIONS = {
+  barquettes: [
+    { id: 'Barquette standard Solly', name: 'Standard Solly', badge: 'Incontournable' },
+    { id: 'Barquette à thème', name: 'À thème personnalisé', badge: 'Sur mesure' },
+    { id: 'Barquette premium', name: 'Premium dorée', badge: 'Élégance' },
+  ],
+  bases: ['Vanille', 'Chocolat'],
+  sauces: ['Chocolat', 'Caramel beurre salé', 'Fruits rouges', 'Lait concentré sucré'],
+  toppings: ['Oreo', 'Spéculoos', 'Vermicelles festifs', 'Mangue', 'Marshmallow', 'Fraises fraîches', 'Banane', 'Autres'],
+};
+
+const DRINK_OPTIONS = [
+  { id: 'Bissap glacé', name: 'Bissap glacé', desc: 'Hibiscus, menthe douce & vanille' },
+  { id: 'Jus d’ananas', name: 'Jus d’ananas', desc: 'Pur jus frais pressé et doux' },
+  { id: 'Gingembre-agrumes', name: 'Gingembre-agrumes', desc: 'Gingembre tonique, oranges & citron vert' },
+  { id: 'Jus orange-passion', name: 'Jus orange-passion', desc: 'Nectar acidulé et doux aux fruits de la passion' },
+];
+
+const CHARCUTERIE_OPTIONS = {
+  formats: [
+    { id: 'Le Cornet', name: 'Le Cornet', desc: 'Cône individuel pour picorer debout' },
+    { id: 'Le Pot', name: 'Le Pot', desc: 'Pot généreux facile à poser' },
+  ],
+  composants: [
+    'Rosettes de salami',
+    'Jambon cuit',
+    'Gouda doré',
+    'Fromage doux',
+    'Olives marinées',
+    'Raisins frais',
+    'Mini bretzels',
+    'Crackers dorés',
+    'Autres',
+  ],
+};
 
 export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBookingFlowProps) {
   const {
@@ -58,6 +111,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     formData,
     setFormData,
     orderChoices,
+    setOrderChoices,
     submitBooking,
     resetBooking,
     getWhatsAppUrl,
@@ -66,30 +120,180 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [inspirationAdded, setInspirationAdded] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
 
-  // Counter logic for guest count
-  const guestCount = typeof formData.guestCount === 'number' ? formData.guestCount : 30;
+  // Active accordion tab in step 2 (e.g. 'cake-bar' | 'drinks' | 'charcuterie')
+  const [activeCustomizer, setActiveCustomizer] = useState<SelectedBarType | null>(null);
+
+  // Guest count logic: allow empty or number
+  const guestCount = typeof formData.guestCount === 'number' ? formData.guestCount : (formData.guestCount ? parseInt(String(formData.guestCount), 10) : 0);
 
   const handleGuestChange = (delta: number) => {
-    const nextVal = Math.max(5, Math.min(500, guestCount + delta));
+    const current = guestCount || 15;
+    const nextVal = Math.max(5, Math.min(500, current + delta));
     setFormData((prev) => ({ ...prev, guestCount: nextVal }));
+    setErrors((prev) => ({ ...prev, guestCount: '' }));
   };
 
   const handleBarToggle = (bar: SelectedBarType) => {
-    setFormData((prev) => {
-      const exists = prev.selectedBars.includes(bar);
-      const nextBars = exists
-        ? prev.selectedBars.filter((b) => b !== bar)
-        : [...prev.selectedBars, bar];
-      return { ...prev, selectedBars: nextBars };
-    });
+    const isCurrentlySelected = formData.selectedBars.includes(bar);
+    if (isCurrentlySelected) {
+      // Unselect
+      setFormData((prev) => ({
+        ...prev,
+        selectedBars: prev.selectedBars.filter((b) => b !== bar),
+      }));
+      if (activeCustomizer === bar) {
+        setActiveCustomizer(null);
+      }
+    } else {
+      // Select and automatically open customizer for it
+      setFormData((prev) => ({
+        ...prev,
+        selectedBars: [...prev.selectedBars, bar],
+      }));
+      setActiveCustomizer(bar);
+
+      // Initialize default empty object in orderChoices if needed
+      if (bar === 'cake-bar' && !orderChoices.cakeBar) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          cakeBar: {
+            barquette: 'Barquette standard Solly',
+            base: 'Vanille',
+            sauces: ['Chocolat'],
+            composants: ['Oreo'],
+          },
+        }));
+      } else if (bar === 'drinks' && (!orderChoices.drinks || orderChoices.drinks.length === 0)) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          drinks: ['Bissap glacé'],
+        }));
+      } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          charcuterie: {
+            format: 'Le Cornet',
+            composants: ['Rosettes de salami', 'Gouda doré'],
+          },
+        }));
+      }
+    }
+  };
+
+  // Customization handlers for Cake Bar
+  const handleCakeBarquette = (b: string) => {
+    setOrderChoices((prev) => ({
+      ...prev,
+      cakeBar: {
+        ...(prev.cakeBar || { base: 'Vanille', sauces: [], composants: [] }),
+        barquette: b,
+      },
+    }));
+  };
+
+  const handleCakeBase = (base: string) => {
+    setOrderChoices((prev) => ({
+      ...prev,
+      cakeBar: {
+        ...(prev.cakeBar || { sauces: [], composants: [] }),
+        base,
+      },
+    }));
+  };
+
+  const handleCakeSauceToggle = (sauce: string) => {
+    const current = orderChoices.cakeBar?.sauces || [];
+    let updated: string[];
+    if (current.includes(sauce)) {
+      updated = current.filter((s) => s !== sauce);
+    } else {
+      if (current.length >= 2) {
+        updated = [...current.slice(1), sauce];
+      } else {
+        updated = [...current, sauce];
+      }
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      cakeBar: {
+        ...(prev.cakeBar || { base: 'Vanille', composants: [] }),
+        sauces: updated,
+      },
+    }));
+  };
+
+  const handleCakeToppingToggle = (top: string) => {
+    const current = orderChoices.cakeBar?.composants || [];
+    let updated: string[];
+    if (current.includes(top)) {
+      updated = current.filter((t) => t !== top);
+    } else {
+      if (current.length >= 6) {
+        updated = [...current.slice(1), top];
+      } else {
+        updated = [...current, top];
+      }
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      cakeBar: {
+        ...(prev.cakeBar || { base: 'Vanille', sauces: [] }),
+        composants: updated,
+      },
+    }));
+  };
+
+  // Customization handlers for Drinks
+  const handleDrinkToggle = (drinkId: string) => {
+    const current = orderChoices.drinks || [];
+    let updated: string[];
+    if (current.includes(drinkId)) {
+      updated = current.filter((d) => d !== drinkId);
+    } else {
+      updated = [...current, drinkId];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      drinks: updated,
+    }));
+  };
+
+  // Customization handlers for Charcuterie
+  const handleCharcuterieFormat = (format: string) => {
+    setOrderChoices((prev) => ({
+      ...prev,
+      charcuterie: {
+        ...(prev.charcuterie || { composants: [] }),
+        format,
+      },
+    }));
+  };
+
+  const handleCharcuterieComposantToggle = (comp: string) => {
+    const current = orderChoices.charcuterie?.composants || [];
+    let updated: string[];
+    if (current.includes(comp)) {
+      updated = current.filter((c) => c !== comp);
+    } else {
+      updated = [...current, comp];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      charcuterie: {
+        ...(prev.charcuterie || { format: 'Le Cornet' }),
+        composants: updated,
+      },
+    }));
   };
 
   const validateStep1 = () => {
     const errs: Record<string, string> = {};
     if (!formData.eventType) errs.eventType = 'Choisissez un type d’événement';
     if (!formData.eventDate) errs.eventDate = 'Indiquez une date';
-    if (!formData.address.trim()) errs.address = 'Indiquez l’adresse de l’événement à Dakar';
+    if (!formData.guestCount) errs.guestCount = 'Indiquez le nombre d’invités';
+    if (!formData.address.trim()) errs.address = 'Indiquez l’adresse ou la ville de l’événement';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -98,7 +302,6 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     const errs: Record<string, string> = {};
     if (!formData.firstName.trim()) errs.firstName = 'Prénom et nom requis';
     if (!formData.phone.trim()) errs.phone = 'Numéro de téléphone requis';
-    if (!formData.email.trim() || !formData.email.includes('@')) errs.email = 'Email valide requis';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -112,6 +315,11 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
 
   const handleNextFromStep2 = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.selectedBars.length === 0) {
+      setErrors({ selectedBars: 'Veuillez sélectionner au moins un bar gourmand' });
+      return;
+    }
+    setErrors({});
     setCurrentStep(3);
   };
 
@@ -128,23 +336,25 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         month: 'long',
         year: 'numeric',
       })
-    : 'À définir';
+    : 'Date à définir';
 
   const selectedBarsSummary = () => {
     const labels: string[] = [];
     if (formData.selectedBars.includes('cake-bar')) labels.push('Cake Bar');
     if (formData.selectedBars.includes('drinks')) labels.push('Boissons');
     if (formData.selectedBars.includes('charcuterie')) labels.push('Charcuterie');
-    return labels.length > 0 ? labels.join(' + ') : 'Bars à composer';
+    return labels.length > 0 ? labels.join(' + ') : 'Aucun bar sélectionné';
   };
 
   return (
     <div
       className={`w-full bg-white ${
-        isInline ? 'rounded-[28px] sm:rounded-[32px] border border-solly-border shadow-solly-card' : 'rounded-t-[32px] sm:rounded-[30px]'
+        isInline
+          ? 'rounded-[28px] sm:rounded-[32px] border border-solly-border shadow-solly-card'
+          : 'rounded-t-[32px] sm:rounded-[30px]'
       } overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]`}
     >
-      {/* 0. MOBILE BOTTOM SHEET DRAG HANDLE (Visible only in modal on small screens) */}
+      {/* 0. MOBILE BOTTOM SHEET DRAG HANDLE (Visible in modal on small screens) */}
       {!isInline && (
         <div className="pt-2.5 pb-1 sm:hidden flex justify-center bg-white shrink-0">
           <div className="w-12 h-1.5 bg-solly-charcoal/20 rounded-full" />
@@ -298,13 +508,13 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   Parlons de votre fête.
                 </h2>
                 <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Quelques détails pour imaginer votre prestation à Dakar.
+                  Quelques détails pour imaginer votre prestation personnalisée.
                 </p>
               </div>
 
               {/* Type d'événement & Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Type d'événement */}
+                {/* Type d'événement (No pre-selected choice) */}
                 <div>
                   <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
                     Type d’événement <span className="text-solly-pink">*</span>
@@ -318,6 +528,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                       }}
                       className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors"
                     >
+                      <option value="" disabled>
+                        Sélectionnez un type...
+                      </option>
                       {EVENT_TYPE_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -331,7 +544,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   )}
                 </div>
 
-                {/* Date */}
+                {/* Date (Blank initially) */}
                 <div>
                   <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
                     Date de l’événement <span className="text-solly-pink">*</span>
@@ -384,7 +597,6 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   })}
                 </div>
 
-                {/* Option for custom specific time */}
                 <div className="mt-2 flex items-center justify-between">
                   {!showCustomTime ? (
                     <button
@@ -420,7 +632,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               {/* Adresse de l'événement & Dakar Quick Chips */}
               <div>
                 <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Lieu / Adresse à Dakar <span className="text-solly-pink">*</span>
+                  Lieu / Adresse <span className="text-solly-pink">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -431,7 +643,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                       setFormData((prev) => ({ ...prev, address: e.target.value }));
                       setErrors((prev) => ({ ...prev, address: '' }));
                     }}
-                    placeholder="Ex: Villa aux Almadies, Salle Ngor, Domicile..."
+                    placeholder="Ex: Almadies, Plateau, Domicile..."
                     className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-4 py-3 text-base sm:text-sm text-solly-charcoal font-semibold placeholder:text-solly-charcoal/40 focus:outline-none focus:border-solly-pink/60 transition-colors"
                   />
                   <MapPin className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -440,9 +652,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   <p className="text-[11px] text-red-500 font-bold mt-1">{errors.address}</p>
                 )}
 
-                {/* Quick Area Chips for Dakar */}
+                {/* Quick Area Chips */}
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[11px] font-bold text-solly-muted mr-1">Suggestions :</span>
+                  <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
                   {DAKAR_QUICK_AREAS.map((area) => (
                     <button
                       key={area}
@@ -462,10 +674,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Nombre d'invités (Mobile tactile counter + Presets) */}
+              {/* Nombre d'invités (Clean Counter with no pre-fill) */}
               <div>
                 <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Nombre d’invités estimé
+                  Nombre d’invités estimé <span className="text-solly-pink">*</span>
                 </label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-3 bg-[#FAF7F2] border border-solly-border rounded-2xl p-1.5">
@@ -479,15 +691,19 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                       <Minus className="w-5 h-5" />
                     </motion.button>
 
-                    <motion.div
-                      key={guestCount}
-                      initial={{ scale: 1.2, color: '#DE1B52' }}
-                      animate={{ scale: 1, color: '#2E1C14' }}
-                      transition={{ duration: 0.15 }}
-                      className="min-w-[54px] text-center font-display font-black text-xl text-solly-charcoal select-none"
-                    >
-                      {guestCount}
-                    </motion.div>
+                    <input
+                      type="number"
+                      min="5"
+                      max="500"
+                      value={formData.guestCount}
+                      placeholder="0"
+                      onChange={(e) => {
+                        const v = e.target.value === '' ? '' : parseInt(e.target.value, 10);
+                        setFormData((prev) => ({ ...prev, guestCount: v }));
+                        setErrors((prev) => ({ ...prev, guestCount: '' }));
+                      }}
+                      className="w-16 text-center font-display font-black text-xl text-solly-charcoal bg-transparent focus:outline-none"
+                    />
 
                     <motion.button
                       whileTap={{ scale: 0.9 }}
@@ -503,16 +719,23 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   <span className="text-xs text-solly-muted font-medium">personnes</span>
                 </div>
 
+                {errors.guestCount && (
+                  <p className="text-[11px] text-red-500 font-bold mt-1">{errors.guestCount}</p>
+                )}
+
                 {/* Preset Chips */}
-                <div className="flex items-center gap-1.5 mt-2">
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
                   {GUEST_PRESETS.map((count) => (
                     <button
                       key={count}
                       type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, guestCount: count }))}
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, guestCount: count }));
+                        setErrors((prev) => ({ ...prev, guestCount: '' }));
+                      }}
                       className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
-                        guestCount === count
+                        formData.guestCount === count
                           ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
                           : 'bg-white text-solly-charcoal/70 border-solly-border hover:bg-solly-cream'
                       }`}
@@ -523,16 +746,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Yellow Note Banner */}
+              {/* Exact user requested banner text: */}
               <div className="bg-[#FFF9E6] border border-[#FDE68A] text-solly-charcoal/90 rounded-2xl p-3.5 flex items-center gap-2.5 text-xs font-medium">
                 <Sparkle size={16} color="#DE1B52" className="shrink-0" />
-                <span>Formules clés en main à partir de 80 000 FCFA. Devis personnalisé sous 24h.</span>
+                <span>Minimum 80 000 FCFA pour 1 bar avec entre 10 et 30 invités. Nous répondons sous 24h.</span>
               </div>
             </motion.form>
           )}
 
           {/* ========================================================= */}
-          {/* STEP 02: VOS ENVIES (GAMIFIED BARS) */}
+          {/* STEP 02: VOS ENVIES (GAMIFIED BARS & INLINE CUSTOMIZERS) */}
           {/* ========================================================= */}
           {currentStep === 2 && (
             <motion.form
@@ -550,15 +773,21 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   Qu’est-ce qui vous ferait plaisir ?
                 </h2>
                 <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Sélectionnez un ou plusieurs bars gourmands pour votre événement.
+                  Sélectionnez un ou plusieurs bars et personnalisez vos saveurs à la suite.
                 </p>
               </div>
 
-              {/* 3 Visual Interactive Bar Cards - Mobile Optimized */}
+              {errors.selectedBars && (
+                <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-2.5 text-xs font-bold text-center">
+                  {errors.selectedBars}
+                </div>
+              )}
+
+              {/* 3 Visual Interactive Bar Cards */}
               <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
                 {/* 1. Cake Bar */}
                 <motion.div
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => handleBarToggle('cake-bar')}
                   className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
                     formData.selectedBars.includes('cake-bar')
@@ -586,15 +815,15 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
                       Cake Bar
                     </span>
-                    <span className="hidden sm:block text-[10px] text-solly-muted mt-0.5">
-                      Gâteaux minute
+                    <span className="text-[10px] text-solly-muted block">
+                      {formData.selectedBars.includes('cake-bar') ? '✦ Personnaliser' : 'Gâteaux minute'}
                     </span>
                   </div>
                 </motion.div>
 
                 {/* 2. Boissons */}
                 <motion.div
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => handleBarToggle('drinks')}
                   className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
                     formData.selectedBars.includes('drinks')
@@ -622,15 +851,15 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
                       Boissons
                     </span>
-                    <span className="hidden sm:block text-[10px] text-solly-muted mt-0.5">
-                      Jus frais locaux
+                    <span className="text-[10px] text-solly-muted block">
+                      {formData.selectedBars.includes('drinks') ? '✦ Saveurs' : 'Jus frais locaux'}
                     </span>
                   </div>
                 </motion.div>
 
                 {/* 3. Charcuterie */}
                 <motion.div
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => handleBarToggle('charcuterie')}
                   className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
                     formData.selectedBars.includes('charcuterie')
@@ -658,17 +887,287 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
                       Charcuterie
                     </span>
-                    <span className="hidden sm:block text-[10px] text-solly-muted mt-0.5">
-                      Cornets salés
+                    <span className="text-[10px] text-solly-muted block">
+                      {formData.selectedBars.includes('charcuterie') ? '✦ Ingrédients' : 'Cornets salés'}
                     </span>
                   </div>
                 </motion.div>
               </div>
 
+              {/* ======================================================= */}
+              {/* INLINE CUSTOMIZERS FOR SELECTED BARS */}
+              {/* ======================================================= */}
+
+              {/* 1. CAKE BAR CUSTOMIZER */}
+              {formData.selectedBars.includes('cake-bar') && (
+                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🍰</span>
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Personnalisation du Cake Bar
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
+                      Étape par étape
+                    </span>
+                  </div>
+
+                  {/* Choix de la barquette */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      1. Votre barquette
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {CAKE_OPTIONS.barquettes.map((b) => {
+                        const isChosen = orderChoices.cakeBar?.barquette === b.id;
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => handleCakeBarquette(b.id)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              isChosen
+                                ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
+                                : 'bg-white/70 border-solly-border hover:bg-white'
+                            }`}
+                          >
+                            <span className="text-[10px] font-extrabold text-solly-pink uppercase tracking-wider block">
+                              {b.badge}
+                            </span>
+                            <span className="text-xs font-bold text-solly-charcoal block mt-0.5">
+                              {b.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Choix de la base */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      2. Votre base de gâteau
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {CAKE_OPTIONS.bases.map((base) => {
+                        const isChosen = orderChoices.cakeBar?.base === base;
+                        return (
+                          <button
+                            key={base}
+                            type="button"
+                            onClick={() => handleCakeBase(base)}
+                            className={`flex-1 py-2.5 px-3 rounded-xl border text-center font-bold text-xs transition-all cursor-pointer ${
+                              isChosen
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
+                            }`}
+                          >
+                            {base}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Choix des sauces (Max 2) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        3. Vos sauces préférées
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CAKE_OPTIONS.sauces.map((sauce) => {
+                        const isSelected = orderChoices.cakeBar?.sauces?.includes(sauce);
+                        return (
+                          <button
+                            key={sauce}
+                            type="button"
+                            onClick={() => handleCakeSauceToggle(sauce)}
+                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink-soft text-solly-pink border-solly-pink'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                            }`}
+                          >
+                            <span className="truncate">{sauce}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-solly-pink shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Choix des toppings (Max 6) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        4. Vos toppings & friandises
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Jusqu'à 6 au choix</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CAKE_OPTIONS.toppings.map((top) => {
+                        const isSelected = orderChoices.cakeBar?.composants?.includes(top);
+                        return (
+                          <button
+                            key={top}
+                            type="button"
+                            onClick={() => handleCakeToppingToggle(top)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>{top}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. DRINKS CUSTOMIZER */}
+              {formData.selectedBars.includes('drinks') && (
+                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🍹</span>
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Saveurs du Bar à Boissons
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
+                      Jus frais locaux
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-solly-muted font-medium">
+                    Cochez les saveurs que vous aimeriez proposer à vos invités :
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {DRINK_OPTIONS.map((d) => {
+                      const isSelected = orderChoices.drinks?.includes(d.id);
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => handleDrinkToggle(d.id)}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${
+                            isSelected
+                              ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
+                              : 'bg-white/70 border-solly-border hover:bg-white'
+                          }`}
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-solly-charcoal block">
+                              {d.name}
+                            </span>
+                            <span className="text-[11px] text-solly-muted font-medium block mt-0.5">
+                              {d.desc}
+                            </span>
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                              isSelected
+                                ? 'bg-solly-pink text-white'
+                                : 'border border-solly-border bg-white text-transparent'
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. CHARCUTERIE CUSTOMIZER */}
+              {formData.selectedBars.includes('charcuterie') && (
+                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🧀</span>
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Garnitures du Bar à Charcuterie
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
+                      Plaisirs salés
+                    </span>
+                  </div>
+
+                  {/* Format */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      1. Format de service
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CHARCUTERIE_OPTIONS.formats.map((f) => {
+                        const isChosen = orderChoices.charcuterie?.format === f.id;
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => handleCharcuterieFormat(f.id)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              isChosen
+                                ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
+                                : 'bg-white/70 border-solly-border hover:bg-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-solly-charcoal block">
+                              {f.name}
+                            </span>
+                            <span className="text-[10px] text-solly-muted block mt-0.5">
+                              {f.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Composants salés */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      2. Vos bouchées salées souhaitées
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CHARCUTERIE_OPTIONS.composants.map((comp) => {
+                        const isSelected = orderChoices.charcuterie?.composants?.includes(comp);
+                        return (
+                          <button
+                            key={comp}
+                            type="button"
+                            onClick={() => handleCharcuterieComposantToggle(comp)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>{comp}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Large touch card: Je souhaite être conseillé(e) */}
               <div
                 onClick={() => setFormData((prev) => ({ ...prev, isAdvised: !prev.isAdvised }))}
-                className="p-3 rounded-2xl border border-solly-border hover:border-solly-pink/40 bg-white flex items-center gap-3 cursor-pointer transition-colors"
+                className="p-3.5 rounded-2xl border border-solly-border hover:border-solly-pink/40 bg-white flex items-center gap-3 cursor-pointer transition-colors"
               >
                 <div
                   className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${
@@ -684,37 +1183,47 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </span>
               </div>
 
-              {/* Dynamic Encart: Vos choix enregistrés */}
-              {(orderChoices.cakeBar || (orderChoices.drinks && orderChoices.drinks.length > 0)) && (
-                <div className="bg-[#FAF7F2] border border-solly-border/80 rounded-2xl p-3 sm:p-3.5 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-extrabold text-solly-charcoal uppercase tracking-wider">
-                      Vos choix enregistrés :
-                    </span>
-                    {orderChoices.cakeBar && (
-                      <span className="text-[11px] font-semibold bg-white border border-solly-border px-2.5 py-1 rounded-full text-solly-charcoal">
-                        {orderChoices.cakeBar.barquette ? `${orderChoices.cakeBar.barquette} • ` : ''}
-                        {orderChoices.cakeBar.base} • {orderChoices.cakeBar.sauces[0] || 'Chocolat'}
-                      </span>
-                    )}
-                    {orderChoices.drinks && orderChoices.drinks.length > 0 && (
-                      <span className="text-[11px] font-semibold bg-white border border-solly-border px-2.5 py-1 rounded-full text-solly-charcoal">
-                        {orderChoices.drinks.join(' • ')}
-                      </span>
-                    )}
-                  </div>
-                  <Link
-                    href="/experiences"
-                    onClick={() => onClose && onClose()}
-                    className="text-xs font-bold text-solly-pink hover:underline inline-flex items-center gap-1 shrink-0"
+              {/* Compact, clean, non-cumbersome summary strip for choices */}
+              {(orderChoices.cakeBar || (orderChoices.drinks && orderChoices.drinks.length > 0) || orderChoices.charcuterie) && (
+                <div className="bg-white border border-solly-border/90 rounded-xl p-3 shadow-2xs">
+                  <div
+                    onClick={() => setSummaryExpanded(!summaryExpanded)}
+                    className="flex items-center justify-between cursor-pointer"
                   >
-                    <Pencil className="w-3 h-3" />
-                    <span>Modifier</span>
-                  </Link>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-extrabold text-solly-pink">✦ Vos choix en direct :</span>
+                      <span className="text-[11px] font-semibold text-solly-charcoal/80 truncate max-w-[200px] sm:max-w-xs">
+                        {formData.selectedBars.map((b) => (b === 'cake-bar' ? 'Cake Bar' : b === 'drinks' ? 'Boissons' : 'Charcuterie')).join(', ')}
+                      </span>
+                    </div>
+                    <button type="button" className="text-solly-charcoal/60 hover:text-solly-pink">
+                      {summaryExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {summaryExpanded && (
+                    <div className="mt-2 pt-2 border-t border-solly-border/60 text-xs text-solly-charcoal/80 space-y-1">
+                      {orderChoices.cakeBar && formData.selectedBars.includes('cake-bar') && (
+                        <p>
+                          <span className="font-bold text-solly-charcoal">Cake Bar :</span> {orderChoices.cakeBar.barquette || 'Standard'} • {orderChoices.cakeBar.base || 'Vanille'} • {orderChoices.cakeBar.sauces.join(', ') || 'Chocolat'} • {orderChoices.cakeBar.composants.join(', ') || 'Toppings'}
+                        </p>
+                      )}
+                      {orderChoices.drinks && orderChoices.drinks.length > 0 && formData.selectedBars.includes('drinks') && (
+                        <p>
+                          <span className="font-bold text-solly-charcoal">Boissons :</span> {orderChoices.drinks.join(', ')}
+                        </p>
+                      )}
+                      {orderChoices.charcuterie && formData.selectedBars.includes('charcuterie') && (
+                        <p>
+                          <span className="font-bold text-solly-charcoal">Charcuterie :</span> {orderChoices.charcuterie.format} • {orderChoices.charcuterie.composants.join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Section Personnalisation : Segmented Pills (Mobile Friendly) */}
+              {/* Section Personnalisation : Segmented Pills */}
               <div>
                 <label className="block text-xs font-bold text-solly-charcoal mb-2">
                   Personnalisation au nom de l’enfant ou de l’événement
@@ -780,7 +1289,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           )}
 
           {/* ========================================================= */}
-          {/* STEP 03: VOS COORDONNÉES */}
+          {/* STEP 03: VOS COORDONNÉES (NO EMAIL, COUNTRY SELECTOR) */}
           {/* ========================================================= */}
           {currentStep === 3 && (
             <motion.form
@@ -798,12 +1307,13 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   Comment vous contacter ?
                 </h2>
                 <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Pour vous transmettre votre devis et échanger sur vos envies.
+                  Pour vous transmettre votre devis et échanger directement sur WhatsApp.
                 </p>
               </div>
 
-              {/* Nom & Téléphone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              {/* Nom & Téléphone avec sélecteur d'indicatif pays */}
+              <div className="space-y-4">
+                {/* Nom et prénom */}
                 <div>
                   <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
                     Nom et prénom <span className="text-solly-pink">*</span>
@@ -817,7 +1327,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         setFormData((prev) => ({ ...prev, firstName: e.target.value }));
                         setErrors((prev) => ({ ...prev, firstName: '' }));
                       }}
-                      placeholder="Votre nom"
+                      placeholder="Votre nom complet"
                       className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
                     />
                     <User className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -827,54 +1337,49 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   )}
                 </div>
 
+                {/* Téléphone (WhatsApp) avec indicateur de pays */}
                 <div>
                   <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Téléphone (WhatsApp) <span className="text-solly-pink">*</span>
+                    Numéro de téléphone (WhatsApp) <span className="text-solly-pink">*</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      value={formData.phone}
-                      onChange={(e) => {
-                        setFormData((prev) => ({ ...prev, phone: e.target.value }));
-                        setErrors((prev) => ({ ...prev, phone: '' }));
-                      }}
-                      placeholder="+221 77 000 00 00"
-                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                    />
-                    <Phone className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <div className="flex gap-2">
+                    {/* Country code selector */}
+                    <div className="relative shrink-0 w-[125px] sm:w-[140px]">
+                      <select
+                        value={formData.countryCode || '+221'}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, countryCode: e.target.value }))}
+                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-2.5 py-3 text-base sm:text-xs text-solly-charcoal font-bold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors"
+                      >
+                        {COUNTRY_CODES.map((item) => (
+                          <option key={item.country} value={item.code}>
+                            {item.flag} {item.code} ({item.country})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3.5 h-3.5 text-solly-charcoal/60 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+
+                    {/* Phone input */}
+                    <div className="relative flex-1">
+                      <input
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={formData.phone}
+                        onChange={(e) => {
+                          setFormData((prev) => ({ ...prev, phone: e.target.value }));
+                          setErrors((prev) => ({ ...prev, phone: '' }));
+                        }}
+                        placeholder="77 000 00 00"
+                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                      />
+                      <Phone className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
                   </div>
                   {errors.phone && (
                     <p className="text-[11px] text-red-500 font-bold mt-1">{errors.phone}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Adresse email <span className="text-solly-pink">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={formData.email}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, email: e.target.value }));
-                      setErrors((prev) => ({ ...prev, email: '' }));
-                    }}
-                    placeholder="exemple@email.com"
-                    className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                  />
-                  <Mail className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                </div>
-                {errors.email && (
-                  <p className="text-[11px] text-red-500 font-bold mt-1">{errors.email}</p>
-                )}
               </div>
 
               {/* Un détail à nous préciser ? (optionnel) */}
@@ -886,7 +1391,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   rows={2}
                   value={formData.message}
                   onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
-                  placeholder="Allergies, accès spécifique, créneau d'installation..."
+                  placeholder="Allergies, horaire d’installation, accès salle..."
                   className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl p-3.5 text-base sm:text-sm text-solly-charcoal font-medium focus:outline-none focus:border-solly-pink/60 transition-colors resize-none"
                 />
               </div>
@@ -904,14 +1409,14 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                       </h4>
                       <div className="mt-1 space-y-0.5 text-[11px] sm:text-xs text-solly-charcoal/80 font-medium">
                         <p>
-                          {formData.eventType || 'Événement'} • {formattedDate} • {formData.eventTime || 'Après-midi'}
+                          {formData.eventType || 'Événement'} • {formattedDate} {formData.eventTime ? `• ${formData.eventTime}` : ''}
                         </p>
                         <p>
-                          {guestCount} invités • {formData.address || 'Dakar'}
+                          {formData.guestCount ? `${formData.guestCount} invités` : 'Invités à préciser'} • {formData.address || 'Dakar'}
                         </p>
                         <p>
                           {selectedBarsSummary()} •{' '}
-                          {formData.personalization === 'oui' ? 'Personnalisé' : 'Standard'}
+                          {formData.personalization === 'oui' ? 'Personnalisé' : 'Sans personnalisation'}
                         </p>
                       </div>
                     </div>
@@ -979,7 +1484,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   Merci pour votre demande !
                 </h2>
                 <h3 className="text-base sm:text-lg font-display font-extrabold text-solly-charcoal mt-1">
-                  Votre message a bien été reçu.
+                  Votre projet est entre nos mains.
                 </h3>
                 <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1.5 leading-relaxed px-2">
                   Notre équipe étudie votre demande et revient vers vous sous 24h ouvrées avec votre devis détaillé.
@@ -1034,7 +1539,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         </AnimatePresence>
       </div>
 
-      {/* 4. STICKY THUMB-ZONE ACTION FOOTER (Always within easy reach on mobile) */}
+      {/* 4. STICKY THUMB-ZONE ACTION FOOTER */}
       {currentStep < 4 && (
         <div className="sticky bottom-0 bg-white/95 backdrop-blur-md p-3.5 sm:px-8 sm:py-4 border-t border-solly-border/70 flex items-center justify-between z-20 shrink-0">
           {currentStep > 1 ? (
@@ -1048,7 +1553,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
             </button>
           ) : (
             <div className="text-[11px] text-solly-muted font-semibold hidden sm:block">
-              ✦ Réservation rapide en 3 étapes
+              ✦ Formule sur mesure sans engagement
             </div>
           )}
 
