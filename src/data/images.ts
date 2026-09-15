@@ -17,7 +17,7 @@ export const SOLLY_IMAGES = {
   // 01 - ACCUEIL / HERO ASSETS
   hero: {
     mainCart: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_52.png',
+      src: '/images/solly-assets/01-accueil/hero-cart.png',
       alt: 'Le chariot gourmand officiel Solly avec son parasol crème à franges et son panneau jaune',
       category: 'hero',
       width: 1536,
@@ -25,7 +25,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     atmosphere: {
-      src: '/images/solly-assets/05-experience/Femmes au chariot Solly, sous le soleil.png',
+      src: '/images/solly-assets/05-experience/femmes-chariot.png',
       alt: 'Atmosphère chaleureuse et souriante autour du chariot Solly',
       category: 'hero',
       width: 1086,
@@ -33,7 +33,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/4',
     },
     cakeBarPreview: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_49.png',
+      src: '/images/solly-assets/01-accueil/cake-bar-preview.png',
       alt: 'Cake Bar Solly : gâteau gourmand aux brisures d\'Oreo dans son moule doré',
       category: 'cake-bar',
       width: 1536,
@@ -41,7 +41,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     drinksPreview: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_55.png',
+      src: '/images/solly-assets/01-accueil/drinks-preview.png',
       alt: 'Bar à boissons Solly : gobelets de jus d\'ananas-mangue et bissap glacés',
       category: 'drinks',
       width: 1536,
@@ -49,7 +49,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     charcuteriePreview: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_57.png',
+      src: '/images/solly-assets/01-accueil/charcuterie-preview.png',
       alt: 'Bar à charcuterie Solly : cornets roses d\'apéritif avec gouda, charcuteries et raisins',
       category: 'charcuterie',
       width: 1536,
@@ -57,7 +57,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     customPanel: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_44_04.png',
+      src: '/images/solly-assets/01-accueil/cart-details.png',
       alt: 'Chariot Solly personnalisé avec façade rose Joyeux Anniversaire',
       category: 'events',
       width: 1774,
