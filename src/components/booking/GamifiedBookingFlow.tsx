@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -121,6 +121,69 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   const [inspirationAdded, setInspirationAdded] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [inspirationError, setInspirationError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInspirationError('');
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const currentPhotos = formData.inspirationPhotos || [];
+    if (currentPhotos.length + files.length > 2) {
+      setInspirationError('Vous pouvez joindre 2 photos maximum au total.');
+      e.target.value = '';
+      return;
+    }
+
+    const currentSize = currentPhotos.reduce((acc, p) => acc + p.size, 0);
+    const newFilesSize = files.reduce((acc, f) => acc + f.size, 0);
+    const totalBytes = currentSize + newFilesSize;
+    const maxBytes = 2 * 1024 * 1024; // 2 Mo
+
+    if (totalBytes > maxBytes) {
+      setInspirationError(
+        `Le poids total dépasse 2 Mo (actuellement ${(totalBytes / (1024 * 1024)).toFixed(1)} Mo). Veuillez choisir des photos plus légères.`
+      );
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const readAsDataUrl = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const newPhotos = await Promise.all(
+        files.map(async (file) => ({
+          name: file.name,
+          size: file.size,
+          dataUrl: await readAsDataUrl(file),
+        }))
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        inspirationPhotos: [...(prev.inspirationPhotos || []), ...newPhotos].slice(0, 2),
+      }));
+    } catch {
+      setInspirationError('Impossible de charger cette image.');
+    }
+    e.target.value = '';
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      inspirationPhotos: (prev.inspirationPhotos || []).filter((_, i) => i !== index),
+    }));
+    setInspirationError('');
+  };
 
   // Active accordion tab in step 2 (e.g. 'cake-bar' | 'drinks' | 'charcuterie')
   const [activeCustomizer, setActiveCustomizer] = useState<SelectedBarType | null>(null);
@@ -1258,10 +1321,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Section Thème ou couleurs */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Thème ou couleurs souhaitées
+              {/* Section Thème ou couleurs & Photos d'inspiration */}
+              <div className="space-y-2.5">
+                <label className="block text-xs font-bold text-solly-charcoal">
+                  Thème, couleurs ou inspirations visuelles
                 </label>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <input
@@ -1271,19 +1334,93 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     placeholder="Ex: Pastel rose & or, Safari dinosaure, Bleu ciel..."
                     className="flex-1 bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
                   />
+                  
+                  {/* Invisible file input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+
+                  {/* Trigger button */}
                   <button
                     type="button"
-                    onClick={() => setInspirationAdded(!inspirationAdded)}
-                    className={`px-4 py-3 rounded-2xl border text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-2xs ${
-                      inspirationAdded
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={(formData.inspirationPhotos?.length || 0) >= 2}
+                    className={`px-4 py-3 rounded-2xl border text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-2xs ${
+                      (formData.inspirationPhotos?.length || 0) >= 2
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 opacity-90 cursor-default'
                         : 'border-solly-pink text-solly-pink hover:bg-solly-pink-soft'
                     }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    <span>{inspirationAdded ? 'Inspiration notée ✓' : 'Ajouter une inspiration'}</span>
+                    <span>
+                      {(formData.inspirationPhotos?.length || 0) === 0
+                        ? 'Ajouter une inspiration'
+                        : (formData.inspirationPhotos?.length || 0) === 1
+                        ? '+ Ajouter 2e photo'
+                        : '2/2 photos jointes ✓'}
+                    </span>
                   </button>
                 </div>
+
+                {/* Counter & limits note */}
+                <div className="flex items-center justify-between text-[11px] text-solly-muted font-medium px-1">
+                  <span>Max. 2 photos (2 Mo max au total)</span>
+                  {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                    <span className="font-bold text-solly-pink">
+                      {formData.inspirationPhotos.length}/2 photo(s) •{' '}
+                      {(formData.inspirationPhotos.reduce((acc, p) => acc + p.size, 0) / 1024).toFixed(0)} Ko
+                    </span>
+                  )}
+                </div>
+
+                {/* Error message */}
+                {inspirationError && (
+                  <p className="text-[11px] text-red-500 font-bold bg-red-50 p-2.5 rounded-xl border border-red-200">
+                    {inspirationError}
+                  </p>
+                )}
+
+                {/* Attached photos thumbnails */}
+                {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {formData.inspirationPhotos.map((photo, idx) => (
+                      <div
+                        key={idx}
+                        className="relative bg-white border border-solly-border rounded-xl p-2 flex items-center justify-between gap-2.5 shadow-2xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <img
+                            src={photo.dataUrl}
+                            alt={photo.name}
+                            className="w-11 h-11 rounded-lg object-cover border border-solly-border shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-solly-charcoal truncate">
+                              {photo.name}
+                            </p>
+                            <p className="text-[10px] text-solly-muted">
+                              {(photo.size / 1024).toFixed(0)} Ko
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePhoto(idx)}
+                          className="w-7 h-7 rounded-full bg-solly-cream hover:bg-red-50 hover:text-red-500 border border-solly-border flex items-center justify-center text-solly-charcoal transition-colors cursor-pointer shrink-0"
+                          aria-label="Supprimer la photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.form>
           )}
@@ -1418,6 +1555,11 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                           {selectedBarsSummary()} •{' '}
                           {formData.personalization === 'oui' ? 'Personnalisé' : 'Sans personnalisation'}
                         </p>
+                        {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                          <p className="text-solly-pink font-semibold">
+                            📸 {formData.inspirationPhotos.length} photo(s) d’inspiration jointe(s)
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

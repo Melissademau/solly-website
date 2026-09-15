@@ -53,6 +53,7 @@ export interface BookingFormData {
   isAdvised: boolean;
   personalization: 'oui' | 'non' | 'a-definir' | '';
   themeColor: string;
+  inspirationPhotos?: { name: string; size: number; dataUrl: string }[];
   message: string;
 }
 
@@ -104,6 +105,7 @@ const initialFormData: BookingFormData = {
   isAdvised: false,
   personalization: '',
   themeColor: '',
+  inspirationPhotos: [],
   message: '',
 };
 
@@ -238,7 +240,10 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       `🍰 Bars sélectionnés : ${barsLabels.join(' + ') || 'À composer'}\n` +
       (formData.isAdvised ? `💡 Demande : Je souhaite être conseillé(e) sur les quantités et choix\n` : '') +
       `🎨 Personnalisation : ${formData.personalization === 'oui' ? 'Oui' : formData.personalization === 'non' ? 'Non' : 'À définir'}\n` +
-      (formData.themeColor ? `🎈 Thème / Couleurs : ${formData.themeColor}\n\n` : '\n') +
+      (formData.themeColor ? `🎈 Thème / Couleurs : ${formData.themeColor}\n` : '') +
+      (formData.inspirationPhotos && formData.inspirationPhotos.length > 0
+        ? `📸 Inspirations : ${formData.inspirationPhotos.length} photo(s) jointe(s) (je vous les partage également ici sur WhatsApp)\n\n`
+        : '\n') +
       `👤 Contact :\n` +
       `• Nom : ${formData.firstName || ''} ${formData.lastName || ''}\n` +
       `• Téléphone (WhatsApp) : ${phoneWithCountry || 'Non renseigné'}\n`;
