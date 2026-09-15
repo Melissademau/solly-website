@@ -1105,7 +1105,7 @@ export default function CakeBarPage() {
                     : 'text-solly-pink bg-solly-pink-soft border-solly-pink/20'
                 }`}
               >
-                Max 3 boissons ({selectedDrinks.length}/3)
+                3 jus maximum ({selectedDrinks.length}/3)
               </span>
               {hasDrinksSelection && (
                 <button

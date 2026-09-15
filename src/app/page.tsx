@@ -19,12 +19,12 @@ export default function HomePage() {
       <section className="relative pt-24 pb-6 sm:pt-32 sm:pb-8 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
-            {/* Left Column: Copy & Actions */}
+            {/* Left Column: Copy & Actions (Centered on mobile, left-aligned on desktop) */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="lg:col-span-5 xl:col-span-5 flex flex-col items-start text-left z-10"
+              className="lg:col-span-5 xl:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left z-10"
             >
               {/* Category Eyebrow */}
               <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] uppercase text-solly-charcoal/90 mb-4">
@@ -32,54 +32,54 @@ export default function HomePage() {
               </p>
 
               {/* Main Headline with Pink Sparkle ✦ */}
-              <div className="relative mb-5">
+              <div className="relative mb-5 inline-block">
                 <h1 className="font-display font-black text-5xl sm:text-6xl lg:text-[70px] xl:text-[76px] text-solly-pink leading-[1.02] tracking-tight">
                   La beauté <br />
                   en bouchées.
                 </h1>
-                <div className="absolute top-1 sm:top-2 -right-8 sm:-right-9 text-solly-pink select-none pointer-events-none">
+                <div className="absolute top-1 sm:top-2 -right-7 sm:-right-9 text-solly-pink select-none pointer-events-none">
                   <Sparkle size={32} color="#DE1B52" />
                 </div>
               </div>
 
               {/* 3-line Subtitle */}
-              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-sm mb-7 leading-snug">
+              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-sm mb-7 leading-snug mx-auto lg:mx-0">
                 Un joli chariot, des gourmandises <br />
                 à composer et des souvenirs <br />
                 à partager.
               </p>
 
               {/* Stacked CTAs + Beside Handwritten Script Note */}
-              <div className="flex items-center gap-5 sm:gap-7 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 sm:gap-7 w-full">
                 {/* Vertically Stacked Action Buttons */}
-                <div className="flex flex-col items-start gap-3 w-full sm:w-auto shrink-0">
+                <div className="flex flex-col items-center lg:items-start gap-3 w-full sm:w-auto shrink-0">
                   <Button
                     variant="pink"
                     size="lg"
                     onClick={() => openBooking()}
-                    className="!px-7 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink whitespace-nowrap"
+                    className="w-full sm:w-auto !px-7 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink whitespace-nowrap"
                   >
                     Composer mon événement →
                   </Button>
 
-                  <div className="relative flex items-center">
+                  <div className="relative flex items-center justify-center">
                     {/* 3 Pink Action Dashes to the left */}
-                    <div className="absolute -left-8 -top-0.5 pointer-events-none select-none">
+                    <div className="absolute -left-7 -top-0.5 pointer-events-none select-none hidden sm:block">
                       <BurstDoodle direction="left" color="#DE1B52" size={26} />
                     </div>
                     <Link href="#bars">
-                      <button className="px-7 py-3 text-sm sm:text-base font-bold text-solly-charcoal border border-solly-charcoal rounded-full hover:bg-solly-charcoal/5 transition-colors whitespace-nowrap">
+                      <button className="w-full sm:w-auto px-7 py-3 text-sm sm:text-base font-bold text-solly-charcoal border border-solly-charcoal rounded-full hover:bg-solly-charcoal/5 transition-colors whitespace-nowrap">
                         Découvrir nos bars
                       </button>
                     </Link>
                   </div>
                 </div>
 
-                {/* Casual Handwritten Note with Heart ♡ (Sitting beside stacked buttons) */}
-                <div className="font-handwriting text-xl sm:text-2xl xl:text-[26px] text-solly-charcoal leading-tight select-none rotate-[-5deg]">
-                  Plus <br />
-                  de gourmandise <br />
-                  dans vos beaux <br />
+                {/* Casual Handwritten Note with Heart ♡ */}
+                <div className="font-handwriting text-xl sm:text-2xl xl:text-[26px] text-solly-charcoal leading-tight select-none rotate-[-4deg] mt-1 sm:mt-0">
+                  Plus <br className="hidden sm:inline" />
+                  de gourmandise <br className="hidden sm:inline" />
+                  dans vos beaux <br className="hidden sm:inline" />
                   moments ! ♡
                 </div>
               </div>
@@ -140,78 +140,78 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 3 Experience Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 max-w-5xl mx-auto">
-            {/* Card 1: Cake Bar */}
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-full rounded-[22px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+          {/* 3 Experience Cards Grid: 2 rows on mobile (Row 1: Cake Bar & Bar à Boissons; Row 2: Bar à Charcuterie) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 lg:gap-10 max-w-5xl mx-auto">
+            {/* Card 1: Cake Bar (Row 1 Col 1 on mobile) */}
+            <div className="flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
+              <div className="w-full rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
                 <SollyImage
                   src={SOLLY_IMAGES.hero.cakeBarPreview.src}
                   alt={SOLLY_IMAGES.hero.cakeBarPreview.alt}
                   category="cake-bar"
-                  aspectRatioClass="aspect-[16/11]"
+                  aspectRatioClass="aspect-[4/3] sm:aspect-[16/11]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-xl text-solly-charcoal mt-4">
+              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
                 Cake Bar
               </h3>
-              <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
                 Des douceurs à composer.
               </p>
               <Link
                 href="/experiences#cake-bar"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
               >
                 Découvrir →
               </Link>
             </div>
 
-            {/* Card 2: Bar à boissons */}
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-full rounded-[22px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+            {/* Card 2: Bar à boissons (Row 1 Col 2 on mobile) */}
+            <div className="flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
+              <div className="w-full rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
                 <SollyImage
                   src={SOLLY_IMAGES.hero.drinksPreview.src}
                   alt={SOLLY_IMAGES.hero.drinksPreview.alt}
                   category="drinks"
-                  aspectRatioClass="aspect-[16/11]"
+                  aspectRatioClass="aspect-[4/3] sm:aspect-[16/11]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-xl text-solly-charcoal mt-4">
+              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
                 Bar à boissons
               </h3>
-              <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
                 Des saveurs qui rassemblent.
               </p>
               <Link
                 href="/experiences#boissons"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
               >
                 Découvrir →
               </Link>
             </div>
 
-            {/* Card 3: Bar à charcuterie */}
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-full rounded-[22px] overflow-hidden bg-[#FFF2CE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+            {/* Card 3: Bar à charcuterie (Row 2 on mobile spanning 2 cols, col-span-1 on md) */}
+            <div className="col-span-2 md:col-span-1 flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
+              <div className="w-full max-w-[280px] sm:max-w-none rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FFF2CE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
                 <SollyImage
                   src={SOLLY_IMAGES.hero.charcuteriePreview.src}
                   alt={SOLLY_IMAGES.hero.charcuteriePreview.alt}
                   category="charcuterie"
-                  aspectRatioClass="aspect-[16/11]"
+                  aspectRatioClass="aspect-[16/10] sm:aspect-[16/11]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-xl text-solly-charcoal mt-4">
+              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
                 Bar à charcuterie
               </h3>
-              <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
                 Des bouchées qui créent du lien.
               </p>
               <Link
                 href="/experiences#charcuterie"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
               >
                 Découvrir →
               </Link>
@@ -220,7 +220,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. SECTION: Votre événement, simplement. (3 STEPS WITH SCALLOP TOP) */}
+      {/* 4. SECTION: Votre événement, simplement. (3 STEPS WITH NUMBERS ON TOP) */}
       <section className="relative w-full">
         <ScallopEdge color="#FCECEF" height={14} />
         <div className="bg-[#FCECEF] py-14 sm:py-16 px-4">
@@ -235,48 +235,48 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 3 Steps Horizontal Alignment with vertical dividers */}
+            {/* 3 Steps Centered Alignment with numbers ABOVE the texts */}
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-solly-pink/20 max-w-4xl mx-auto">
               {/* Step 01 */}
-              <div className="flex items-center gap-3.5 py-4 md:py-0 md:px-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-sm">
+              <div className="flex flex-col items-center text-center gap-2.5 py-5 md:py-0 md:px-6">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-solly-pink text-white font-display font-black flex items-center justify-center shrink-0 text-sm sm:text-base shadow-xs">
                   01
                 </div>
-                <div className="text-left">
-                  <h4 className="font-display font-black text-sm text-solly-charcoal">
+                <div>
+                  <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
                     Choisissez votre bar
                   </h4>
-                  <p className="text-xs text-solly-charcoal/80 font-medium mt-0.5">
+                  <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
                     Sélectionnez le ou les bars qui font plaisir.
                   </p>
                 </div>
               </div>
 
               {/* Step 02 */}
-              <div className="flex items-center gap-3.5 py-4 md:py-0 md:px-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-sm">
+              <div className="flex flex-col items-center text-center gap-2.5 py-5 md:py-0 md:px-6">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-solly-pink text-white font-display font-black flex items-center justify-center shrink-0 text-sm sm:text-base shadow-xs">
                   02
                 </div>
-                <div className="text-left">
-                  <h4 className="font-display font-black text-sm text-solly-charcoal">
+                <div>
+                  <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
                     Composez vos envies
                   </h4>
-                  <p className="text-xs text-solly-charcoal/80 font-medium mt-0.5">
+                  <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
                     Nous vous accompagnons dans les détails.
                   </p>
                 </div>
               </div>
 
               {/* Step 03 */}
-              <div className="flex items-center gap-3.5 py-4 md:py-0 md:px-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-sm">
+              <div className="flex flex-col items-center text-center gap-2.5 py-5 md:py-0 md:px-6">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-solly-pink text-white font-display font-black flex items-center justify-center shrink-0 text-sm sm:text-base shadow-xs">
                   03
                 </div>
-                <div className="text-left">
-                  <h4 className="font-display font-black text-sm text-solly-charcoal">
+                <div>
+                  <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
                     On installe, on vous régale
                   </h4>
-                  <p className="text-xs text-solly-charcoal/80 font-medium mt-0.5">
+                  <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
                     Le jour J, on s'occupe de tout pour un moment inoubliable.
                   </p>
                 </div>

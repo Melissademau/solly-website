@@ -17,8 +17,8 @@ export default function NotreHistoirePage() {
           {/* Left Column: 2 Photos as requested by user */}
           <div className="lg:col-span-7">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
-              {/* Photo 1: Femmes au chariot Solly, sous le soleil */}
-              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4]">
+              {/* Photo 1: Femmes au chariot Solly, sous le soleil (Visible everywhere) */}
+              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[16/11] sm:aspect-[3/4]">
                 <img
                   src="/images/solly-assets/05-experience/femmes-chariot.png"
                   alt="Femmes au chariot Solly, sous le soleil"
@@ -27,8 +27,8 @@ export default function NotreHistoirePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
-              {/* Photo 2: Gâteau aux guimauves décoré à quatre mains */}
-              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4]">
+              {/* Photo 2: Gâteau aux guimauves décoré à quatre mains (Hidden on mobile to lighten the page) */}
+              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4] hidden sm:block">
                 <img
                   src="/images/solly-assets/05-experience/gateau-quatre-mains.png"
                   alt="Gâteau aux guimauves décoré à quatre mains"

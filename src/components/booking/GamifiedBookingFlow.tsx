@@ -26,6 +26,8 @@ import {
   User,
   CheckCircle2,
   SlidersHorizontal,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
 import { useBooking, EventType, SelectedBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
@@ -122,6 +124,14 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [inspirationError, setInspirationError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generatedQuote, setGeneratedQuote] = useState<{
+    pdfBase64?: string;
+    docxBase64?: string;
+    pdfFilename?: string;
+    docxFilename?: string;
+    emailSent?: boolean;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,13 +318,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     }));
   };
 
-  // Customization handlers for Drinks
+  // Customization handlers for Drinks (Limited to 3 juices maximum)
   const handleDrinkToggle = (drinkId: string) => {
     const current = orderChoices.drinks || [];
     let updated: string[];
     if (current.includes(drinkId)) {
       updated = current.filter((d) => d !== drinkId);
     } else {
+      if (current.length >= 3) {
+        return; // Max 3 juices limit
+      }
       updated = [...current, drinkId];
     }
     setOrderChoices((prev) => ({
@@ -386,10 +399,33 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     setCurrentStep(3);
   };
 
-  const handleSubmitStep3 = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitStep3 = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (validateStep3()) {
-      submitBooking(formData);
+      setIsSubmitting(true);
+      try {
+        const response = await fetch('/api/send-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            formData: {
+              ...formData,
+              name: formData.firstName,
+              location: formData.address,
+            },
+            orderChoices,
+          }),
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          setGeneratedQuote(resData);
+        }
+      } catch (err) {
+        console.error('[Booking Submit] Error requesting quote email:', err);
+      } finally {
+        setIsSubmitting(false);
+        submitBooking(formData);
+      }
     }
   };
 
@@ -1106,26 +1142,30 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                       </h4>
                     </div>
                     <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      Jus frais locaux
+                      {orderChoices.drinks?.length || 0}/3 jus max
                     </span>
                   </div>
 
                   <p className="text-xs text-solly-muted font-medium">
-                    Cochez les saveurs que vous aimeriez proposer à vos invités :
+                    Cochez jusqu’à 3 saveurs que vous aimeriez proposer à vos invités :
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {DRINK_OPTIONS.map((d) => {
                       const isSelected = orderChoices.drinks?.includes(d.id);
+                      const isMaxReached = (orderChoices.drinks?.length || 0) >= 3 && !isSelected;
                       return (
                         <button
                           key={d.id}
                           type="button"
+                          disabled={isMaxReached}
                           onClick={() => handleDrinkToggle(d.id)}
-                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${
+                          className={`p-3 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
                             isSelected
-                              ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
-                              : 'bg-white/70 border-solly-border hover:bg-white'
+                              ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink cursor-pointer'
+                              : isMaxReached
+                              ? 'bg-white/40 border-solly-border/40 opacity-40 cursor-not-allowed'
+                              : 'bg-white/70 border-solly-border hover:bg-white cursor-pointer'
                           }`}
                         >
                           <div>
@@ -1480,20 +1520,20 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     Numéro de téléphone (WhatsApp) <span className="text-solly-pink">*</span>
                   </label>
                   <div className="flex gap-2">
-                    {/* Country code selector */}
-                    <div className="relative shrink-0 w-[125px] sm:w-[140px]">
+                    {/* Country code selector: Only flag and dial code */}
+                    <div className="relative shrink-0 w-[92px] sm:w-[98px]">
                       <select
                         value={formData.countryCode || '+221'}
                         onChange={(e) => setFormData((prev) => ({ ...prev, countryCode: e.target.value }))}
-                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-2.5 py-3 text-base sm:text-xs text-solly-charcoal font-bold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors"
+                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-2.5 pr-6 py-3 text-sm sm:text-xs text-solly-charcoal font-bold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors cursor-pointer"
                       >
                         {COUNTRY_CODES.map((item) => (
                           <option key={item.country} value={item.code}>
-                            {item.flag} {item.code} ({item.country})
+                            {item.flag} {item.code}
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="w-3.5 h-3.5 text-solly-charcoal/60 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <ChevronDown className="w-3.5 h-3.5 text-solly-charcoal/60 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
 
                     {/* Phone input */}
@@ -1648,12 +1688,52 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#25D366] text-white font-display font-bold text-sm sm:text-base hover:bg-[#1EBE5D] shadow-lg transition-all duration-200 inline-flex items-center justify-center gap-2.5 group cursor-pointer"
                 >
                   <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
-                  <span>Poursuivre sur WhatsApp (recommandé)</span>
+                  <span>Envoyer le résumé à Solly sur whatsapp</span>
                 </a>
                 <p className="text-[11px] text-solly-muted font-medium">
                   Votre récapitulatif complet sera déjà pré-rempli.
                 </p>
               </div>
+
+              {/* Generated Quote Box with PDF & Word download */}
+              {generatedQuote && (generatedQuote.pdfBase64 || generatedQuote.docxBase64) && (
+                <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-3.5 sm:p-4 text-left space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-solly-charcoal flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-solly-pink" />
+                      <span>Modèle de devis pré-rempli</span>
+                    </span>
+                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">
+                      ✓ Transmis par email
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-solly-muted leading-tight">
+                    Le devis officiel complet a été préparé et transmis à <strong>hello@monsolly.com</strong>. Vous pouvez également le télécharger :
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {generatedQuote.pdfBase64 && (
+                      <a
+                        href={`data:application/pdf;base64,${generatedQuote.pdfBase64}`}
+                        download={generatedQuote.pdfFilename || 'devis-solly.pdf'}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-solly-border text-xs font-bold text-solly-charcoal hover:border-solly-pink/40 hover:text-solly-pink transition-colors shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5 text-solly-pink" />
+                        <span>Télécharger (PDF)</span>
+                      </a>
+                    )}
+                    {generatedQuote.docxBase64 && (
+                      <a
+                        href={`data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${generatedQuote.docxBase64}`}
+                        download={generatedQuote.docxFilename || 'devis-solly.docx'}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-solly-border text-xs font-bold text-solly-charcoal hover:border-solly-pink/40 hover:text-solly-pink transition-colors shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Télécharger (Word .docx)</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Secondary Action: Retour au site */}
               <div>
@@ -1725,10 +1805,20 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
             <button
               type="button"
               onClick={handleSubmitStep3}
-              className="w-auto ml-auto px-7 sm:px-9 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
+              disabled={isSubmitting}
+              className="w-auto ml-auto px-7 sm:px-9 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span>Envoyer ma demande</span>
-              <Sparkles className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Envoi du devis...</span>
+                </>
+              ) : (
+                <>
+                  <span>Envoyer ma demande</span>
+                  <Sparkles className="w-4 h-4" />
+                </>
+              )}
             </button>
           )}
         </div>
