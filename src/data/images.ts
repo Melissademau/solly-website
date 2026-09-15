@@ -69,7 +69,7 @@ export const SOLLY_IMAGES = {
   // MODULAR CART ASSETS
   cart: {
     fullCartHero: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_52.png',
+      src: '/images/solly-assets/01-accueil/hero-cart.png',
       alt: 'Chariot Solly prêt à servir',
       category: 'cart',
       width: 1536,
@@ -77,7 +77,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     customPanel: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_44_04.png',
+      src: '/images/solly-assets/01-accueil/cart-details.png',
       alt: 'Façade amovible personnalisée Joyeux Anniversaire',
       category: 'cart',
       width: 1774,
@@ -85,7 +85,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '2/1',
     },
     cartDrinks: {
-      src: '/images/solly-assets/03-boissons/Chariot à boissons Solly en jardin fleuri.png',
+      src: '/images/solly-assets/03-boissons/chariot-boissons.png',
       alt: 'Chariot Solly avec fontaines de jus frais',
       category: 'cart',
       width: 1402,
@@ -93,7 +93,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '5/4',
     },
     cartCharcuterie: {
-      src: '/images/solly-assets/04-charcuterie/Le bar à charcuterie Solly(1).png',
+      src: '/images/solly-assets/04-charcuterie/bar-charcuterie.png',
       alt: 'Chariot Solly avec bar à charcuterie encastré',
       category: 'cart',
       width: 1254,
@@ -105,7 +105,7 @@ export const SOLLY_IMAGES = {
   // 02 - CAKE BAR ASSETS
   cakeBar: {
     hero: {
-      src: '/images/solly-assets/01-accueil/ChatGPT Image 10 sept. 2026 à 11_43_49.png',
+      src: '/images/solly-assets/01-accueil/cake-bar-preview.png',
       alt: 'Cake Bar Solly : gâteau gourmand aux brisures d\'Oreo dans son moule doré',
       category: 'cake-bar',
       width: 1536,
@@ -113,7 +113,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     cartHero: {
-      src: '/images/solly-assets/02-cake-bar/Chariot Solly, douceurs sous le parasol.png',
+      src: '/images/solly-assets/02-cake-bar/cake-hero.png',
       alt: 'Chariot Solly et présentation de gâteaux sous le parasol',
       category: 'cake-bar',
       width: 1086,
@@ -121,7 +121,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/4',
     },
     showcase: {
-      src: '/images/solly-assets/02-cake-bar/ChatGPT Image 10 sept. 2026 à 11_43_22 (1).png',
+      src: '/images/solly-assets/02-cake-bar/cake-preview.png',
       alt: 'Gâteaux individuels généreux du Cake Bar Solly',
       category: 'cake-bar',
       width: 1536,
@@ -129,7 +129,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     ambiance: {
-      src: '/images/solly-assets/02-cake-bar/Petits gâteaux, grands moments.png',
+      src: '/images/solly-assets/02-cake-bar/package-solly.png',
       alt: 'Petits gâteaux, grands moments autour du Cake Bar Solly',
       category: 'cake-bar',
       width: 1086,
@@ -161,7 +161,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     baseVanilla: {
-      src: '/images/solly-assets/02-cake-bar/Génoise vanille dorée sur fond crème.png',
+      src: '/images/solly-assets/02-cake-bar/base-vanille.png',
       alt: 'Génoise vanille dorée sur fond crème',
       category: 'cake-bar',
       width: 1254,
@@ -169,7 +169,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     baseChocolate: {
-      src: '/images/solly-assets/02-cake-bar/Gâteau éponge au chocolat noir.png',
+      src: '/images/solly-assets/02-cake-bar/base-chocolat.png',
       alt: 'Gâteau éponge au chocolat noir moelleux',
       category: 'cake-bar',
       width: 1254,
@@ -177,7 +177,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     sauceChocolate: {
-      src: '/images/solly-assets/02-cake-bar/Sauce chocolat brillante en verre.png',
+      src: '/images/solly-assets/02-cake-bar/sauce-chocolat.png',
       alt: 'Sauce chocolat brillante pour garniture',
       category: 'cake-bar',
       width: 1254,
@@ -185,7 +185,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     sauceCaramel: {
-      src: '/images/solly-assets/02-cake-bar/Bol de sauce caramel dorée.png',
+      src: '/images/solly-assets/02-cake-bar/sauce-caramel.png',
       alt: 'Sauce caramel dorée et onctueuse',
       category: 'cake-bar',
       width: 1254,
@@ -193,7 +193,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     sauceRedBerries: {
-      src: '/images/solly-assets/02-cake-bar/Coulis de fruits rouges.png',
+      src: '/images/solly-assets/02-cake-bar/sauce-fruits-rouges.png',
       alt: 'Coulis de fruits rouges acidulé',
       category: 'cake-bar',
       width: 1254,
@@ -201,7 +201,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsOreo: {
-      src: '/images/solly-assets/02-cake-bar/Bol de biscuits Oreo émiettés.png',
+      src: '/images/solly-assets/02-cake-bar/topping-oreo.png',
       alt: 'Bol de brisures de biscuits Oreo',
       category: 'cake-bar',
       width: 1254,
@@ -209,7 +209,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsSpeculoos: {
-      src: '/images/solly-assets/02-cake-bar/Bol de miettes de spéculoos dorées.png',
+      src: '/images/solly-assets/02-cake-bar/topping-speculoos.png',
       alt: 'Miettes de spéculoos croquantes',
       category: 'cake-bar',
       width: 1254,
@@ -217,7 +217,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsSprinkles: {
-      src: '/images/solly-assets/02-cake-bar/Bol ivoire de vermicelles colorés.png',
+      src: '/images/solly-assets/02-cake-bar/topping-vermicelles.png',
       alt: 'Vermicelles festifs multicolores',
       category: 'cake-bar',
       width: 1254,
@@ -225,7 +225,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsMango: {
-      src: '/images/solly-assets/02-cake-bar/Topping mangue en cubes dorés.png',
+      src: '/images/solly-assets/02-cake-bar/topping-mangue.png',
       alt: 'Topping de dés de mangue fraîche dorée',
       category: 'cake-bar',
       width: 1254,
@@ -233,7 +233,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsStrawberries: {
-      src: '/images/solly-assets/02-cake-bar/Fraises fraîches coupées en morceaux.png',
+      src: '/images/solly-assets/02-cake-bar/fraises.jpg',
       alt: 'Fraises fraîches découpées en morceaux',
       category: 'cake-bar',
       width: 1254,
@@ -241,7 +241,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsMarshmallow: {
-      src: '/images/solly-assets/02-cake-bar/Mini guimauves roses et blanches.png',
+      src: '/images/solly-assets/02-cake-bar/marshmallow.png',
       alt: 'Mini guimauves douces roses et blanches',
       category: 'cake-bar',
       width: 1254,
@@ -249,7 +249,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     toppingsBanana: {
-      src: '/images/solly-assets/02-cake-bar/Rondelles de banane fraîches.png',
+      src: '/images/solly-assets/02-cake-bar/banane.png',
       alt: 'Rondelles de bananes fraîches',
       category: 'cake-bar',
       width: 1254,
@@ -257,7 +257,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     condensedMilk: {
-      src: '/images/solly-assets/02-cake-bar/Lait concentré sucré en bol transparent.png',
+      src: '/images/solly-assets/02-cake-bar/lait-concentre.jpg',
       alt: 'Lait concentré sucré gourmand en bol transparent',
       category: 'cake-bar',
       width: 1254,
@@ -269,7 +269,7 @@ export const SOLLY_IMAGES = {
   // 03 - BOISSONS ASSETS
   drinks: {
     hero: {
-      src: '/images/solly-assets/03-boissons/Trio de boissons fruitées Solly.png',
+      src: '/images/solly-assets/03-boissons/boissons-trio.png',
       alt: 'Trio de boissons fraîches et fruitées Solly : bissap, ananas et passion',
       category: 'drinks',
       width: 1536,
@@ -277,7 +277,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     bissap: {
-      src: '/images/solly-assets/03-boissons/Bissap glacé à l’hibiscus rouge.png',
+      src: '/images/solly-assets/03-boissons/bissap.png',
       alt: 'Bissap glacé traditionnel à l’hibiscus rouge et menthe',
       category: 'drinks',
       width: 1254,
@@ -285,7 +285,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     ginger: {
-      src: '/images/solly-assets/03-boissons/Boisson glacée au gingembre et agrumes.png',
+      src: '/images/solly-assets/03-boissons/gingembre.png',
       alt: 'Jus de gingembre pur glacé aux agrumes',
       category: 'drinks',
       width: 1254,
@@ -293,7 +293,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     passion: {
-      src: '/images/solly-assets/03-boissons/Jus orange-passion glacé Solly.png',
+      src: '/images/solly-assets/03-boissons/passion.png',
       alt: 'Jus orange-passion exotique et glacé',
       category: 'drinks',
       width: 1254,
@@ -301,7 +301,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     pineapple: {
-      src: '/images/solly-assets/03-boissons/Jus d’ananas Solly, soleil et romarin.png',
+      src: '/images/solly-assets/03-boissons/ananas.png',
       alt: 'Jus d’ananas frais au soleil avec pointe de romarin',
       category: 'drinks',
       width: 1254,
@@ -309,7 +309,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     cartFountains: {
-      src: '/images/solly-assets/03-boissons/Chariot à boissons Solly en jardin fleuri.png',
+      src: '/images/solly-assets/03-boissons/chariot-boissons.png',
       alt: 'Le chariot Solly équipé de fontaines à boissons dans un jardin fleuri',
       category: 'drinks',
       width: 1402,
@@ -317,7 +317,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '5/4',
     },
     duo: {
-      src: '/images/solly-assets/03-boissons/Deux boissons Solly, ananas et bissap.png',
+      src: '/images/solly-assets/03-boissons/boissons-duo.png',
       alt: 'Duo rafraîchissant Solly ananas et bissap',
       category: 'drinks',
       width: 1254,
@@ -325,7 +325,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     duoGourmand: {
-      src: '/images/solly-assets/03-boissons/Duo gourmand Solly _ ananas, bissap et gâteau.png',
+      src: '/images/solly-assets/03-boissons/boissons-ananas-bissap-gateau.png',
       alt: 'Formule duo gourmand Solly avec boissons et gâteau décoré',
       category: 'drinks',
       width: 1254,
@@ -337,7 +337,7 @@ export const SOLLY_IMAGES = {
   // 04 - CHARCUTERIE & SALÉ ASSETS
   charcuterie: {
     hero: {
-      src: '/images/solly-assets/04-charcuterie/Apéritif gourmand Solly en rose.png',
+      src: '/images/solly-assets/04-charcuterie/aperitif-gourmand.png',
       alt: 'Grand apéritif gourmand Solly avec cornets et pots salés',
       category: 'charcuterie',
       width: 1536,
@@ -345,7 +345,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     cartContainers: {
-      src: '/images/solly-assets/04-charcuterie/Le bar à charcuterie Solly(1).png',
+      src: '/images/solly-assets/04-charcuterie/bar-charcuterie.png',
       alt: 'Le chariot Solly en configuration bar à charcuterie avec ses bacs intégrés',
       category: 'charcuterie',
       width: 1254,
@@ -353,7 +353,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     sixContainers: {
-      src: '/images/solly-assets/04-charcuterie/Six bacs inox encastrés dans le comptoir.png',
+      src: '/images/solly-assets/04-charcuterie/bacs-inox.png',
       alt: 'Comptoir de service avec six bacs inox intégrés garnis de salé',
       category: 'charcuterie',
       width: 1620,
@@ -361,7 +361,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '5/3',
     },
     pots: {
-      src: '/images/solly-assets/04-charcuterie/Trois pots gourmands roses au salami.png',
+      src: '/images/solly-assets/04-charcuterie/preview-pot.png',
       alt: 'Trio de pots roses gourmands de charcuterie et fromages',
       category: 'charcuterie',
       width: 1536,
@@ -369,7 +369,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     cones: {
-      src: '/images/solly-assets/04-charcuterie/Trois cônes roses gourmands à picorer.png',
+      src: '/images/solly-assets/04-charcuterie/preview-cornet.png',
       alt: 'Trois cornets roses d’apéritif chic à picorer',
       category: 'charcuterie',
       width: 1536,
@@ -377,7 +377,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     skewers: {
-      src: '/images/solly-assets/04-charcuterie/Bouchées apéritives au fromage et salami.png',
+      src: '/images/solly-assets/04-charcuterie/pot.png',
       alt: 'Bouchées et brochettes apéritives au gouda, olives et salami',
       category: 'charcuterie',
       width: 1536,
@@ -385,7 +385,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     potSingle: {
-      src: '/images/solly-assets/04-charcuterie/Pot rose garni de bouchées apéritives.png',
+      src: '/images/solly-assets/04-charcuterie/pot.png',
       alt: 'Pot rose individuel garni de délices salés',
       category: 'charcuterie',
       width: 1254,
@@ -393,7 +393,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     coneSingle: {
-      src: '/images/solly-assets/04-charcuterie/Cornet rose gourmand de charcuterie.png',
+      src: '/images/solly-assets/04-charcuterie/cornet.png',
       alt: 'Cornet rose élégant prêt pour la dégustation',
       category: 'charcuterie',
       width: 1254,
@@ -401,7 +401,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     salami: {
-      src: '/images/solly-assets/04-charcuterie/Rosettes de salami délicatement pliées.png',
+      src: '/images/solly-assets/04-charcuterie/salami.png',
       alt: 'Rosettes de salami fines et délicates',
       category: 'charcuterie',
       width: 1254,
@@ -409,7 +409,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     gouda: {
-      src: '/images/solly-assets/04-charcuterie/Cubes de gouda doré.png',
+      src: '/images/solly-assets/04-charcuterie/gouda.png',
       alt: 'Cubes de gouda affiné doré',
       category: 'charcuterie',
       width: 1254,
@@ -417,7 +417,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     grapes: {
-      src: '/images/solly-assets/04-charcuterie/Grappe de raisins rouges frais.png',
+      src: '/images/solly-assets/04-charcuterie/raisins.png',
       alt: 'Grappe de raisins rouges croquants',
       category: 'charcuterie',
       width: 1254,
@@ -425,7 +425,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     olives: {
-      src: '/images/solly-assets/04-charcuterie/Coupelle d’olives vertes et noires.png',
+      src: '/images/solly-assets/04-charcuterie/olives.png',
       alt: 'Coupelle d’olives vertes et noires marinées',
       category: 'charcuterie',
       width: 1254,
@@ -433,7 +433,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     crackers: {
-      src: '/images/solly-assets/04-charcuterie/Crackers dorés aux graines.png',
+      src: '/images/solly-assets/04-charcuterie/crackers.png',
       alt: 'Crackers dorés et croustillants aux graines',
       category: 'charcuterie',
       width: 1254,
@@ -441,7 +441,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     pretzels: {
-      src: '/images/solly-assets/04-charcuterie/Mini bretzels dorés au sel.png',
+      src: '/images/solly-assets/04-charcuterie/bretzels.png',
       alt: 'Mini bretzels dorés au sel fin',
       category: 'charcuterie',
       width: 1254,
@@ -449,7 +449,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     ham: {
-      src: '/images/solly-assets/04-charcuterie/Fines tranches de jambon cuit.png',
+      src: '/images/solly-assets/04-charcuterie/jambon.png',
       alt: 'Fines tranches de jambon de qualité',
       category: 'charcuterie',
       width: 1254,
@@ -457,7 +457,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     accord: {
-      src: '/images/solly-assets/04-charcuterie/L’accord salé et frais.png',
+      src: '/images/solly-assets/04-charcuterie/chariot-charcuterie.png',
       alt: 'L’accord salé et frais : pot de charcuterie et boisson Solly',
       category: 'charcuterie',
       width: 1254,
@@ -465,7 +465,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '1/1',
     },
     allocoSnacks: {
-      src: '/images/solly-assets/04-charcuterie/Bouchées apéritives au fromage et salami.png',
+      src: '/images/solly-assets/04-charcuterie/pot.png',
       alt: 'Bouchées apéritives salées',
       category: 'charcuterie',
       width: 1536,
@@ -473,7 +473,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     pretzelsPickles: {
-      src: '/images/solly-assets/04-charcuterie/Mini bretzels dorés au sel.png',
+      src: '/images/solly-assets/04-charcuterie/bretzels.png',
       alt: 'Mini bretzels et pickles croquants',
       category: 'charcuterie',
       width: 1254,
@@ -485,7 +485,7 @@ export const SOLLY_IMAGES = {
   // 05 - EXPÉRIENCE & HISTOIRE (ABOUT)
   about: {
     founders: {
-      src: '/images/solly-assets/05-experience/Femmes au chariot Solly, sous le soleil.png',
+      src: '/images/solly-assets/05-experience/femmes-chariot.png',
       alt: 'Mélissa et Isla au chariot Solly, préparant les cakes avec passion',
       category: 'about',
       width: 1086,
@@ -493,7 +493,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/4',
     },
     craft: {
-      src: '/images/solly-assets/05-experience/Femmes au chariot Solly, sous le soleil.png',
+      src: '/images/solly-assets/05-experience/femmes-chariot.png',
       alt: 'Mélissa et Isla au chariot Solly, préparant les cakes avec passion',
       category: 'about',
       width: 1086,
@@ -501,7 +501,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/4',
     },
     joy: {
-      src: '/images/solly-assets/05-experience/Gâteau aux guimauves décoré à quatre mains.png',
+      src: '/images/solly-assets/05-experience/gateau-quatre-mains.png',
       alt: 'Décoration méticuleuse d\'un gâteau Solly à quatre mains',
       category: 'about',
       width: 1536,
@@ -509,7 +509,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     cakeCloseUp: {
-      src: '/images/solly-assets/05-experience/Gâteau aux guimauves dans son moule doré.png',
+      src: '/images/solly-assets/05-experience/gateau-moule-dore.png',
       alt: 'Gâteau gourmand aux guimauves et mangue dans son moule doré',
       category: 'about',
       width: 1536,
@@ -517,7 +517,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     marshmallowGold: {
-      src: '/images/solly-assets/05-experience/Gâteau marshmallow Solly en moule doré.png',
+      src: '/images/solly-assets/05-experience/gateau-marshmallow.png',
       alt: 'Gâteau marshmallow Solly prêt pour la dégustation',
       category: 'about',
       width: 1536,
@@ -525,7 +525,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     charcuteriePot: {
-      src: '/images/solly-assets/05-experience/Pot rose de charcuterie partagé.png',
+      src: '/images/solly-assets/05-experience/pot-charcuterie-partage.png',
       alt: 'Partage d’un pot rose de charcuterie Solly',
       category: 'about',
       width: 1536,
@@ -533,7 +533,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     drinksCloseUp: {
-      src: '/images/solly-assets/05-experience/Jus glacés ananas et bissap.png',
+      src: '/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png',
       alt: 'Jus glacés ananas et bissap aux couleurs vives',
       category: 'about',
       width: 1536,
@@ -541,7 +541,7 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/2',
     },
     cakeDecorating: {
-      src: '/images/solly-assets/05-experience/Gâteau aux guimauves décoré à quatre mains.png',
+      src: '/images/solly-assets/05-experience/gateau-quatre-mains.png',
       alt: 'Décoration méticuleuse d\'un gâteau Solly à quatre mains',
       category: 'about',
       width: 1536,
@@ -653,7 +653,7 @@ export const SOLLY_IMAGES = {
   // 07 - RÉSERVATION / MOCKUP
   reservation: {
     mockup: {
-      src: '/images/solly-assets/07-reservation/maquette reservation.png',
+      src: '/images/solly-assets/07-reservation/maquette-reservation.png',
       alt: 'Expérience de réservation intuitive Solly',
       category: 'hero',
       width: 1254,
