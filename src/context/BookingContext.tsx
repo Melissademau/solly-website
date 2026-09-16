@@ -242,7 +242,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       `🎨 Personnalisation : ${formData.personalization === 'oui' ? 'Oui' : formData.personalization === 'non' ? 'Non' : 'À définir'}\n` +
       (formData.themeColor ? `🎈 Thème / Couleurs : ${formData.themeColor}\n` : '') +
       (formData.inspirationPhotos && formData.inspirationPhotos.length > 0
-        ? `📸 Inspirations : ${formData.inspirationPhotos.length} photo(s) jointe(s) (je vous les partage également ici sur WhatsApp)\n\n`
+        ? `📸 Inspirations : ${formData.inspirationPhotos.length} photo(s) jointe(s) (${formData.inspirationPhotos.map((p) => p.name).join(', ')}) - je vous envoie la/les photo(s) directement ci-dessous !\n\n`
         : '\n') +
       `👤 Contact :\n` +
       `• Nom : ${formData.firstName || ''} ${formData.lastName || ''}\n` +

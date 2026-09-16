@@ -58,6 +58,12 @@ export async function POST(req: NextRequest) {
                 filename: docxFilename,
                 content: docxBuffer.toString('base64'),
               },
+              ...(formData.inspirationPhotos || [])
+                .filter((p) => p.dataUrl)
+                .map((p, idx) => ({
+                  filename: p.name || `photo-inspiration-${idx + 1}.jpg`,
+                  content: p.dataUrl!.split(';base64,').pop() || '',
+                })),
             ],
           }),
         });
@@ -89,23 +95,39 @@ export async function POST(req: NextRequest) {
           },
         });
 
+        const smtpAttachments: any[] = [
+          {
+            filename: pdfFilename,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+          {
+            filename: docxFilename,
+            content: docxBuffer,
+            contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          },
+        ];
+
+        if (formData.inspirationPhotos && formData.inspirationPhotos.length > 0) {
+          formData.inspirationPhotos.forEach((photo, idx) => {
+            if (photo.dataUrl) {
+              const base64Str = photo.dataUrl.split(';base64,').pop();
+              if (base64Str) {
+                smtpAttachments.push({
+                  filename: photo.name || `photo-inspiration-${idx + 1}.jpg`,
+                  content: Buffer.from(base64Str, 'base64'),
+                });
+              }
+            }
+          });
+        }
+
         await transporter.sendMail({
           from: process.env.EMAIL_FROM || `Solly Réservations <${process.env.SMTP_USER}>`,
           to: targetEmail,
           subject: `✨ Nouvelle demande Solly : ${formData.name} (${formData.guestCount} pers.)`,
           html: htmlContent,
-          attachments: [
-            {
-              filename: pdfFilename,
-              content: pdfBuffer,
-              contentType: 'application/pdf',
-            },
-            {
-              filename: docxFilename,
-              content: docxBuffer,
-              contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            },
-          ],
+          attachments: smtpAttachments,
         });
 
         emailSent = true;

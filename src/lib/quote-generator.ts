@@ -28,6 +28,7 @@ export interface BookingPayload {
     selectedBars: string[];
     experience?: string;
     inspirations?: Array<{ name: string; size: number }>;
+    inspirationPhotos?: Array<{ name: string; size: number; dataUrl?: string }>;
   };
   orderChoices: {
     packageType?: string;
@@ -791,11 +792,27 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
       </div>
       ` : ''}
 
+      ${formData.inspirationPhotos && formData.inspirationPhotos.length > 0 ? `
+      <div style="background: #FFF8E3; border-radius: 16px; padding: 18px 20px; margin: 20px 0; border: 1px solid #fde68a;">
+        <h3 style="margin: 0 0 8px; color: #b45309; font-size: 16px;">📸 Photos d'inspiration (${formData.inspirationPhotos.length})</h3>
+        <p style="font-size: 12px; color: #78350f; margin: 0 0 12px;">Le client a joint ${formData.inspirationPhotos.length} photo(s) (également attachée(s) en pièces jointes) :</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          ${formData.inspirationPhotos.map((photo, i) => photo.dataUrl ? `
+            <div style="text-align: center;">
+              <img src="${photo.dataUrl}" alt="${photo.name || 'Photo'}" style="max-width: 240px; max-height: 180px; border-radius: 12px; border: 1px solid #e5e7eb; object-fit: cover;" /><br>
+              <span style="font-size: 11px; color: #666;">${photo.name || `Photo ${i + 1}`}</span>
+            </div>
+          ` : '').join('')}
+        </div>
+      </div>
+      ` : ''}
+
       <!-- Attachments note -->
       <div style="margin-top: 24px; padding: 14px; background: #fff8eb; border-radius: 12px; border: 1px solid #ffe8b5; font-size: 13px; color: #8a5300;">
         📎 <strong>Pièces jointes incluses :</strong><br>
         1. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.pdf</strong> : Devis prêt à être imprimé ou annoté.<br>
-        2. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.docx</strong> : Fichier Word éditable pour insérer directement vos prix.
+        2. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.docx</strong> : Fichier Word éditable pour insérer directement vos prix.<br>
+        ${formData.inspirationPhotos && formData.inspirationPhotos.length > 0 ? `3. <strong>${formData.inspirationPhotos.length} photo(s) d'inspiration</strong> en pièce jointe.` : ''}
       </div>
 
       <!-- Quick Action Button -->

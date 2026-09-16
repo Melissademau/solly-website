@@ -26,7 +26,6 @@ import {
   User,
   CheckCircle2,
   SlidersHorizontal,
-  Download,
   Loader2,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
@@ -304,10 +303,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
       updated = current.filter((t) => t !== top);
     } else {
       if (current.length >= 6) {
-        updated = [...current.slice(1), top];
-      } else {
-        updated = [...current, top];
+        return; // Maximum 6 toppings autorisés
       }
+      updated = [...current, top];
     }
     setOrderChoices((prev) => ({
       ...prev,
@@ -316,6 +314,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         composants: updated,
       },
     }));
+    setErrors((prev) => ({ ...prev, cakeBarToppings: '' }));
   };
 
   // Customization handlers for Drinks (Limited to 3 juices maximum)
@@ -353,6 +352,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     if (current.includes(comp)) {
       updated = current.filter((c) => c !== comp);
     } else {
+      if (current.length >= 6) {
+        return; // Maximum 6 composants autorisés
+      }
       updated = [...current, comp];
     }
     setOrderChoices((prev) => ({
@@ -362,6 +364,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         composants: updated,
       },
     }));
+    setErrors((prev) => ({ ...prev, charcuterieComposants: '' }));
   };
 
   const validateStep1 = () => {
@@ -395,6 +398,31 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
       setErrors({ selectedBars: 'Veuillez sélectionner au moins un bar gourmand' });
       return;
     }
+
+    // Validation stricte : 6 toppings obligatoires pour le Cake Bar
+    if (formData.selectedBars.includes('cake-bar')) {
+      const toppingsCount = orderChoices.cakeBar?.composants?.length || 0;
+      if (toppingsCount !== 6) {
+        setErrors((prev) => ({
+          ...prev,
+          cakeBarToppings: `Veuillez sélectionner obligatoirement 6 toppings pour le Cake Bar (actuellement ${toppingsCount}/6).`,
+        }));
+        return;
+      }
+    }
+
+    // Validation stricte : 6 composants obligatoires pour le Bar à Charcuterie
+    if (formData.selectedBars.includes('charcuterie')) {
+      const compsCount = orderChoices.charcuterie?.composants?.length || 0;
+      if (compsCount !== 6) {
+        setErrors((prev) => ({
+          ...prev,
+          charcuterieComposants: `Veuillez sélectionner obligatoirement 6 composants pour le Bar à Charcuterie (actuellement ${compsCount}/6).`,
+        }));
+        return;
+      }
+    }
+
     setErrors({});
     setCurrentStep(3);
   };
@@ -1099,26 +1127,43 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     </div>
                   </div>
 
-                  {/* Choix des toppings (Max 6) */}
+                  {/* Choix des toppings (Exactement 6 obligatoires) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="block text-xs font-bold text-solly-charcoal">
-                        4. Vos toppings & friandises
+                        4. Vos toppings & friandises <span className="text-solly-pink">*</span>
                       </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Jusqu'à 6 au choix</span>
+                      <span
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                          (orderChoices.cakeBar?.composants?.length || 0) === 6
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-solly-pink-soft text-solly-pink'
+                        }`}
+                      >
+                        {orderChoices.cakeBar?.composants?.length || 0}/6 obligatoires
+                      </span>
                     </div>
+                    <p className="text-[11px] text-solly-muted mb-2 font-medium">
+                      {(orderChoices.cakeBar?.composants?.length || 0) === 6
+                        ? '✓ 6 toppings sélectionnés !'
+                        : `Veuillez sélectionner 6 toppings pour valider (encore ${6 - (orderChoices.cakeBar?.composants?.length || 0)} à choisir).`}
+                    </p>
                     <div className="flex flex-wrap gap-1.5">
                       {CAKE_OPTIONS.toppings.map((top) => {
                         const isSelected = orderChoices.cakeBar?.composants?.includes(top);
+                        const isMaxReached = (orderChoices.cakeBar?.composants?.length || 0) >= 6 && !isSelected;
                         return (
                           <button
                             key={top}
                             type="button"
+                            disabled={isMaxReached}
                             onClick={() => handleCakeToppingToggle(top)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all inline-flex items-center gap-1 ${
                               isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs cursor-pointer'
+                                : isMaxReached
+                                ? 'bg-white/40 text-solly-charcoal/40 border-solly-border/40 opacity-40 cursor-not-allowed'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30 cursor-pointer'
                             }`}
                           >
                             {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -1127,6 +1172,11 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         );
                       })}
                     </div>
+                    {errors.cakeBarToppings && (
+                      <p className="text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-2 rounded-xl border border-red-200">
+                        {errors.cakeBarToppings}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1238,23 +1288,43 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     </div>
                   </div>
 
-                  {/* Composants salés */}
+                  {/* Composants salés (Exactement 6 obligatoires) */}
                   <div>
-                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                      2. Vos bouchées salées souhaitées
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        2. Vos bouchées salées souhaitées <span className="text-solly-pink">*</span>
+                      </label>
+                      <span
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                          (orderChoices.charcuterie?.composants?.length || 0) === 6
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-solly-pink-soft text-solly-pink'
+                        }`}
+                      >
+                        {orderChoices.charcuterie?.composants?.length || 0}/6 obligatoires
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-solly-muted mb-2 font-medium">
+                      {(orderChoices.charcuterie?.composants?.length || 0) === 6
+                        ? '✓ 6 composants sélectionnés !'
+                        : `Veuillez sélectionner 6 composants pour valider (encore ${6 - (orderChoices.charcuterie?.composants?.length || 0)} à choisir).`}
+                    </p>
                     <div className="flex flex-wrap gap-1.5">
                       {CHARCUTERIE_OPTIONS.composants.map((comp) => {
                         const isSelected = orderChoices.charcuterie?.composants?.includes(comp);
+                        const isMaxReached = (orderChoices.charcuterie?.composants?.length || 0) >= 6 && !isSelected;
                         return (
                           <button
                             key={comp}
                             type="button"
+                            disabled={isMaxReached}
                             onClick={() => handleCharcuterieComposantToggle(comp)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all inline-flex items-center gap-1 ${
                               isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs cursor-pointer'
+                                : isMaxReached
+                                ? 'bg-white/40 text-solly-charcoal/40 border-solly-border/40 opacity-40 cursor-not-allowed'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30 cursor-pointer'
                             }`}
                           >
                             {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -1263,6 +1333,11 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         );
                       })}
                     </div>
+                    {errors.charcuterieComposants && (
+                      <p className="text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-2 rounded-xl border border-red-200">
+                        {errors.charcuterieComposants}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1680,11 +1755,27 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               </div>
 
               {/* Primary Action: WhatsApp Direct Link */}
-              <div className="space-y-1.5 pt-1">
+              <div className="space-y-2 pt-1">
                 <a
                   href={getWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={async () => {
+                    if (formData.inspirationPhotos && formData.inspirationPhotos.length > 0) {
+                      try {
+                        const firstPhoto = formData.inspirationPhotos[0];
+                        if (firstPhoto.dataUrl && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                          const res = await fetch(firstPhoto.dataUrl);
+                          const blob = await res.blob();
+                          await navigator.clipboard.write([
+                            new ClipboardItem({ [blob.type]: blob }),
+                          ]);
+                        }
+                      } catch {
+                        // ignore clipboard write restrictions
+                      }
+                    }
+                  }}
                   className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#25D366] text-white font-display font-bold text-sm sm:text-base hover:bg-[#1EBE5D] shadow-lg transition-all duration-200 inline-flex items-center justify-center gap-2.5 group cursor-pointer"
                 >
                   <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
@@ -1695,43 +1786,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </p>
               </div>
 
-              {/* Generated Quote Box with PDF & Word download */}
-              {generatedQuote && (generatedQuote.pdfBase64 || generatedQuote.docxBase64) && (
-                <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-3.5 sm:p-4 text-left space-y-2.5 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-solly-charcoal flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-solly-pink" />
-                      <span>Modèle de devis pré-rempli</span>
-                    </span>
-                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">
-                      ✓ Transmis par email
-                    </span>
+              {/* Photo inspiration reminder */}
+              {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                <div className="bg-[#FFF8E3] border border-[#FDE68A] rounded-2xl p-3 sm:p-3.5 text-left space-y-1 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                    <span>📸</span>
+                    <span>{formData.inspirationPhotos.length} photo(s) d’inspiration :</span>
                   </div>
-                  <p className="text-[11px] text-solly-muted leading-tight">
-                    Le devis officiel complet a été préparé et transmis à <strong>hello@monsolly.com</strong>. Vous pouvez également le télécharger :
+                  <p className="text-[11px] text-amber-800 leading-tight">
+                    Vos photos sont transmises dans le récapitulatif par email à l’équipe Solly. En ouvrant WhatsApp ci-dessus, pensez également à joindre votre/vos photo(s) dans la discussion !
                   </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {generatedQuote.pdfBase64 && (
-                      <a
-                        href={`data:application/pdf;base64,${generatedQuote.pdfBase64}`}
-                        download={generatedQuote.pdfFilename || 'devis-solly.pdf'}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-solly-border text-xs font-bold text-solly-charcoal hover:border-solly-pink/40 hover:text-solly-pink transition-colors shadow-2xs"
-                      >
-                        <Download className="w-3.5 h-3.5 text-solly-pink" />
-                        <span>Télécharger (PDF)</span>
-                      </a>
-                    )}
-                    {generatedQuote.docxBase64 && (
-                      <a
-                        href={`data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${generatedQuote.docxBase64}`}
-                        download={generatedQuote.docxFilename || 'devis-solly.docx'}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-solly-border text-xs font-bold text-solly-charcoal hover:border-solly-pink/40 hover:text-solly-pink transition-colors shadow-2xs"
-                      >
-                        <Download className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Télécharger (Word .docx)</span>
-                      </a>
-                    )}
-                  </div>
                 </div>
               )}
 
