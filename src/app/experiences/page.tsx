@@ -284,31 +284,20 @@ const FAQ_ITEMS = [
 export default function CakeBarPage() {
   const { openBooking } = useBooking();
 
-  // Configurator interactive selections for Cake Bar
-  const [selectedBarquette, setSelectedBarquette] = useState('Barquette standard Solly');
-  const [selectedBase, setSelectedBase] = useState('Vanille');
+  // Configurator interactive selections for Cake Bar (all unselected by default)
+  const [selectedBarquette, setSelectedBarquette] = useState('');
+  const [selectedBase, setSelectedBase] = useState('');
   // Maximum 2 sauces
-  const [selectedSauces, setSelectedSauces] = useState<string[]>(['Chocolat']);
+  const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
   // Composants selection (max 6)
-  const [selectedToppings, setSelectedToppings] = useState<string[]>([
-    'Oreo',
-    'Vermicelles',
-  ]);
+  const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
 
   // Drinks selections (max 3)
-  const [selectedDrinks, setSelectedDrinks] = useState<string[]>([
-    'Bissap glacé',
-    'Jus d’ananas',
-  ]);
+  const [selectedDrinks, setSelectedDrinks] = useState<string[]>([]);
 
   // Charcuterie interactive selections: format & bacs (max 6)
-  const [selectedCharcuterieFormat, setSelectedCharcuterieFormat] = useState('Le Cornet');
-  const [selectedCharcuterieComponents, setSelectedCharcuterieComponents] = useState<string[]>([
-    'Rosettes de salami',
-    'Gouda doré',
-    'Olives marinées',
-    'Raisins frais',
-  ]);
+  const [selectedCharcuterieFormat, setSelectedCharcuterieFormat] = useState('');
+  const [selectedCharcuterieComponents, setSelectedCharcuterieComponents] = useState<string[]>([]);
 
   // FAQ open/close state
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -316,8 +305,7 @@ export default function CakeBarPage() {
   const toggleSauce = (sauceId: string) => {
     setSelectedSauces((prev) => {
       if (prev.includes(sauceId)) {
-        if (prev.length > 1) return prev.filter((s) => s !== sauceId);
-        return prev;
+        return prev.filter((s) => s !== sauceId);
       }
       if (prev.length >= 2) {
         return [prev[1], sauceId]; // keep max 2 by replacing the oldest
@@ -353,8 +341,7 @@ export default function CakeBarPage() {
   const toggleCharcuterieComponent = (itemId: string) => {
     setSelectedCharcuterieComponents((prev) => {
       if (prev.includes(itemId)) {
-        if (prev.length > 1) return prev.filter((i) => i !== itemId);
-        return prev;
+        return prev.filter((i) => i !== itemId);
       }
       if (prev.length >= 6) {
         return prev;
@@ -760,7 +747,7 @@ export default function CakeBarPage() {
                       <button
                         key={barquette.id}
                         type="button"
-                        onClick={() => setSelectedBarquette(barquette.id)}
+                        onClick={() => setSelectedBarquette((prev) => (prev === barquette.id ? '' : barquette.id))}
                         className={`relative group rounded-[20px] p-3 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
                           isSelected
                             ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm ring-1 ring-solly-pink/20'
@@ -830,7 +817,7 @@ export default function CakeBarPage() {
                       <button
                         key={base.id}
                         type="button"
-                        onClick={() => setSelectedBase(base.id)}
+                        onClick={() => setSelectedBase((prev) => (prev === base.id ? '' : base.id))}
                         className={`relative group rounded-[18px] p-2 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
                           isSelected
                             ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm'
@@ -1285,7 +1272,7 @@ export default function CakeBarPage() {
                       <button
                         key={format.id}
                         type="button"
-                        onClick={() => setSelectedCharcuterieFormat(format.id)}
+                        onClick={() => setSelectedCharcuterieFormat((prev) => (prev === format.id ? '' : format.id))}
                         className={`relative group rounded-[18px] p-3 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
                           isSelected
                             ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm'
