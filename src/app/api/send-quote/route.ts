@@ -85,10 +85,13 @@ export async function POST(req: NextRequest) {
     // 3. Attempt sending via SMTP if configured and not yet sent
     if (!emailSent && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
+        const port = Number(process.env.SMTP_PORT) || 465;
+        const isSecure = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE !== 'false' : port === 465;
+
         const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: Number(process.env.SMTP_PORT) || 465,
-          secure: process.env.SMTP_SECURE !== 'false',
+          host: process.env.SMTP_HOST || 'smtp.ionos.fr',
+          port: port,
+          secure: isSecure,
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
