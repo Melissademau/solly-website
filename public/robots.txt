@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+
+Host: https://www.monsolly.com
+Sitemap: https://www.monsolly.com/sitemap.xml
