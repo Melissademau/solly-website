@@ -28,7 +28,7 @@ export default function HomePage() {
             >
               {/* Category Eyebrow */}
               <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] uppercase text-solly-charcoal/90 mb-4">
-                Bars gourmands à Dakar
+                Chariot événement & animation anniversaire à Dakar
               </p>
 
               {/* Main Headline with Pink Sparkle ✦ */}
@@ -42,11 +42,9 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* 3-line Subtitle */}
-              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-sm mb-7 leading-snug mx-auto lg:mx-0">
-                Un joli chariot, des gourmandises <br />
-                à composer et des souvenirs <br />
-                à partager.
+              {/* Subtitle with high-intent keywords */}
+              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-7 leading-snug mx-auto lg:mx-0">
+                L’expérience gourmande mobile pour vos anniversaires et célébrations à Dakar : un joli chariot événementiel, un Cake Bar à composer et des souvenirs inoubliables.
               </p>
 
               {/* Stacked CTAs + Beside Handwritten Script Note */}
@@ -131,13 +129,18 @@ export default function HomePage() {
       <section id="bars" className="py-16 sm:py-24 bg-solly-cream">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Heading with 3 pink action dashes */}
-          <div className="text-center mb-12 sm:mb-14 flex items-center justify-center gap-2">
-            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-              À chaque envie, son bar gourmand.
-            </h2>
-            <div className="-mt-3 sm:-mt-4 select-none pointer-events-none">
-              <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+          <div className="text-center mb-10 sm:mb-12">
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+                À chaque envie, son bar gourmand.
+              </h2>
+              <div className="-mt-3 sm:-mt-4 select-none pointer-events-none">
+                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+              </div>
             </div>
+            <p className="text-xs sm:text-sm md:text-base text-solly-charcoal/75 font-medium mt-2 max-w-xl mx-auto">
+              L'animation originale pour anniversaire d’enfant et événements à Dakar : Cake Bar, bar à boissons fraîches et chariot salé.
+            </p>
           </div>
 
           {/* 3 Experience Cards Grid: 2 rows on mobile (Row 1: Cake Bar & Bar à Boissons; Row 2: Bar à Charcuterie) */}
@@ -307,8 +310,8 @@ export default function HomePage() {
             <div className="lg:col-span-6 flex flex-col items-start text-left">
               <div className="relative mb-3">
                 <h2 className="font-display font-black text-3xl sm:text-4xl text-solly-charcoal tracking-tight leading-tight">
-                  Un chariot aux couleurs <br />
-                  de votre fête.
+                  Un chariot événementiel <br />
+                  aux couleurs de votre fête.
                 </h2>
                 <div className="absolute top-0 -right-8 text-solly-pink select-none pointer-events-none">
                   <Sparkle size={26} color="#DE1B52" />
@@ -316,7 +319,7 @@ export default function HomePage() {
               </div>
 
               <p className="text-sm sm:text-base text-solly-charcoal/90 font-medium mb-6">
-                Prénom, thème ou logo : chaque détail compte.
+                Prénom, thème personnalisé ou logo : votre chariot gourmand anniversaire à Dakar pensé dans les moindres détails.
               </p>
 
               <button

@@ -466,7 +466,7 @@ export default function CakeBarPage() {
             >
               {/* Category Eyebrow */}
               <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] uppercase text-solly-charcoal/90 mb-4">
-                Le Cake Bar Solly
+                Cake Bar anniversaire & expérience gourmande à Dakar
               </p>
 
               {/* Main Headline with Pink Sparkle ✦ */}
@@ -482,7 +482,7 @@ export default function CakeBarPage() {
 
               {/* Subtitle */}
               <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-8 leading-snug">
-                Des cakes moelleux, une crème généreuse et vos composants préférés, assemblés devant vos invités.
+                L’expérience gourmande incontournable pour votre fête : des cakes moelleux, des sauces fondantes et vos toppings préférés, assemblés minute devant vos invités à Dakar.
               </p>
 
               {/* CTA with 3 pink action dashes to the left */}
