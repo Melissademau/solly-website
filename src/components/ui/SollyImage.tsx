@@ -17,6 +17,9 @@ export function SollyImage({
   fallbackLabel,
   className = '',
   aspectRatioClass = 'aspect-[4/3]',
+  sizes,
+  priority = false,
+  quality = 80,
   ...props
 }: SollyImageProps) {
   const [error, setError] = useState(false);
@@ -90,6 +93,12 @@ export function SollyImage({
       <Image
         src={src}
         alt={alt}
+        fill
+        sizes={sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'}
+        priority={priority}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        quality={quality}
         onError={() => setError(true)}
         className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
         {...props}

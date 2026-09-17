@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Sparkles, ArrowRight, Image as ImageIcon, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Sparkle, BurstDoodle, ScallopEdge } from '@/components/ui/Doodles';
@@ -40,38 +41,37 @@ export default function EvenementsPage() {
               VOS ÉVÉNEMENTS, VOTRE UNIVERS
             </span>
 
-            {/* Headline with 4-point Sparkle */}
-            <div className="relative inline-block mb-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-display font-extrabold text-solly-pink leading-[1.08] tracking-tight">
-                Votre fête.<br />
-                Vos couleurs.<br />
-                La touche Solly.
-              </h1>
-              <Sparkle
-                className="absolute -top-2 right-0 sm:-right-4 text-solly-pink animate-pulse"
-                size={32}
-              />
-            </div>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold text-solly-pink leading-[1.08] tracking-tight mb-4">
+              À votre image.<br />
+              Pour vos plus beaux moments.
+            </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-solly-charcoal/85 leading-relaxed font-sans font-medium mb-8 max-w-lg">
-              Anniversaire, mariage ou événement d’entreprise : imaginons un bar gourmand qui vous ressemble.
+            <p className="text-base sm:text-lg text-solly-charcoal/80 font-medium leading-relaxed mb-8 max-w-lg">
+              Façade, thème, contenants : créez un chariot unique pour votre fête, pensé spécialement pour vous et vos invités.
             </p>
 
-            {/* CTA Button with radiating pink dashes on the left */}
-            <div className="flex items-center gap-3">
-              <BurstDoodle direction="left" size={24} color="#DE1B52" />
+            {/* CTA Button */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <Button
+                variant="pink"
+                size="lg"
+                onClick={() => handleBookEvent("Autre événement", "Événement personnalisé sur-mesure")}
+                className="font-bold shadow-solly-pink text-base sm:text-lg !px-8 !py-4"
+              >
+                Personnaliser mon événement
+              </Button>
+
               <button
                 type="button"
-                onClick={() =>
-                  openBooking({
-                    eventInspiration: "Personnalisation d'événement",
-                    packageType: 'L’expérience personnalisée',
-                  })
-                }
-                className="px-8 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center gap-2 group cursor-pointer"
+                onClick={() => {
+                  const element = document.getElementById('occasions');
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-solly-charcoal/80 hover:text-solly-pink transition-colors px-4 py-2 cursor-pointer group"
               >
-                <span>Personnaliser mon événement</span>
+                <span>Découvrir les formats</span>
                 <span className="transition-transform group-hover:translate-x-1 font-bold">→</span>
               </button>
             </div>
@@ -80,10 +80,14 @@ export default function EvenementsPage() {
           {/* Right Column: Hero Photo with "À votre image ♡" sticker badge */}
           <div className="lg:col-span-6">
             <div className="relative rounded-[28px] sm:rounded-[34px] overflow-hidden shadow-solly-card border border-solly-border bg-white group aspect-[16/11]">
-              <img
+              <Image
                 src="/images/solly-assets/06-evenements/chariot-anniversaire-jardin.png"
                 alt="Chariot Solly décoré avec façade Joyeux Anniversaire au jardin"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
 
               {/* "À votre image ♡" Badge */}
@@ -145,10 +149,14 @@ export default function EvenementsPage() {
           {/* Card 1: Anniversaires (Noah) */}
           <div className="bg-white rounded-[26px] border border-solly-border shadow-solly-soft p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-solly-card hover:border-solly-pink/30 transition-all duration-300 group">
             <div className="sm:w-1/2 rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-square relative flex-shrink-0 bg-solly-cream">
-              <img
+              <Image
                 src="/images/solly-assets/06-evenements/chariot-noah.png"
                 alt="Chariot anniversaire dinosaure de Noah"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 640px) 100vw, 25vw"
+                loading="lazy"
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
             </div>
             <div className="flex flex-col justify-between p-2 sm:py-2 flex-1">
@@ -174,10 +182,14 @@ export default function EvenementsPage() {
           {/* Card 2: Baby showers (Oh Baby) */}
           <div className="bg-white rounded-[26px] border border-solly-border shadow-solly-soft p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-solly-card hover:border-solly-pink/30 transition-all duration-300 group">
             <div className="sm:w-1/2 rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-square relative flex-shrink-0 bg-solly-cream">
-              <img
+              <Image
                 src="/images/solly-assets/06-evenements/chariot-oh-baby.png"
                 alt="Chariot baby shower Oh Baby au jardin"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 640px) 100vw, 25vw"
+                loading="lazy"
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
             </div>
             <div className="flex flex-col justify-between p-2 sm:py-2 flex-1">
@@ -203,10 +215,14 @@ export default function EvenementsPage() {
           {/* Card 3: Mariages (A & M) */}
           <div className="bg-white rounded-[26px] border border-solly-border shadow-solly-soft p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-solly-card hover:border-solly-pink/30 transition-all duration-300 group">
             <div className="sm:w-1/2 rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-square relative flex-shrink-0 bg-solly-cream">
-              <img
+              <Image
                 src="/images/solly-assets/06-evenements/chariot-mariage-am.png"
                 alt="Chariot mariage élégant A & M au jardin"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 640px) 100vw, 25vw"
+                loading="lazy"
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
             </div>
             <div className="flex flex-col justify-between p-2 sm:py-2 flex-1">
@@ -232,10 +248,14 @@ export default function EvenementsPage() {
           {/* Card 4: Entreprises (Votre logo) */}
           <div className="bg-white rounded-[26px] border border-solly-border shadow-solly-soft p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-stretch hover:shadow-solly-card hover:border-solly-pink/30 transition-all duration-300 group">
             <div className="sm:w-1/2 rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-square relative flex-shrink-0 bg-solly-cream">
-              <img
+              <Image
                 src="/images/solly-assets/06-evenements/chariot-votre-logo.png"
                 alt="Chariot Solly personnalisable avec Votre logo"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 640px) 100vw, 25vw"
+                loading="lazy"
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
             </div>
             <div className="flex flex-col justify-between p-2 sm:py-2 flex-1">
@@ -281,11 +301,15 @@ export default function EvenementsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Card 1: La façade */}
               <div className="bg-white rounded-[24px] p-4 sm:p-5 border border-solly-border shadow-solly-soft flex flex-col group">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4">
-                  <img
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4 relative">
+                  <Image
                     src="/images/solly-assets/06-evenements/panneau-joyeux-anniversaire.png"
                     alt="Panneau Solly rose Joyeux Anniversaire avec rubans"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
                 <h3 className="font-display font-extrabold text-solly-charcoal text-lg sm:text-xl mb-1.5">
@@ -298,11 +322,15 @@ export default function EvenementsPage() {
 
               {/* Card 2: Les contenants */}
               <div className="bg-white rounded-[24px] p-4 sm:p-5 border border-solly-border shadow-solly-soft flex flex-col group">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4">
-                  <img
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4 relative">
+                  <Image
                     src="/images/solly-assets/06-evenements/contenants-noah.png"
                     alt="Contenants personnalisés Noah avec gâteau et gobelet Solly"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
                 <h3 className="font-display font-extrabold text-solly-charcoal text-lg sm:text-xl mb-1.5">
@@ -315,11 +343,15 @@ export default function EvenementsPage() {
 
               {/* Card 3: La carte gourmande */}
               <div className="bg-white rounded-[24px] p-4 sm:p-5 border border-solly-border shadow-solly-soft flex flex-col group">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4">
-                  <img
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-solly-cream mb-4 relative">
+                  <Image
                     src="/images/solly-assets/06-evenements/menu-fleuri.png"
                     alt="Menu fleuri chevalet et gâteau aux marshmallows"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
                 <h3 className="font-display font-extrabold text-solly-charcoal text-lg sm:text-xl mb-1.5">
@@ -344,11 +376,15 @@ export default function EvenementsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Left Column: Photo of Three Panels */}
           <div className="lg:col-span-7">
-            <div className="rounded-[28px] sm:rounded-[34px] overflow-hidden shadow-solly-card border border-solly-border bg-white group aspect-[3/2]">
-              <img
+            <div className="rounded-[28px] sm:rounded-[34px] overflow-hidden shadow-solly-card border border-solly-border bg-white group aspect-[3/2] relative">
+              <Image
                 src="/images/solly-assets/06-evenements/trois-panneaux.png"
                 alt="Trois panneaux Solly pastel interchangeables (Anniversaire, Solly+, Votre logo)"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                fill
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                loading="lazy"
+                decoding="async"
+                className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               />
             </div>
           </div>

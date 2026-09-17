@@ -28,6 +28,7 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.monsolly.com'),
   title: 'SOLLY — La beauté en bouchées | Bars gourmands à Dakar',
   description:
     'Expérience chariot gourmand haut de gamme pour anniversaires d’enfants, baby showers, fêtes de famille et événements d’entreprise. Cake Bar, Bar à boissons fraîches et Bar salé.',
@@ -73,6 +74,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${quicksand.variable} ${fredoka.variable} ${caveat.variable}`}>
+      <head>
+        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+      </head>
       <body className="font-sans min-h-screen flex flex-col bg-solly-cream text-solly-charcoal antialiased selection:bg-solly-pink/20 selection:text-solly-charcoal text-[15px] sm:text-[16px] leading-relaxed">
         <BookingProvider>
           <Navbar />

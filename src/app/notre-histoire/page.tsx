@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Sparkle, BurstDoodle, ScallopEdge } from '@/components/ui/Doodles';
 import { SollyCtaBanner } from '@/components/ui/SollyCtaBanner';
 import { useBooking } from '@/context/BookingContext';
@@ -19,20 +20,28 @@ export default function NotreHistoirePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
               {/* Photo 1: Femmes au chariot Solly, sous le soleil (Visible everywhere) */}
               <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[16/11] sm:aspect-[3/4]">
-                <img
+                <Image
                   src="/images/solly-assets/05-experience/femmes-chariot.png"
                   alt="Femmes au chariot Solly, sous le soleil"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  priority
+                  decoding="async"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
               {/* Photo 2: Gâteau aux guimauves décoré à quatre mains (Hidden on mobile to lighten the page) */}
               <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4] hidden sm:block">
-                <img
+                <Image
                   src="/images/solly-assets/05-experience/gateau-quatre-mains.png"
                   alt="Gâteau aux guimauves décoré à quatre mains"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  fill
+                  sizes="50vw"
+                  loading="lazy"
+                  decoding="async"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
@@ -332,30 +341,42 @@ export default function NotreHistoirePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           {/* Photo 1: Gâteau marshmallow Solly en moule doré */}
           <div className="relative group overflow-hidden rounded-[24px] sm:rounded-[28px] border border-solly-border shadow-solly-card bg-white aspect-[4/3]">
-            <img
+            <Image
               src="/images/solly-assets/05-experience/gateau-marshmallow.png"
               alt="Gâteau marshmallow Solly en moule doré"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              loading="lazy"
+              decoding="async"
+              className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
 
           {/* Photo 2: Pot rose de charcuterie partagé */}
           <div className="relative group overflow-hidden rounded-[24px] sm:rounded-[28px] border border-solly-border shadow-solly-card bg-white aspect-[4/3]">
-            <img
+            <Image
               src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
               alt="Pot rose de charcuterie partagé"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              loading="lazy"
+              decoding="async"
+              className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
 
           {/* Photo 3: Jus glacés ananas et bissap */}
           <div className="relative group overflow-hidden rounded-[24px] sm:rounded-[28px] border border-solly-border shadow-solly-card bg-white aspect-[4/3]">
-            <img
+            <Image
               src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
               alt="Jus glacés ananas et bissap"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              loading="lazy"
+              decoding="async"
+              className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>

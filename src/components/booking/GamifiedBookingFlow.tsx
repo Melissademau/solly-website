@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -923,13 +924,17 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   }`}
                 >
                   <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <img
+                    <Image
                       src="/images/solly-assets/05-experience/gateau-marshmallow.png"
                       alt="Cake Bar"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 33vw, 150px"
+                      loading="lazy"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
                         formData.selectedBars.includes('cake-bar')
                           ? 'bg-solly-pink text-white shadow-sm scale-110'
                           : 'bg-white/85 border border-solly-border text-transparent'
@@ -959,13 +964,17 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   }`}
                 >
                   <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <img
+                    <Image
                       src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
                       alt="Bar à boissons"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 33vw, 150px"
+                      loading="lazy"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
                         formData.selectedBars.includes('drinks')
                           ? 'bg-solly-pink text-white shadow-sm scale-110'
                           : 'bg-white/85 border border-solly-border text-transparent'
@@ -995,13 +1004,17 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   }`}
                 >
                   <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <img
+                    <Image
                       src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
                       alt="Bar à charcuterie"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 33vw, 150px"
+                      loading="lazy"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
                         formData.selectedBars.includes('charcuterie')
                           ? 'bg-solly-pink text-white shadow-sm scale-110'
                           : 'bg-white/85 border border-solly-border text-transparent'
