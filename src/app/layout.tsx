@@ -105,6 +105,9 @@ export const metadata: Metadata = {
     shortcut: ['/favicon.ico?v=2'],
   },
   manifest: '/site.webmanifest',
+  verification: {
+    google: 'google492f85bf73ef4b44',
+  },
 };
 
 const jsonLd = {
