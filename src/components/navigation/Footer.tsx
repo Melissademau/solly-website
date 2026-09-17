@@ -67,6 +67,35 @@ export function Footer() {
             <span className="hidden sm:inline">Réservations : </span>+221 77 690 04 58
           </p>
         </div>
+
+        {/* Row 4: Mentions Légales, CGV & Remboursement */}
+        <div className="pt-3 border-t border-solly-border/30 flex flex-col sm:flex-row items-center sm:justify-between text-[11px] text-solly-muted gap-2 text-center sm:text-left">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
+            <Link
+              href="/cgv"
+              className="hover:text-solly-pink transition-colors font-medium hover:underline"
+            >
+              CGV
+            </Link>
+            <span className="text-solly-border">•</span>
+            <Link
+              href="/mentions-legales"
+              className="hover:text-solly-pink transition-colors font-medium hover:underline"
+            >
+              Mentions Légales
+            </Link>
+            <span className="text-solly-border">•</span>
+            <Link
+              href="/politique-de-remboursement"
+              className="hover:text-solly-pink transition-colors font-medium hover:underline"
+            >
+              Politique de Remboursement
+            </Link>
+          </div>
+          <p className="text-[10px] text-solly-muted/80">
+            Dakar, Sénégal
+          </p>
+        </div>
       </div>
     </footer>
   );

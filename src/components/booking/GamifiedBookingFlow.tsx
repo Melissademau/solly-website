@@ -1708,6 +1708,18 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 <Info className="w-4 h-4 text-solly-charcoal/60 shrink-0" />
                 <span>Réponse et devis gratuit sous 24h ouvrées. Sans engagement.</span>
               </div>
+
+              {/* CGV & Remboursement notice */}
+              <p className="text-[10px] sm:text-[11px] text-solly-muted text-center pt-1 leading-normal">
+                En envoyant votre demande, vous acceptez nos{' '}
+                <Link href="/cgv" target="_blank" className="text-solly-pink underline font-semibold hover:text-solly-charcoal">
+                  CGV
+                </Link>
+                {' '}et notre{' '}
+                <Link href="/politique-de-remboursement" target="_blank" className="text-solly-pink underline font-semibold hover:text-solly-charcoal">
+                  politique d’annulation
+                </Link>.
+              </p>
             </motion.form>
           )}
 
@@ -1762,9 +1774,18 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               </div>
 
               {/* Alert Pink Banner */}
-              <div className="bg-[#FCECEF] border border-solly-pink/20 text-solly-pink rounded-2xl p-2.5 sm:p-3 text-xs font-bold inline-flex items-center gap-1.5 mx-auto">
-                <Sparkle size={14} color="#DE1B52" />
-                <span>Votre réservation n’est pas encore confirmée.</span>
+              <div className="bg-[#FCECEF] border border-solly-pink/20 text-solly-pink rounded-2xl p-2.5 sm:p-3 text-xs font-bold inline-flex flex-col items-center gap-1 mx-auto max-w-sm">
+                <div className="flex items-center gap-1.5">
+                  <Sparkle size={14} color="#DE1B52" />
+                  <span>Votre réservation n’est pas encore confirmée.</span>
+                </div>
+                <span className="text-[10px] font-normal text-solly-charcoal/80">
+                  La date sera bloquée à réception de l&apos;acompte de 70 % (
+                  <Link href="/cgv" target="_blank" className="underline font-bold text-solly-pink">
+                    CGV
+                  </Link>
+                  ).
+                </span>
               </div>
 
               {/* Primary Action: WhatsApp Direct Link */}
