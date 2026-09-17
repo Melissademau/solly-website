@@ -19,12 +19,12 @@ export default function NotreHistoirePage() {
           <div className="lg:col-span-7">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 items-stretch">
               {/* Photo 1: Femmes au chariot Solly, sous le soleil (Visible everywhere) */}
-              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[16/11] sm:aspect-[3/4]">
+              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[16/11] sm:aspect-[3/4] min-h-[260px] sm:min-h-[400px]">
                 <Image
                   src="/images/solly-assets/05-experience/femmes-chariot.png"
                   alt="Femmes au chariot Solly, sous le soleil"
                   fill
-                  sizes="(max-width: 640px) 100vw, 50vw"
+                  unoptimized
                   priority
                   decoding="async"
                   className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -33,13 +33,13 @@ export default function NotreHistoirePage() {
               </div>
 
               {/* Photo 2: Gâteau aux guimauves décoré à quatre mains (Hidden on mobile to lighten the page) */}
-              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4] hidden sm:block">
+              <div className="relative group overflow-hidden rounded-[26px] sm:rounded-[30px] border border-solly-border shadow-solly-card bg-white aspect-[4/5] sm:aspect-[3/4] min-h-[260px] sm:min-h-[400px] hidden sm:block">
                 <Image
                   src="/images/solly-assets/05-experience/gateau-quatre-mains.png"
                   alt="Gâteau aux guimauves décoré à quatre mains"
                   fill
-                  sizes="50vw"
-                  loading="lazy"
+                  unoptimized
+                  priority
                   decoding="async"
                   className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
@@ -345,7 +345,7 @@ export default function NotreHistoirePage() {
               src="/images/solly-assets/05-experience/gateau-marshmallow.png"
               alt="Gâteau marshmallow Solly en moule doré"
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
+              unoptimized
               loading="lazy"
               decoding="async"
               className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -359,7 +359,7 @@ export default function NotreHistoirePage() {
               src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
               alt="Pot rose de charcuterie partagé"
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
+              unoptimized
               loading="lazy"
               decoding="async"
               className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -373,7 +373,7 @@ export default function NotreHistoirePage() {
               src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
               alt="Jus glacés ananas et bissap"
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
+              unoptimized
               loading="lazy"
               decoding="async"
               className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
