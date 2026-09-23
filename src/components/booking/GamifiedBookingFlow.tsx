@@ -942,14 +942,6 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   <span className="text-xs text-solly-muted font-medium">personnes</span>
                 </div>
 
-                {/* Dynamic Price Calculation Box */}
-                <div className="mt-2 text-xs font-bold text-solly-charcoal/80 flex items-center justify-between bg-solly-cream/80 px-3.5 py-2 rounded-xl border border-solly-border/70">
-                  <span>{guestCount || 20} invités × 4 000 FCFA</span>
-                  <span className="font-display font-black text-sm text-solly-pink">
-                    {formatPriceFCFA((guestCount || 20) * PRICING_CONFIG.BASE_PRICE_PER_GUEST)}
-                  </span>
-                </div>
-
                 {errors.guestCount && (
                   <p className="text-[11px] text-red-500 font-bold mt-1">{errors.guestCount}</p>
                 )}
@@ -977,10 +969,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Exact user requested banner text: */}
+              {/* Encadré informatif simplifié */}
               <div className="bg-[#FFF9E6] border border-[#FDE68A] text-solly-charcoal/90 rounded-2xl p-3.5 flex items-center gap-2.5 text-xs font-medium">
                 <Sparkle size={16} color="#DE1B52" className="shrink-0" />
-                <span>Tarif de base : 4 000 FCFA / invité (minimum 20 invités). Chariot et service inclus. Nous répondons sous 24h.</span>
+                <span>À partir de 4 000 FCFA / invité · minimum 20 invités</span>
               </div>
             </motion.form>
           )}
@@ -2259,33 +2251,36 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
       {currentStep < 4 && (
         <div className="sticky bottom-0 bg-white/95 backdrop-blur-md p-3 sm:px-6 sm:py-3.5 border-t border-solly-border/70 flex items-center justify-between gap-3 z-20 shrink-0">
           <div className="flex items-center gap-2">
-            {currentStep > 1 ? (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(currentStep === 3 ? 2 : 1)}
-                className="text-xs sm:text-sm font-bold text-solly-muted hover:text-solly-charcoal transition-colors cursor-pointer inline-flex items-center gap-1 px-2.5 py-2 rounded-xl hover:bg-solly-cream"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Retour</span>
-              </button>
-            ) : (
-              <div className="text-[11px] text-solly-muted font-semibold hidden md:block">
-                ✦ Minimum 20 invités
+            {currentStep === 1 ? (
+              <div className="flex items-center gap-1.5 pl-1 text-xs font-bold text-solly-charcoal/80">
+                <span className="w-2 h-2 rounded-full bg-solly-pink inline-block" />
+                <span>{formData.guestCount || 20} invités sélectionnés</span>
               </div>
-            )}
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep === 3 ? 2 : 1)}
+                  className="text-xs sm:text-sm font-bold text-solly-muted hover:text-solly-charcoal transition-colors cursor-pointer inline-flex items-center gap-1 px-2.5 py-2 rounded-xl hover:bg-solly-cream"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Retour</span>
+                </button>
 
-            {/* Live Pricing Estimation */}
-            <div className="flex flex-col text-left pl-1">
-              <span className="text-[10px] sm:text-xs text-solly-muted font-semibold leading-tight">
-                Estimation ({pricing.effectiveGuests} pers.)
-              </span>
-              <span className="text-xs sm:text-base font-display font-black text-solly-pink leading-tight">
-                {formatPriceFCFA(pricing.total)}
-              </span>
-              <span className="text-[9px] text-solly-muted/80 leading-none hidden sm:block">
-                Hors transport • Acompte 70%
-              </span>
-            </div>
+                {/* Live Pricing Estimation from Step 2 onwards */}
+                <div className="flex flex-col text-left pl-1">
+                  <span className="text-[10px] sm:text-xs text-solly-muted font-semibold leading-tight">
+                    Estimation ({pricing.effectiveGuests} pers.)
+                  </span>
+                  <span className="text-xs sm:text-base font-display font-black text-solly-pink leading-tight">
+                    {formatPriceFCFA(pricing.total)}
+                  </span>
+                  <span className="text-[9px] text-solly-muted/80 leading-none hidden sm:block">
+                    Hors transport • Acompte 70%
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
