@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   SlidersHorizontal,
   Loader2,
+  Mail,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
 import { useBooking, EventType, SelectedBarType, MainBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
@@ -118,6 +119,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     submitBooking,
     resetBooking,
     getWhatsAppUrl,
+    bookingRef,
+    setBookingRef,
+    bookingStatus,
+    setBookingStatus,
   } = useBooking();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -127,11 +132,15 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   const [inspirationError, setInspirationError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedQuote, setGeneratedQuote] = useState<{
+    bookingRef?: string;
+    status?: string;
+    statusLabel?: string;
     pdfBase64?: string;
     docxBase64?: string;
     pdfFilename?: string;
     docxFilename?: string;
     emailSent?: boolean;
+    customerEmailSent?: boolean;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -517,6 +526,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     if (e) e.preventDefault();
     if (validateStep3()) {
       setIsSubmitting(true);
+      let refToUse: string | undefined = undefined;
       try {
         const response = await fetch('/api/send-quote', {
           method: 'POST',
@@ -524,7 +534,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           body: JSON.stringify({
             formData: {
               ...formData,
-              name: formData.firstName,
+              name: `${formData.firstName} ${formData.lastName}`.trim() || formData.firstName,
               location: formData.address,
             },
             orderChoices,
@@ -534,12 +544,27 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         if (response.ok) {
           const resData = await response.json();
           setGeneratedQuote(resData);
+          if (resData.bookingRef) {
+            refToUse = resData.bookingRef;
+            setBookingRef(resData.bookingRef);
+          }
+          if (resData.status) {
+            setBookingStatus(resData.status);
+          }
         }
       } catch (err) {
         console.error('[Booking Submit] Error requesting quote email:', err);
       } finally {
+        if (!refToUse) {
+          const now = new Date();
+          const yy = String(now.getFullYear()).slice(-2);
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
+          refToUse = `SOL-${yy}${mm}${dd}-${Math.floor(100 + Math.random() * 900)}`;
+          setBookingRef(refToUse);
+        }
         setIsSubmitting(false);
-        submitBooking(formData);
+        submitBooking(formData, refToUse);
       }
     }
   };
@@ -1882,6 +1907,24 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     <p className="text-[11px] text-red-500 font-bold mt-1">{errors.phone}</p>
                   )}
                 </div>
+
+                {/* Email (optionnel) */}
+                <div>
+                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                    Adresse email <span className="text-solly-muted font-normal">(optionnel, pour recevoir votre confirmation)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      value={formData.email || ''}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                      placeholder="exemple@email.com"
+                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                    />
+                    <Mail className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
               </div>
 
               {/* Un détail à nous préciser ? (optionnel) */}
@@ -2076,19 +2119,19 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.28 }}
-              className="max-w-md mx-auto text-center py-2 sm:py-4 space-y-4 sm:space-y-5"
+              className="max-w-md mx-auto text-center py-2 sm:py-3 space-y-4"
             >
               {/* Graphic Illustration */}
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto flex items-center justify-center">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
                 <Sparkle size={18} color="#DE1B52" className="absolute -top-1 -right-1 animate-bounce" />
                 <Sparkle size={14} color="#DE1B52" className="absolute -bottom-1 -left-2 animate-pulse" />
                 <Sparkle size={12} color="#DE1B52" className="absolute top-1/2 -left-3" />
                 <Sparkle size={16} color="#DE1B52" className="absolute top-2 -left-2" />
 
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#FFF8E3] border-2 border-[#FDE68A] flex items-center justify-center shadow-solly-soft">
+                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#FFF8E3] border-2 border-[#FDE68A] flex items-center justify-center shadow-solly-soft">
                   <svg
-                    width="42"
-                    height="42"
+                    width="38"
+                    height="38"
                     viewBox="0 0 46 46"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -2103,142 +2146,217 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Headline & Subtitle */}
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-display font-black text-solly-pink tracking-tight">
+              {/* Headline & Subtitles */}
+              <div className="space-y-1.5 px-1">
+                <h2 className="text-2xl sm:text-3xl font-display font-black text-solly-pink tracking-tight leading-tight">
                   Votre demande Solly est bien partie ♡
                 </h2>
-                <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1.5 leading-relaxed px-2">
-                  Nous vérifions la disponibilité de votre date et les détails de votre événement avant validation définitive.
+                <p className="text-xs sm:text-sm text-solly-charcoal/85 font-medium leading-relaxed">
+                  Nous vérifions maintenant la disponibilité de votre date et les détails de votre événement.
+                </p>
+                <p className="text-[11px] sm:text-xs text-solly-muted font-medium">
+                  Vous recevrez une confirmation avant le paiement de votre acompte.
                 </p>
               </div>
 
-              {/* 4-step Progress Stepper */}
-              <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-4 text-left space-y-3 shadow-2xs">
-                <h4 className="text-[11px] font-extrabold text-solly-charcoal uppercase tracking-wider text-center">
-                  Les étapes de votre réservation
-                </h4>
-                <div className="space-y-2.5">
-                  <div className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                      ✓
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-solly-charcoal">1. Demande reçue</p>
-                      <p className="text-[11px] text-solly-muted">Votre demande est bien enregistrée par notre équipe.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 animate-pulse">
-                      2
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-solly-charcoal">2. Vérification de disponibilité</p>
-                      <p className="text-[11px] text-solly-muted">Nous vérifions notre planning et revenons vers vous sous 24h ouvrées.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-white border border-solly-border text-solly-muted flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                      3
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-solly-charcoal">3. Acompte de 70%</p>
-                      <p className="text-[11px] text-solly-muted">Le versement de l’acompte ({formatPriceFCFA(pricing.deposit70)}) bloque officiellement la date.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-white border border-solly-border text-solly-muted flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                      4
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-solly-charcoal">4. Réservation confirmée</p>
-                      <p className="text-[11px] text-solly-muted">Votre date est bloquée ! Le solde de 30% sera réglé à J-2.</p>
-                    </div>
-                  </div>
+              {/* Badges : Numéro de demande & Statut */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
+                <div className="inline-flex items-center gap-1.5 bg-[#FAF7F2] border border-solly-border px-3 py-1 rounded-full text-xs font-bold text-solly-charcoal">
+                  <span>Demande</span>
+                  <span className="text-solly-pink font-extrabold font-mono">
+                    #{bookingRef || generatedQuote?.bookingRef || 'SOL-EN-COURS'}
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 bg-[#FFF8E3] border border-[#FDE68A] px-3 py-1 rounded-full text-xs font-bold text-[#92400E]">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span>Demande reçue</span>
                 </div>
               </div>
 
-              {/* Itemized Summary Card */}
-              <div className="bg-[#FCECEF] border border-solly-pink/20 rounded-2xl p-3.5 text-left text-xs text-solly-charcoal space-y-1.5 shadow-2xs">
-                <div className="flex justify-between font-bold pb-1.5 border-b border-solly-pink/20">
-                  <span>Récapitulatif de votre demande</span>
-                  <span className="text-solly-pink font-display font-black">{formatPriceFCFA(pricing.total)}</span>
-                </div>
-                <div className="text-[11px] space-y-1 text-solly-charcoal/80">
-                  <p><strong>Date & Lieu :</strong> {formattedDate} {formData.eventTime ? `(${formData.eventTime})` : ''} • {formData.address || 'Dakar'}</p>
-                  <p><strong>Formule :</strong> {pricing.effectiveGuests} personnes • {selectedBarsSummary()}</p>
-                  {formData.hasCartCustomization && <p><strong>Personnalisation :</strong> Façade du chariot (+15 000 FCFA)</p>}
-                  {formData.hasCustomPackaging && <p><strong>Contenants :</strong> Couverts personnalisés (+10 000 FCFA)</p>}
-                  <p className="text-solly-pink font-semibold"><strong>Acompte pour bloquer la date :</strong> {formatPriceFCFA(pricing.deposit70)} (70%)</p>
-                </div>
-              </div>
-
-              {/* Primary Action: WhatsApp Optional Link (no auto-redirection) */}
-              <div className="space-y-2 pt-1">
-                <a
-                  href={getWhatsAppUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={async () => {
-                    if (formData.inspirationPhotos && formData.inspirationPhotos.length > 0) {
-                      try {
-                        const firstPhoto = formData.inspirationPhotos[0];
-                        if (firstPhoto.dataUrl && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                          const res = await fetch(firstPhoto.dataUrl);
-                          const blob = await res.blob();
-                          await navigator.clipboard.write([
-                            new ClipboardItem({ [blob.type]: blob }),
-                          ]);
-                        }
-                      } catch {
-                        // ignore clipboard write restrictions
-                      }
-                    }
-                  }}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#25D366] text-white font-display font-bold text-sm sm:text-base hover:bg-[#1EBE5D] shadow-lg transition-all duration-200 inline-flex items-center justify-center gap-2.5 group cursor-pointer"
-                >
-                  <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
-                  <span>Échanger avec nous sur WhatsApp</span>
-                </a>
-                <p className="text-[11px] text-solly-muted font-medium">
-                  Optionnel : pour poser une question ou échanger directement avec notre équipe.
-                </p>
-              </div>
-
-              {/* Photo inspiration reminder */}
-              {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                <div className="bg-[#FFF8E3] border border-[#FDE68A] rounded-2xl p-3 sm:p-3.5 text-left space-y-1 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
-                    <span>📸</span>
-                    <span>{formData.inspirationPhotos.length} photo(s) d’inspiration :</span>
-                  </div>
-                  <p className="text-[11px] text-amber-800 leading-tight">
-                    Vos photos sont transmises dans le récapitulatif par email à l’équipe Solly. En ouvrant WhatsApp ci-dessus, pensez également à joindre votre/vos photo(s) dans la discussion !
+              {/* Structured Recap Card */}
+              <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-4 sm:p-5 text-left text-xs text-solly-charcoal space-y-3.5 shadow-2xs">
+                {/* VOTRE ÉVÉNEMENT */}
+                <div className="space-y-1 border-b border-solly-border/70 pb-3">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
+                    Votre événement
+                  </span>
+                  <p className="text-xs font-bold text-solly-charcoal capitalize">
+                    {formattedDate}
                   </p>
+                  <p className="text-[11px] text-solly-charcoal/80 font-medium">
+                    {formData.eventTime || 'Horaire à convenir'} • {formData.address || 'Dakar'}
+                  </p>
+                  <p className="text-[11px] font-bold text-solly-pink">
+                    {pricing.effectiveGuests} invités
+                  </p>
+                </div>
+
+                {/* BAR PRINCIPAL */}
+                <div className="space-y-1 border-b border-solly-border/70 pb-3">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
+                    Bar principal
+                  </span>
+                  <p className="text-xs font-bold text-solly-charcoal">
+                    {formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                  </p>
+                </div>
+
+                {/* OPTIONS */}
+                <div className="space-y-1 border-b border-solly-border/70 pb-3">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
+                    Options
+                  </span>
+                  {(() => {
+                    const opts: string[] = [];
+                    if (formData.hasExtraBar) {
+                      opts.push(
+                        `Bar supplémentaire : ${formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'} (+1 000 FCFA / invité)`
+                      );
+                    }
+                    if (formData.hasDrinks) {
+                      opts.push('Boissons Solly (+1 000 FCFA / invité)');
+                    }
+                    if (formData.hasCartCustomization) {
+                      opts.push('Personnalisation du chariot (+15 000 FCFA)');
+                    }
+                    if (formData.hasCustomPackaging) {
+                      opts.push('Couverts & contenants personnalisés (+10 000 FCFA)');
+                    }
+                    if (opts.length === 0) {
+                      return (
+                        <p className="text-[11px] text-solly-muted italic">
+                          Aucune option supplémentaire
+                        </p>
+                      );
+                    }
+                    return (
+                      <ul className="space-y-1 text-[11px] font-medium text-solly-charcoal/85">
+                        {opts.map((opt, i) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <span className="text-solly-pink font-bold">•</span>
+                            <span>{opt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  })()}
+                </div>
+
+                {/* TOTAL ESTIMÉ */}
+                <div className="space-y-1 border-b border-solly-border/70 pb-3">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink">
+                      Total estimé
+                    </span>
+                    <span className="text-base sm:text-lg font-display font-black text-solly-pink">
+                      {formatPriceFCFA(pricing.total)}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-solly-muted font-medium">
+                    Transport : À confirmer selon l’adresse
+                  </p>
+                </div>
+
+                {/* MODALITÉS DE PAIEMENT */}
+                <div className="space-y-2 pt-0.5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-charcoal block">
+                    Modalités de paiement
+                  </span>
+                  <div className="bg-white rounded-xl p-3 border border-solly-pink/20 space-y-2 text-[11px]">
+                    <div className="flex justify-between items-baseline">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">
+                          Acompte après validation de la demande :
+                        </span>
+                        <span className="text-[10px] text-solly-muted">
+                          70 % pour bloquer définitivement votre date
+                        </span>
+                      </div>
+                      <span className="font-display font-extrabold text-solly-pink text-xs sm:text-sm shrink-0">
+                        {formatPriceFCFA(pricing.deposit70)}
+                      </span>
+                    </div>
+                    <div className="pt-1.5 border-t border-solly-border/60 flex justify-between items-baseline">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">Solde à J-2 :</span>
+                        <span className="text-[10px] text-solly-muted">30 % restant</span>
+                      </div>
+                      <span className="font-bold text-solly-charcoal text-xs shrink-0">
+                        {formatPriceFCFA(pricing.balance30)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Photos d'inspiration mention if present */}
+              {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                <div className="bg-[#FFF8E3] border border-[#FDE68A] rounded-xl p-2.5 text-left text-[11px] text-amber-900 flex items-center gap-2">
+                  <span>📸</span>
+                  <span>{formData.inspirationPhotos.length} photo(s) d’inspiration transmise(s) avec votre demande.</span>
                 </div>
               )}
 
-              {/* Secondary Action: Retour au site */}
-              <div>
+              {/* Message de réassurance : Et maintenant ? */}
+              <div className="bg-white border border-solly-border/80 rounded-2xl p-4 text-left space-y-2.5 shadow-2xs">
+                <h4 className="text-xs sm:text-sm font-display font-extrabold text-solly-charcoal flex items-center gap-1.5">
+                  <span>✨</span>
+                  <span>Et maintenant ?</span>
+                </h4>
+                <div className="space-y-2 text-xs text-solly-charcoal/85">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-solly-pink text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <p className="font-semibold pt-0.5">Nous vérifions votre date</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#FFF8E3] text-[#92400E] border border-[#FDE68A] font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <p className="font-semibold pt-0.5">Vous recevez votre confirmation et votre devis</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#FAF7F2] text-solly-charcoal/70 border border-solly-border font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <p className="font-semibold pt-0.5">
+                      Vous réglez l’acompte de 70 % pour bloquer définitivement votre date
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions : Primary Retour au site + Secondary contact discret */}
+              <div className="space-y-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => {
                     if (onClose) onClose();
                     resetBooking();
                   }}
-                  className="w-full sm:w-auto px-8 py-2.5 rounded-full bg-white border border-solly-pink text-solly-pink font-display font-bold text-xs sm:text-sm hover:bg-solly-pink-soft transition-colors cursor-pointer"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink/90 shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Retour au site
+                  <span>Retour au site</span>
                 </button>
+
+                <div className="text-center pt-0.5">
+                  <a
+                    href={getWhatsAppUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-solly-charcoal/70 hover:text-solly-pink transition-colors py-1 cursor-pointer"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span>Une question ? Nous contacter</span>
+                  </a>
+                </div>
               </div>
 
               {/* Bottom Signature */}
-              <div className="pt-3 border-t border-solly-border/60 flex flex-col items-center">
-                <SollyLogo height={22} />
-                <p className="text-[10px] text-solly-charcoal/70 font-medium mt-0.5">
+              <div className="pt-2 border-t border-solly-border/50 flex flex-col items-center">
+                <SollyLogo height={20} />
+                <p className="text-[10px] text-solly-charcoal/60 font-medium mt-0.5">
                   La beauté en bouchées.
                 </p>
               </div>

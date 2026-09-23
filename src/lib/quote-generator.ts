@@ -19,10 +19,14 @@ import {
 import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
 
 export interface BookingPayload {
+  bookingRef?: string;
   formData: {
     name: string;
+    firstName?: string;
+    lastName?: string;
     phone: string;
     countryCode?: string;
+    email?: string;
     eventType: string;
     eventDate: string;
     timeSlot: string;
@@ -113,7 +117,7 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
       hasCustomPackaging: formData.hasCustomPackaging,
     });
 
-  const quoteRef = `SOL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const quoteRef = payload.bookingRef || `SOL-${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${Math.floor(100 + Math.random() * 900)}`;
   const quoteDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const eventDateFormatted = formData.eventDate
     ? new Date(formData.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -531,7 +535,7 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
       hasCustomPackaging: formData.hasCustomPackaging,
     });
 
-  const quoteRef = `SOL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const quoteRef = payload.bookingRef || `SOL-${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${Math.floor(100 + Math.random() * 900)}`;
   const quoteDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const eventDateFormatted = formData.eventDate
     ? new Date(formData.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -861,6 +865,10 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
       hasCustomPackaging: formData.hasCustomPackaging,
     });
 
+  const bookingRef =
+    payload.bookingRef ||
+    `SOL-${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-001`;
+
   const fullPhone = `${formData.countryCode || '+221'} ${formData.phone}`.trim();
   const eventDateFormatted = formData.eventDate
     ? new Date(formData.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -874,7 +882,7 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Nouvelle demande de réservation Solly</title>
+  <title>Nouvelle demande de réservation Solly #${bookingRef}</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #FAF7F2; margin: 0; padding: 24px; color: #2E1C14;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #FCECEF; overflow: hidden; box-shadow: 0 4px 20px rgba(222, 27, 82, 0.08);">
@@ -882,7 +890,10 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
     <div style="background: #ffffff; border-bottom: 2px solid #FCECEF; padding: 24px 20px; text-align: center;">
       <img src="https://www.monsolly.com/images/solly-logo.png" alt="SOLLY" style="height: 46px; width: auto; max-width: 140px; display: block; margin: 0 auto 8px;" />
       <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #DE1B52;">Nouvelle demande de réservation</h2>
-      <p style="margin: 4px 0 0; font-size: 13px; color: #777;">monsolly.com · Dakar, Sénégal · Devis valable 72h</p>
+      <div style="display: inline-block; margin-top: 8px; background: #FFF8E3; border: 1px solid #FDE68A; border-radius: 50px; padding: 4px 14px; font-size: 12px; font-weight: bold; color: #92400E;">
+        Demande #${bookingRef} · Statut : Demande reçue
+      </div>
+      <p style="margin: 6px 0 0; font-size: 13px; color: #777;">monsolly.com · Dakar, Sénégal · Devis valable 72h</p>
     </div>
 
     <!-- Main Content -->
@@ -898,8 +909,20 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
         <h3 style="margin: 0 0 12px; color: #DE1B52; font-size: 16px;">👤 Coordonnées du client</h3>
         <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
           <tr>
+            <td style="padding: 4px 0; color: #666; width: 140px;">N° Demande :</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #DE1B52;">#${bookingRef}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #666;">Statut actuel :</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #0284c7;">Demande reçue (PENDING)</td>
+          </tr>
+          <tr>
             <td style="padding: 4px 0; color: #666;">Nom :</td>
             <td style="padding: 4px 0; font-weight: bold; color: #2E1C14;">${formData.name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #666;">Email :</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #2E1C14;">${formData.email || 'Non renseigné'}</td>
           </tr>
           <tr>
             <td style="padding: 4px 0; color: #666;">Téléphone :</td>
@@ -1078,6 +1101,146 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
     <div style="background: #FAF7F2; border-top: 1px solid #ede8e1; padding: 16px; text-align: center; font-size: 11px; color: #888;">
       Solly  -  La beauté en bouchées  -  Dakar plus sucré ♡<br>
       © ${new Date().getFullYear()} Solly. Tous droits réservés.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Format HTML confirmation email for the customer
+ * Subject: « Votre demande Solly est bien reçue ♡ »
+ */
+export function generateCustomerConfirmationEmailHtml(
+  payload: BookingPayload,
+  bookingRef: string
+): string {
+  const { formData } = payload;
+  const pricing =
+    payload.pricing ||
+    calculateBookingPrice({
+      guestCount: formData.guestCount,
+      hasExtraBar: formData.hasExtraBar,
+      hasDrinks: formData.hasDrinks,
+      hasCartCustomization: formData.hasCartCustomization,
+      hasCustomPackaging: formData.hasCustomPackaging,
+    });
+
+  const clientFirstName = formData.firstName || formData.name.split(' ')[0] || 'Client';
+  const eventDateFormatted = formData.eventDate
+    ? new Date(formData.eventDate).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Date à définir';
+
+  const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+
+  const options: string[] = [];
+  if (formData.hasExtraBar) {
+    options.push(
+      formData.extraBarType === 'charcuterie'
+        ? 'Bar supplémentaire : Bar salé / Charcuterie (+1 000 FCFA / invité)'
+        : 'Bar supplémentaire : Cake Bar (+1 000 FCFA / invité)'
+    );
+  }
+  if (formData.hasDrinks) {
+    options.push('Boissons Solly (+1 000 FCFA / invité)');
+  }
+  if (formData.hasCartCustomization) {
+    options.push('Personnalisation du chariot (+15 000 FCFA)');
+  }
+  if (formData.hasCustomPackaging) {
+    options.push('Couverts & contenants personnalisés (+10 000 FCFA)');
+  }
+
+  const optionsHtml =
+    options.length > 0
+      ? options.map((opt) => `<li style="margin: 4px 0; color: #444;">${opt}</li>`).join('')
+      : '<li style="margin: 4px 0; color: #888; font-style: italic;">Aucune option supplémentaire</li>';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Votre demande Solly est bien reçue ♡</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF7F2; margin: 0; padding: 24px 12px; color: #2E1C14;">
+  <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #FCECEF; overflow: hidden; box-shadow: 0 4px 20px rgba(222, 27, 82, 0.06);">
+    <!-- Header with Authentic Solly Logo -->
+    <div style="background: #ffffff; border-bottom: 2px solid #FCECEF; padding: 28px 24px; text-align: center;">
+      <img src="https://www.monsolly.com/images/solly-logo.png" alt="SOLLY" style="height: 44px; width: auto; max-width: 140px; display: block; margin: 0 auto 12px;" />
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #DE1B52;">Votre demande Solly est bien reçue ♡</h2>
+      <div style="display: inline-block; margin-top: 10px; background: #FFF8E3; border: 1px solid #FDE68A; border-radius: 50px; padding: 4px 14px; font-size: 12px; font-weight: bold; color: #92400E;">
+        Demande #${bookingRef} · Demande reçue
+      </div>
+    </div>
+
+    <!-- Main Body -->
+    <div style="padding: 28px 24px; font-size: 15px; line-height: 1.6; color: #2E1C14;">
+      <p style="margin-top: 0;">
+        Bonjour <strong>${clientFirstName}</strong>,
+      </p>
+
+      <p>
+        Nous avons bien reçu votre demande pour votre événement du <strong>${eventDateFormatted}</strong>.
+      </p>
+
+      <!-- Request Scope Details -->
+      <div style="background: #FAF7F2; border-radius: 16px; padding: 18px 20px; margin: 20px 0; border: 1px solid #ede8e1;">
+        <h4 style="margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #DE1B52; font-weight: 800;">
+          Votre demande porte sur :
+        </h4>
+        <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+          <li style="margin: 4px 0; font-weight: bold; color: #2E1C14;">${pricing.effectiveGuests} invités</li>
+          <li style="margin: 4px 0; font-weight: bold; color: #2E1C14;">${mainBarLabel}</li>
+          <li style="margin: 4px 0; color: #444;">
+            Options :
+            <ul style="margin: 4px 0 0; padding-left: 18px;">
+              ${optionsHtml}
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Financial Estimation Box -->
+      <div style="background: #FCECEF; border-radius: 16px; padding: 16px 20px; margin: 20px 0; border: 1px solid #fad2dc;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-size: 14px; color: #666; font-weight: bold;">Estimation :</span>
+          <span style="font-size: 20px; font-weight: 900; color: #DE1B52;">${formatPriceFCFA(pricing.total)}</span>
+        </div>
+        <p style="margin: 6px 0 0; font-size: 12px; color: #777;">
+          Transport : à confirmer selon l’adresse.
+        </p>
+      </div>
+
+      <p>
+        Nous vérifions maintenant la disponibilité de votre date.
+      </p>
+
+      <p>
+        Si votre demande est validée, vous recevrez votre devis ainsi que les instructions pour régler l'acompte de <strong>70 %</strong> qui permettra de bloquer définitivement votre réservation.
+      </p>
+
+      <!-- Unique Reference Notice -->
+      <div style="background: #FFF8E3; border-radius: 12px; padding: 12px 16px; margin: 22px 0; border: 1px solid #FDE68A; font-size: 13px; color: #78350F;">
+        📌 <strong>Votre numéro de demande :</strong> #${bookingRef}
+      </div>
+
+      <p style="margin-bottom: 0;">
+        À très vite,<br><br>
+        <strong style="color: #DE1B52; font-size: 16px;">Solly</strong><br>
+        <span style="color: #888; font-size: 13px;">La beauté en bouchées.</span>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #FAF7F2; border-top: 1px solid #ede8e1; padding: 16px 24px; text-align: center; font-size: 12px; color: #888;">
+      Solly  -  Dakar, Sénégal  -  <a href="https://www.monsolly.com" style="color: #DE1B52; text-decoration: none;">monsolly.com</a>
     </div>
   </div>
 </body>

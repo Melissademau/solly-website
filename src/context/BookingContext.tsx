@@ -94,7 +94,11 @@ interface BookingContextType {
   updateCharcuterieCustomization: (charcuterie: CharcuterieCustomization) => void;
   hasCustomChoices: boolean;
   isSubmitted: boolean;
-  submitBooking: (data?: BookingFormData) => Promise<void>;
+  bookingRef: string | null;
+  setBookingRef: (ref: string | null) => void;
+  bookingStatus: string;
+  setBookingStatus: (status: string) => void;
+  submitBooking: (data?: BookingFormData, ref?: string) => Promise<void>;
   resetBooking: () => void;
   getWhatsAppUrl: () => string;
 }
@@ -141,6 +145,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState<BookingFormData>(initialFormData);
   const [orderChoices, setOrderChoices] = useState<OrderChoices>(initialOrderChoices);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const [bookingStatus, setBookingStatus] = useState<string>('PENDING');
 
   const updateCakeCustomization = (cake: CakeCustomization) => {
     setOrderChoices((prev) => ({ ...prev, cakeBar: cake }));
@@ -226,9 +232,12 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setIsOpen(false);
   };
 
-  const submitBooking = async (data?: BookingFormData) => {
+  const submitBooking = async (data?: BookingFormData, ref?: string) => {
     if (data) {
       setFormData(data);
+    }
+    if (ref) {
+      setBookingRef(ref);
     }
     setIsSubmitted(true);
     setCurrentStep(4);
@@ -238,6 +247,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setFormData(initialFormData);
     setOrderChoices(initialOrderChoices);
     setIsSubmitted(false);
+    setBookingRef(null);
+    setBookingStatus('PENDING');
     setCurrentStep(1);
   };
 
@@ -335,6 +346,10 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         updateCharcuterieCustomization,
         hasCustomChoices,
         isSubmitted,
+        bookingRef,
+        setBookingRef,
+        bookingStatus,
+        setBookingStatus,
         submitBooking,
         resetBooking,
         getWhatsAppUrl,
