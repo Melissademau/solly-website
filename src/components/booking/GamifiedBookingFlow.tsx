@@ -30,7 +30,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
-import { useBooking, EventType, SelectedBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
+import { useBooking, EventType, SelectedBarType, MainBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
+import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
 
 interface GamifiedBookingFlowProps {
   onClose?: () => void;
@@ -51,7 +52,7 @@ const TIME_SLOTS = [
   { label: 'Soirée (19h - 23h)', value: 'Soirée (19h - 23h)' },
 ];
 
-const GUEST_PRESETS = [10, 15, 20, 25, 30, 50];
+const GUEST_PRESETS = [20, 25, 30, 40, 50, 75];
 const DAKAR_QUICK_AREAS = ['Almadies', 'Plateau', 'Ngor', 'Point E', 'Mamelles'];
 
 const COUNTRY_CODES = [
@@ -198,36 +199,90 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   // Active accordion tab in step 2 (e.g. 'cake-bar' | 'drinks' | 'charcuterie')
   const [activeCustomizer, setActiveCustomizer] = useState<SelectedBarType | null>(null);
 
-  // Guest count logic: allow empty or number
-  const guestCount = typeof formData.guestCount === 'number' ? formData.guestCount : (formData.guestCount ? parseInt(String(formData.guestCount), 10) : 0);
+  // Guest count logic: minimum 20 invités
+  const guestCount =
+    typeof formData.guestCount === 'number'
+      ? formData.guestCount
+      : formData.guestCount
+      ? parseInt(String(formData.guestCount), 10)
+      : 20;
 
   const handleGuestChange = (delta: number) => {
-    const current = guestCount || 15;
-    const nextVal = Math.max(5, Math.min(500, current + delta));
+    const current = guestCount || 20;
+    const nextVal = Math.max(20, Math.min(500, current + delta));
     setFormData((prev) => ({ ...prev, guestCount: nextVal }));
     setErrors((prev) => ({ ...prev, guestCount: '' }));
   };
 
-  const handleBarToggle = (bar: SelectedBarType) => {
-    const isCurrentlySelected = formData.selectedBars.includes(bar);
-    if (isCurrentlySelected) {
-      // Unselect
-      setFormData((prev) => ({
-        ...prev,
-        selectedBars: prev.selectedBars.filter((b) => b !== bar),
-      }));
-      if (activeCustomizer === bar) {
-        setActiveCustomizer(null);
-      }
-    } else {
-      // Select and automatically open customizer for it
-      setFormData((prev) => ({
-        ...prev,
-        selectedBars: [...prev.selectedBars, bar],
-      }));
-      setActiveCustomizer(bar);
+  // Centralized dynamic pricing calculation
+  const pricing = calculateBookingPrice({
+    guestCount: formData.guestCount,
+    hasExtraBar: formData.hasExtraBar,
+    hasDrinks: formData.hasDrinks,
+    hasCartCustomization: formData.hasCartCustomization,
+    hasCustomPackaging: formData.hasCustomPackaging,
+  });
 
-      // Initialize default empty object in orderChoices if needed
+  // Handler for selecting the main bar (included at base 4 000 FCFA / guest)
+  const handleMainBarSelect = (bar: 'cake-bar' | 'charcuterie') => {
+    setFormData((prev) => {
+      const hasExtra = prev.hasExtraBar && prev.extraBarType !== bar;
+      const extraType = hasExtra ? prev.extraBarType : undefined;
+
+      const nextBars: SelectedBarType[] = [bar];
+      if (hasExtra && extraType) nextBars.push(extraType);
+      if (prev.hasDrinks) nextBars.push('drinks');
+
+      return {
+        ...prev,
+        mainBar: bar,
+        hasExtraBar: hasExtra,
+        extraBarType: extraType,
+        selectedBars: nextBars,
+      };
+    });
+    setActiveCustomizer(bar);
+    setErrors((prev) => ({ ...prev, selectedBars: '' }));
+
+    if (bar === 'cake-bar' && !orderChoices.cakeBar) {
+      setOrderChoices((prev) => ({
+        ...prev,
+        cakeBar: {
+          barquette: 'Barquette standard Solly',
+          base: 'Vanille',
+          sauces: ['Chocolat'],
+          composants: ['Oreo'],
+        },
+      }));
+    } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
+      setOrderChoices((prev) => ({
+        ...prev,
+        charcuterie: {
+          format: 'Le Cornet',
+          composants: ['Rosettes de salami', 'Gouda doré'],
+        },
+      }));
+    }
+  };
+
+  // Handler for toggling an additional bar (+1 000 FCFA / guest)
+  const handleExtraBarToggle = (bar: 'cake-bar' | 'charcuterie') => {
+    setFormData((prev) => {
+      const willEnable = !prev.hasExtraBar || prev.extraBarType !== bar;
+      const nextBars: SelectedBarType[] = [prev.mainBar || 'cake-bar'];
+      if (willEnable) nextBars.push(bar);
+      if (prev.hasDrinks) nextBars.push('drinks');
+
+      return {
+        ...prev,
+        hasExtraBar: willEnable,
+        extraBarType: willEnable ? bar : undefined,
+        selectedBars: nextBars,
+      };
+    });
+
+    if (!formData.hasExtraBar) {
+      setActiveCustomizer(bar);
       if (bar === 'cake-bar' && !orderChoices.cakeBar) {
         setOrderChoices((prev) => ({
           ...prev,
@@ -238,11 +293,6 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
             composants: ['Oreo'],
           },
         }));
-      } else if (bar === 'drinks' && (!orderChoices.drinks || orderChoices.drinks.length === 0)) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          drinks: ['Bissap glacé'],
-        }));
       } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
         setOrderChoices((prev) => ({
           ...prev,
@@ -252,6 +302,63 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           },
         }));
       }
+    }
+  };
+
+  // Handler for drinks option (+1 000 FCFA / guest)
+  const handleDrinksToggle = () => {
+    setFormData((prev) => {
+      const willEnable = !prev.hasDrinks;
+      const nextBars = willEnable
+        ? Array.from(new Set([...prev.selectedBars, 'drinks' as SelectedBarType]))
+        : prev.selectedBars.filter((b) => b !== 'drinks');
+
+      return {
+        ...prev,
+        hasDrinks: willEnable,
+        selectedBars: nextBars,
+      };
+    });
+
+    if (!formData.hasDrinks) {
+      setActiveCustomizer('drinks');
+      if (!orderChoices.drinks || orderChoices.drinks.length === 0) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          drinks: ['Bissap glacé'],
+        }));
+      }
+    }
+  };
+
+  // Handler for cart customization (+15 000 FCFA)
+  const handleCartCustomizationToggle = () => {
+    setFormData((prev) => ({
+      ...prev,
+      hasCartCustomization: !prev.hasCartCustomization,
+      personalization: !prev.hasCartCustomization ? 'oui' : prev.personalization,
+    }));
+  };
+
+  // Handler for custom packaging (+10 000 FCFA)
+  const handleCustomPackagingToggle = () => {
+    setFormData((prev) => ({
+      ...prev,
+      hasCustomPackaging: !prev.hasCustomPackaging,
+    }));
+  };
+
+  // Backward compatible handleBarToggle
+  const handleBarToggle = (bar: SelectedBarType) => {
+    if (bar === 'drinks') {
+      handleDrinksToggle();
+    } else if (bar === formData.mainBar) {
+      // already main bar, no-op or open customizer
+      setActiveCustomizer(bar);
+    } else if (formData.mainBar && bar !== formData.mainBar) {
+      handleExtraBarToggle(bar as 'cake-bar' | 'charcuterie');
+    } else {
+      handleMainBarSelect(bar as 'cake-bar' | 'charcuterie');
     }
   };
 
@@ -372,7 +479,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     const errs: Record<string, string> = {};
     if (!formData.eventType) errs.eventType = 'Choisissez un type d’événement';
     if (!formData.eventDate) errs.eventDate = 'Indiquez une date';
-    if (!formData.guestCount) errs.guestCount = 'Indiquez le nombre d’invités';
+    if (!formData.guestCount || Number(formData.guestCount) < 20) {
+      errs.guestCount = 'Minimum 20 invités requis (tarif de base : 4 000 FCFA / invité)';
+    }
     if (!formData.address.trim()) errs.address = 'Indiquez l’adresse ou la ville de l’événement';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -395,33 +504,9 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
 
   const handleNextFromStep2 = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.selectedBars.length === 0) {
-      setErrors({ selectedBars: 'Veuillez sélectionner au moins un bar gourmand' });
+    if (!formData.mainBar) {
+      setErrors({ selectedBars: 'Veuillez sélectionner votre bar principal' });
       return;
-    }
-
-    // Validation stricte : 6 toppings obligatoires pour le Cake Bar
-    if (formData.selectedBars.includes('cake-bar')) {
-      const toppingsCount = orderChoices.cakeBar?.composants?.length || 0;
-      if (toppingsCount !== 6) {
-        setErrors((prev) => ({
-          ...prev,
-          cakeBarToppings: `Veuillez sélectionner obligatoirement 6 toppings pour le Cake Bar (actuellement ${toppingsCount}/6).`,
-        }));
-        return;
-      }
-    }
-
-    // Validation stricte : 6 composants obligatoires pour le Bar à Charcuterie
-    if (formData.selectedBars.includes('charcuterie')) {
-      const compsCount = orderChoices.charcuterie?.composants?.length || 0;
-      if (compsCount !== 6) {
-        setErrors((prev) => ({
-          ...prev,
-          charcuterieComposants: `Veuillez sélectionner obligatoirement 6 composants pour le Bar à Charcuterie (actuellement ${compsCount}/6).`,
-        }));
-        return;
-      }
     }
 
     setErrors({});
@@ -443,6 +528,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               location: formData.address,
             },
             orderChoices,
+            pricing,
           }),
         });
         if (response.ok) {
@@ -467,11 +553,15 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     : 'Date à définir';
 
   const selectedBarsSummary = () => {
-    const labels: string[] = [];
-    if (formData.selectedBars.includes('cake-bar')) labels.push('Cake Bar');
-    if (formData.selectedBars.includes('drinks')) labels.push('Boissons');
-    if (formData.selectedBars.includes('charcuterie')) labels.push('Charcuterie');
-    return labels.length > 0 ? labels.join(' + ') : 'Aucun bar sélectionné';
+    const mainLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+    const extras: string[] = [];
+    if (formData.hasExtraBar) {
+      extras.push(formData.extraBarType === 'charcuterie' ? 'Bar salé' : 'Cake Bar');
+    }
+    if (formData.hasDrinks) {
+      extras.push('Boissons Solly');
+    }
+    return extras.length > 0 ? `${mainLabel} + ${extras.join(' + ')}` : mainLabel;
   };
 
   return (
@@ -802,11 +892,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               </div>
 
-              {/* Nombre d'invités (Clean Counter with no pre-fill) */}
+              {/* Nombre d'invités (Clean Counter with min 20) */}
               <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Nombre d’invités estimé <span className="text-solly-pink">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-solly-charcoal">
+                    Nombre d’invités estimé <span className="text-solly-pink">*</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-solly-pink">
+                    Minimum 20 invités
+                  </span>
+                </div>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-3 bg-[#FAF7F2] border border-solly-border rounded-2xl p-1.5">
                     <motion.button
@@ -821,10 +916,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
 
                     <input
                       type="number"
-                      min="5"
+                      min="20"
                       max="500"
                       value={formData.guestCount}
-                      placeholder="0"
+                      placeholder="20"
                       onChange={(e) => {
                         const v = e.target.value === '' ? '' : parseInt(e.target.value, 10);
                         setFormData((prev) => ({ ...prev, guestCount: v }));
@@ -845,6 +940,14 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   </div>
 
                   <span className="text-xs text-solly-muted font-medium">personnes</span>
+                </div>
+
+                {/* Dynamic Price Calculation Box */}
+                <div className="mt-2 text-xs font-bold text-solly-charcoal/80 flex items-center justify-between bg-solly-cream/80 px-3.5 py-2 rounded-xl border border-solly-border/70">
+                  <span>{guestCount || 20} invités × 4 000 FCFA</span>
+                  <span className="font-display font-black text-sm text-solly-pink">
+                    {formatPriceFCFA((guestCount || 20) * PRICING_CONFIG.BASE_PRICE_PER_GUEST)}
+                  </span>
                 </div>
 
                 {errors.guestCount && (
@@ -877,7 +980,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               {/* Exact user requested banner text: */}
               <div className="bg-[#FFF9E6] border border-[#FDE68A] text-solly-charcoal/90 rounded-2xl p-3.5 flex items-center gap-2.5 text-xs font-medium">
                 <Sparkle size={16} color="#DE1B52" className="shrink-0" />
-                <span>Minimum 80 000 FCFA pour 1 bar avec entre 10 et 30 invités. Nous répondons sous 24h.</span>
+                <span>Tarif de base : 4 000 FCFA / invité (minimum 20 invités). Chariot et service inclus. Nous répondons sous 24h.</span>
               </div>
             </motion.form>
           )}
@@ -901,7 +1004,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   Qu’est-ce qui vous ferait plaisir ?
                 </h2>
                 <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Sélectionnez un ou plusieurs bars et personnalisez vos saveurs à la suite.
+                  Choisissez votre bar principal, puis ajoutez vos options selon vos envies.
                 </p>
               </div>
 
@@ -911,127 +1014,228 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               )}
 
-              {/* 3 Visual Interactive Bar Cards */}
-              <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-                {/* 1. Cake Bar */}
-                <motion.div
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => handleBarToggle('cake-bar')}
-                  className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                    formData.selectedBars.includes('cake-bar')
-                      ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                      : 'border-solly-border hover:border-solly-pink/40'
-                  }`}
-                >
-                  <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <Image
-                      src="/images/solly-assets/05-experience/gateau-marshmallow.png"
-                      alt="Cake Bar"
-                      fill
-                      sizes="(max-width: 640px) 33vw, 150px"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                        formData.selectedBars.includes('cake-bar')
-                          ? 'bg-solly-pink text-white shadow-sm scale-110'
-                          : 'bg-white/85 border border-solly-border text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3 h-3 stroke-[3]" />
-                    </div>
-                  </div>
-                  <div className="py-2 sm:py-2.5 px-1.5 text-center">
-                    <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
-                      Cake Bar
-                    </span>
-                    <span className="text-[10px] text-solly-muted block">
-                      {formData.selectedBars.includes('cake-bar') ? '✦ Personnaliser' : 'Gâteaux minute'}
-                    </span>
-                  </div>
-                </motion.div>
+              {/* 1. Bar principal (inclus à 4 000 FCFA / invité) */}
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <label className="block text-xs font-bold text-solly-charcoal">
+                    1. Choisissez votre bar principal <span className="text-solly-pink">*</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full border border-solly-pink/20 inline-block w-fit">
+                    Inclus dans votre formule à 4 000 FCFA / invité
+                  </span>
+                </div>
 
-                {/* 2. Boissons */}
-                <motion.div
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => handleBarToggle('drinks')}
-                  className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                    formData.selectedBars.includes('drinks')
-                      ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                      : 'border-solly-border hover:border-solly-pink/40'
-                  }`}
-                >
-                  <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <Image
-                      src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
-                      alt="Bar à boissons"
-                      fill
-                      sizes="(max-width: 640px) 33vw, 150px"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                        formData.selectedBars.includes('drinks')
-                          ? 'bg-solly-pink text-white shadow-sm scale-110'
-                          : 'bg-white/85 border border-solly-border text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3 h-3 stroke-[3]" />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {/* Main Bar 1: Cake Bar */}
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleMainBarSelect('cake-bar')}
+                    className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
+                      formData.mainBar === 'cake-bar'
+                        ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
+                        : 'border-solly-border hover:border-solly-pink/40'
+                    }`}
+                  >
+                    <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
+                      <Image
+                        src="/images/solly-assets/05-experience/gateau-marshmallow.png"
+                        alt="Cake Bar"
+                        fill
+                        sizes="(max-width: 640px) 50vw, 250px"
+                        loading="lazy"
+                        decoding="async"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div
+                        className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
+                          formData.mainBar === 'cake-bar'
+                            ? 'bg-solly-pink text-white shadow-sm scale-110'
+                            : 'bg-white/85 border border-solly-border text-transparent'
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
+                        Inclus
+                      </span>
                     </div>
-                  </div>
-                  <div className="py-2 sm:py-2.5 px-1.5 text-center">
-                    <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
-                      Boissons
-                    </span>
-                    <span className="text-[10px] text-solly-muted block">
-                      {formData.selectedBars.includes('drinks') ? '✦ Saveurs' : 'Jus frais locaux'}
-                    </span>
-                  </div>
-                </motion.div>
+                    <div className="py-2.5 px-2 text-center">
+                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                        Cake Bar
+                      </span>
+                      <span className="text-[10px] text-solly-muted block mt-0.5">
+                        {formData.mainBar === 'cake-bar' ? '✦ Bar principal sélectionné' : 'Gâteaux moelleux minute'}
+                      </span>
+                    </div>
+                  </motion.div>
 
-                {/* 3. Charcuterie */}
-                <motion.div
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => handleBarToggle('charcuterie')}
-                  className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                    formData.selectedBars.includes('charcuterie')
-                      ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                      : 'border-solly-border hover:border-solly-pink/40'
-                  }`}
-                >
-                  <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                    <Image
-                      src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
-                      alt="Bar à charcuterie"
-                      fill
-                      sizes="(max-width: 640px) 33vw, 150px"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                  {/* Main Bar 2: Bar salé / Charcuterie */}
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleMainBarSelect('charcuterie')}
+                    className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
+                      formData.mainBar === 'charcuterie'
+                        ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
+                        : 'border-solly-border hover:border-solly-pink/40'
+                    }`}
+                  >
+                    <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
+                      <Image
+                        src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
+                        alt="Bar salé / Charcuterie"
+                        fill
+                        sizes="(max-width: 640px) 50vw, 250px"
+                        loading="lazy"
+                        decoding="async"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div
+                        className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
+                          formData.mainBar === 'charcuterie'
+                            ? 'bg-solly-pink text-white shadow-sm scale-110'
+                            : 'bg-white/85 border border-solly-border text-transparent'
+                        }`}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
+                        Inclus
+                      </span>
+                    </div>
+                    <div className="py-2.5 px-2 text-center">
+                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                        Bar salé / Charcuterie
+                      </span>
+                      <span className="text-[10px] text-solly-muted block mt-0.5">
+                        {formData.mainBar === 'charcuterie' ? '✦ Bar principal sélectionné' : 'Cornets & pots salés'}
+                      </span>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* 2. Options gourmandes (Bar supplémentaire & Boissons) */}
+              <div className="space-y-2 pt-1">
+                <label className="block text-xs font-bold text-solly-charcoal">
+                  2. Options gourmandes (à ajouter selon vos envies)
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Bar supplémentaire */}
+                  {formData.mainBar === 'charcuterie' ? (
                     <div
-                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                        formData.selectedBars.includes('charcuterie')
-                          ? 'bg-solly-pink text-white shadow-sm scale-110'
-                          : 'bg-white/85 border border-solly-border text-transparent'
+                      onClick={() => handleExtraBarToggle('cake-bar')}
+                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                        formData.hasExtraBar && formData.extraBarType === 'cake-bar'
+                          ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                          : 'border-solly-border bg-white hover:border-solly-pink/40'
                       }`}
                     >
-                      <Check className="w-3 h-3 stroke-[3]" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
+                          <Image
+                            src="/images/solly-assets/05-experience/gateau-marshmallow.png"
+                            alt="Cake Bar supplémentaire"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div>
+                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                            + Cake Bar
+                          </span>
+                          <span className="text-[11px] font-bold text-solly-pink block">
+                            +1 000 FCFA / invité
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                          formData.hasExtraBar && formData.extraBarType === 'cake-bar'
+                            ? 'bg-solly-pink text-white'
+                            : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => handleExtraBarToggle('charcuterie')}
+                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                        formData.hasExtraBar && formData.extraBarType === 'charcuterie'
+                          ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                          : 'border-solly-border bg-white hover:border-solly-pink/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
+                          <Image
+                            src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
+                            alt="Bar salé supplémentaire"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div>
+                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                            + Bar salé / Charcuterie
+                          </span>
+                          <span className="text-[11px] font-bold text-solly-pink block">
+                            +1 000 FCFA / invité
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                          formData.hasExtraBar && formData.extraBarType === 'charcuterie'
+                            ? 'bg-solly-pink text-white'
+                            : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Option Boissons Solly */}
+                  <div
+                    onClick={handleDrinksToggle}
+                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                      formData.hasDrinks
+                        ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                        : 'border-solly-border bg-white hover:border-solly-pink/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
+                        <Image
+                          src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
+                          alt="Boissons Solly"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div>
+                        <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                          + Boissons Solly
+                        </span>
+                        <span className="text-[11px] font-bold text-solly-pink block">
+                          +1 000 FCFA / invité
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                        formData.hasDrinks
+                          ? 'bg-solly-pink text-white'
+                          : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                      }`}
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
                   </div>
-                  <div className="py-2 sm:py-2.5 px-1.5 text-center">
-                    <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
-                      Charcuterie
-                    </span>
-                    <span className="text-[10px] text-solly-muted block">
-                      {formData.selectedBars.includes('charcuterie') ? '✦ Ingrédients' : 'Cornets salés'}
-                    </span>
-                  </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* ======================================================= */}
@@ -1414,38 +1618,79 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 </div>
               )}
 
-              {/* Section Personnalisation : Segmented Pills */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-2">
-                  Personnalisation au nom de l’enfant ou de l’événement
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'oui', label: '✨ Oui' },
-                    { id: 'non', label: 'Non' },
-                    { id: 'a-definir', label: '💬 À définir' },
-                  ].map((opt) => {
-                    const isSelected = formData.personalization === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            personalization: opt.id as 'oui' | 'non' | 'a-definir',
-                          }))
-                        }
-                        className={`py-3 px-2 rounded-2xl text-xs sm:text-sm font-bold transition-all border text-center cursor-pointer ${
-                          isSelected
-                            ? 'bg-solly-pink text-white border-solly-pink shadow-solly-pink'
-                            : 'bg-[#FAF7F2] text-solly-charcoal border-solly-border hover:bg-white'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+              {/* Section Personnalisation : 2 Options claires */}
+              <div className="space-y-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-solly-charcoal">
+                    Options de personnalisation (facultatif)
+                  </label>
+                  <p className="text-[11px] text-solly-muted font-medium mt-0.5">
+                    Sublimez votre chariot ou vos contenants aux couleurs de votre célébration.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Option 1: Chariot */}
+                  <div
+                    onClick={handleCartCustomizationToggle}
+                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 ${
+                      formData.hasCartCustomization
+                        ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                        : 'border-solly-border bg-white hover:border-solly-pink/40'
+                    }`}
+                  >
+                    <div>
+                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                        Personnalisation du chariot
+                      </span>
+                      <span className="text-[11px] text-solly-muted block mt-0.5 leading-snug">
+                        Panneau prénom / logo sur la façade avant amovible
+                      </span>
+                      <span className="text-xs font-extrabold text-solly-pink block mt-1.5">
+                        +{formatPriceFCFA(PRICING_CONFIG.CART_CUSTOMIZATION)}
+                      </span>
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 mt-0.5 ${
+                        formData.hasCartCustomization
+                          ? 'bg-solly-pink text-white'
+                          : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                      }`}
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  </div>
+
+                  {/* Option 2: Contenants */}
+                  <div
+                    onClick={handleCustomPackagingToggle}
+                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 ${
+                      formData.hasCustomPackaging
+                        ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                        : 'border-solly-border bg-white hover:border-solly-pink/40'
+                    }`}
+                  >
+                    <div>
+                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                        Couverts & contenants personnalisés
+                      </span>
+                      <span className="text-[11px] text-solly-muted block mt-0.5 leading-snug">
+                        Stickers personnalisés sur les barquettes, pots ou serviettes
+                      </span>
+                      <span className="text-xs font-extrabold text-solly-pink block mt-1.5">
+                        +{formatPriceFCFA(PRICING_CONFIG.CUSTOM_PACKAGING)}
+                      </span>
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 mt-0.5 ${
+                        formData.hasCustomPackaging
+                          ? 'bg-solly-pink text-white'
+                          : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                      }`}
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1661,45 +1906,151 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                 />
               </div>
 
-              {/* Summary Card: Votre demande en un coup d'œil */}
-              <div className="bg-[#FCECEF] border border-solly-pink/20 rounded-2xl p-3.5 sm:p-4 text-solly-charcoal">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-white border border-solly-pink/30 flex items-center justify-center text-solly-pink shrink-0 mt-0.5 shadow-2xs">
+              {/* Summary Card: Estimation & Récapitulatif détaillé */}
+              <div className="bg-[#FCECEF] border border-solly-pink/25 rounded-2xl p-4 sm:p-5 text-solly-charcoal shadow-2xs space-y-3.5">
+                <div className="flex items-start justify-between gap-3 border-b border-solly-pink/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-white border border-solly-pink/30 flex items-center justify-center text-solly-pink shrink-0 shadow-2xs">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-display font-extrabold text-xs sm:text-sm text-solly-charcoal">
-                        Votre demande en un coup d’œil
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Votre devis estimatif
                       </h4>
-                      <div className="mt-1 space-y-0.5 text-[11px] sm:text-xs text-solly-charcoal/80 font-medium">
-                        <p>
-                          {formData.eventType || 'Événement'} • {formattedDate} {formData.eventTime ? `• ${formData.eventTime}` : ''}
-                        </p>
-                        <p>
-                          {formData.guestCount ? `${formData.guestCount} invités` : 'Invités à préciser'} • {formData.address || 'Dakar'}
-                        </p>
-                        <p>
-                          {selectedBarsSummary()} •{' '}
-                          {formData.personalization === 'oui' ? 'Personnalisé' : 'Sans personnalisation'}
-                        </p>
-                        {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                          <p className="text-solly-pink font-semibold">
-                            📸 {formData.inspirationPhotos.length} photo(s) d’inspiration jointe(s)
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-[11px] text-solly-muted font-medium mt-0.5">
+                        {formData.eventType || 'Événement'} • {formattedDate} {formData.eventTime ? `• ${formData.eventTime}` : ''} • {formData.address || 'Dakar'}
+                      </p>
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(1)}
+                    onClick={() => setCurrentStep(2)}
                     className="text-xs font-bold text-solly-pink hover:underline inline-flex items-center gap-1 shrink-0 cursor-pointer"
                   >
                     <Pencil className="w-3 h-3" />
                     <span>Modifier</span>
                   </button>
+                </div>
+
+                {/* Itemized calculation breakdown */}
+                <div className="space-y-2 text-xs">
+                  {/* Base formula */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-solly-charcoal block">
+                        Formule de base ({pricing.effectiveGuests} invités × 4 000 FCFA)
+                      </span>
+                      <span className="text-[11px] text-solly-muted block">
+                        Bar principal inclus : {formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                      </span>
+                    </div>
+                    <span className="font-bold text-solly-charcoal shrink-0">
+                      {formatPriceFCFA(pricing.basePrice)}
+                    </span>
+                  </div>
+
+                  {/* Extra bar if selected */}
+                  {formData.hasExtraBar && (
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">
+                          Bar supplémentaire : {formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                        </span>
+                        <span className="text-[11px] text-solly-muted block">
+                          {pricing.effectiveGuests} invités × 1 000 FCFA
+                        </span>
+                      </div>
+                      <span className="font-bold text-solly-pink shrink-0">
+                        +{formatPriceFCFA(pricing.extraBarPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Drinks if selected */}
+                  {formData.hasDrinks && (
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">
+                          Option Boissons Solly (3 jus frais)
+                        </span>
+                        <span className="text-[11px] text-solly-muted block">
+                          {pricing.effectiveGuests} invités × 1 000 FCFA
+                        </span>
+                      </div>
+                      <span className="font-bold text-solly-pink shrink-0">
+                        +{formatPriceFCFA(pricing.drinksPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Cart customization if selected */}
+                  {formData.hasCartCustomization && (
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">
+                          Personnalisation du chariot
+                        </span>
+                        <span className="text-[11px] text-solly-muted block">
+                          Façade amovible personnalisée (forfait)
+                        </span>
+                      </div>
+                      <span className="font-bold text-solly-pink shrink-0">
+                        +{formatPriceFCFA(pricing.cartCustomizationPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Packaging customization if selected */}
+                  {formData.hasCustomPackaging && (
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-solly-charcoal block">
+                          Couverts & contenants personnalisés
+                        </span>
+                        <span className="text-[11px] text-solly-muted block">
+                          Stickers contenants de l’événement (forfait)
+                        </span>
+                      </div>
+                      <span className="font-bold text-solly-pink shrink-0">
+                        +{formatPriceFCFA(pricing.customPackagingPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Inspirations */}
+                  {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
+                    <p className="text-[11px] text-solly-pink font-semibold pt-1">
+                      📸 {formData.inspirationPhotos.length} photo(s) d’inspiration jointe(s)
+                    </p>
+                  )}
+                </div>
+
+                {/* Total box */}
+                <div className="pt-2.5 border-t border-solly-pink/20 flex items-baseline justify-between">
+                  <div>
+                    <span className="text-xs sm:text-sm font-extrabold text-solly-charcoal block">
+                      Total estimé :
+                    </span>
+                    <span className="text-[11px] text-solly-muted block">
+                      Transport à confirmer selon l’adresse
+                    </span>
+                  </div>
+                  <span className="text-base sm:text-lg font-display font-black text-solly-pink">
+                    {formatPriceFCFA(pricing.total)}
+                  </span>
+                </div>
+
+                {/* Deposit & Balance Schedule */}
+                <div className="bg-white/80 rounded-xl p-2.5 border border-solly-pink/20 text-[11px] text-solly-charcoal space-y-1">
+                  <div className="flex justify-between font-bold">
+                    <span>Acompte 70% à la réservation :</span>
+                    <span className="text-solly-pink">{formatPriceFCFA(pricing.deposit70)}</span>
+                  </div>
+                  <div className="flex justify-between text-solly-muted font-medium">
+                    <span>Solde 30% à J-2 :</span>
+                    <span>{formatPriceFCFA(pricing.balance30)}</span>
+                  </div>
                 </div>
               </div>
 
@@ -1763,32 +2114,77 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
               {/* Headline & Subtitle */}
               <div>
                 <h2 className="text-2xl sm:text-3xl font-display font-black text-solly-pink tracking-tight">
-                  Merci pour votre demande !
+                  Votre demande Solly est bien partie ♡
                 </h2>
-                <h3 className="text-base sm:text-lg font-display font-extrabold text-solly-charcoal mt-1">
-                  Votre projet est entre nos mains.
-                </h3>
-                <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1.5 leading-relaxed px-2">
-                  Notre équipe étudie votre demande et revient vers vous sous 24h ouvrées avec votre devis détaillé.
+                <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1.5 leading-relaxed px-2">
+                  Nous vérifions la disponibilité de votre date et les détails de votre événement avant validation définitive.
                 </p>
               </div>
 
-              {/* Alert Pink Banner */}
-              <div className="bg-[#FCECEF] border border-solly-pink/20 text-solly-pink rounded-2xl p-2.5 sm:p-3 text-xs font-bold inline-flex flex-col items-center gap-1 mx-auto max-w-sm">
-                <div className="flex items-center gap-1.5">
-                  <Sparkle size={14} color="#DE1B52" />
-                  <span>Votre réservation n’est pas encore confirmée.</span>
+              {/* 4-step Progress Stepper */}
+              <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-4 text-left space-y-3 shadow-2xs">
+                <h4 className="text-[11px] font-extrabold text-solly-charcoal uppercase tracking-wider text-center">
+                  Les étapes de votre réservation
+                </h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+                      ✓
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-solly-charcoal">1. Demande reçue</p>
+                      <p className="text-[11px] text-solly-muted">Votre demande est bien enregistrée par notre équipe.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 animate-pulse">
+                      2
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-solly-charcoal">2. Vérification de disponibilité</p>
+                      <p className="text-[11px] text-solly-muted">Nous vérifions notre planning et revenons vers vous sous 24h ouvrées.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-white border border-solly-border text-solly-muted flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+                      3
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-solly-charcoal">3. Acompte de 70%</p>
+                      <p className="text-[11px] text-solly-muted">Le versement de l’acompte ({formatPriceFCFA(pricing.deposit70)}) bloque officiellement la date.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-white border border-solly-border text-solly-muted flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+                      4
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-solly-charcoal">4. Réservation confirmée</p>
+                      <p className="text-[11px] text-solly-muted">Votre date est bloquée ! Le solde de 30% sera réglé à J-2.</p>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-[10px] font-normal text-solly-charcoal/80">
-                  La date sera bloquée à réception de l&apos;acompte de 70 % (
-                  <Link href="/cgv" target="_blank" className="underline font-bold text-solly-pink">
-                    CGV
-                  </Link>
-                  ).
-                </span>
               </div>
 
-              {/* Primary Action: WhatsApp Direct Link */}
+              {/* Itemized Summary Card */}
+              <div className="bg-[#FCECEF] border border-solly-pink/20 rounded-2xl p-3.5 text-left text-xs text-solly-charcoal space-y-1.5 shadow-2xs">
+                <div className="flex justify-between font-bold pb-1.5 border-b border-solly-pink/20">
+                  <span>Récapitulatif de votre demande</span>
+                  <span className="text-solly-pink font-display font-black">{formatPriceFCFA(pricing.total)}</span>
+                </div>
+                <div className="text-[11px] space-y-1 text-solly-charcoal/80">
+                  <p><strong>Date & Lieu :</strong> {formattedDate} {formData.eventTime ? `(${formData.eventTime})` : ''} • {formData.address || 'Dakar'}</p>
+                  <p><strong>Formule :</strong> {pricing.effectiveGuests} personnes • {selectedBarsSummary()}</p>
+                  {formData.hasCartCustomization && <p><strong>Personnalisation :</strong> Façade du chariot (+15 000 FCFA)</p>}
+                  {formData.hasCustomPackaging && <p><strong>Contenants :</strong> Couverts personnalisés (+10 000 FCFA)</p>}
+                  <p className="text-solly-pink font-semibold"><strong>Acompte pour bloquer la date :</strong> {formatPriceFCFA(pricing.deposit70)} (70%)</p>
+                </div>
+              </div>
+
+              {/* Primary Action: WhatsApp Optional Link (no auto-redirection) */}
               <div className="space-y-2 pt-1">
                 <a
                   href={getWhatsAppUrl()}
@@ -1813,10 +2209,10 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#25D366] text-white font-display font-bold text-sm sm:text-base hover:bg-[#1EBE5D] shadow-lg transition-all duration-200 inline-flex items-center justify-center gap-2.5 group cursor-pointer"
                 >
                   <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
-                  <span>Envoyer le résumé à Solly sur whatsapp</span>
+                  <span>Échanger avec nous sur WhatsApp</span>
                 </a>
                 <p className="text-[11px] text-solly-muted font-medium">
-                  Votre récapitulatif complet sera déjà pré-rempli.
+                  Optionnel : pour poser une question ou échanger directement avec notre équipe.
                 </p>
               </div>
 
@@ -1861,64 +2257,81 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
 
       {/* 4. STICKY THUMB-ZONE ACTION FOOTER */}
       {currentStep < 4 && (
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-md p-3.5 sm:px-8 sm:py-4 border-t border-solly-border/70 flex items-center justify-between z-20 shrink-0">
-          {currentStep > 1 ? (
-            <button
-              type="button"
-              onClick={() => setCurrentStep(currentStep === 3 ? 2 : 1)}
-              className="text-xs sm:text-sm font-bold text-solly-muted hover:text-solly-charcoal transition-colors cursor-pointer inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl hover:bg-solly-cream"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Retour</span>
-            </button>
-          ) : (
-            <div className="text-[11px] text-solly-muted font-semibold hidden sm:block">
-              ✦ Formule sur mesure sans engagement
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-md p-3 sm:px-6 sm:py-3.5 border-t border-solly-border/70 flex items-center justify-between gap-3 z-20 shrink-0">
+          <div className="flex items-center gap-2">
+            {currentStep > 1 ? (
+              <button
+                type="button"
+                onClick={() => setCurrentStep(currentStep === 3 ? 2 : 1)}
+                className="text-xs sm:text-sm font-bold text-solly-muted hover:text-solly-charcoal transition-colors cursor-pointer inline-flex items-center gap-1 px-2.5 py-2 rounded-xl hover:bg-solly-cream"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Retour</span>
+              </button>
+            ) : (
+              <div className="text-[11px] text-solly-muted font-semibold hidden md:block">
+                ✦ Minimum 20 invités
+              </div>
+            )}
+
+            {/* Live Pricing Estimation */}
+            <div className="flex flex-col text-left pl-1">
+              <span className="text-[10px] sm:text-xs text-solly-muted font-semibold leading-tight">
+                Estimation ({pricing.effectiveGuests} pers.)
+              </span>
+              <span className="text-xs sm:text-base font-display font-black text-solly-pink leading-tight">
+                {formatPriceFCFA(pricing.total)}
+              </span>
+              <span className="text-[9px] text-solly-muted/80 leading-none hidden sm:block">
+                Hors transport • Acompte 70%
+              </span>
             </div>
-          )}
+          </div>
 
-          {currentStep === 1 && (
-            <button
-              type="button"
-              onClick={handleNextFromStep1}
-              className="w-full sm:w-auto ml-auto px-8 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
-            >
-              <span>Continuer vers les bars</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {currentStep === 1 && (
+              <button
+                type="button"
+                onClick={handleNextFromStep1}
+                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <span>Continuer vers les bars</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            )}
 
-          {currentStep === 2 && (
-            <button
-              type="button"
-              onClick={handleNextFromStep2}
-              className="w-auto ml-auto px-8 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
-            >
-              <span>Continuer</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          )}
+            {currentStep === 2 && (
+              <button
+                type="button"
+                onClick={handleNextFromStep2}
+                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <span>Continuer</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            )}
 
-          {currentStep === 3 && (
-            <button
-              type="button"
-              onClick={handleSubmitStep3}
-              disabled={isSubmitting}
-              className="w-auto ml-auto px-7 sm:px-9 py-3.5 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Envoi du devis...</span>
-                </>
-              ) : (
-                <>
-                  <span>Envoyer ma demande</span>
-                  <Sparkles className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          )}
+            {currentStep === 3 && (
+              <button
+                type="button"
+                onClick={handleSubmitStep3}
+                disabled={isSubmitting}
+                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Envoi...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Envoyer ma demande</span>
+                    <Sparkles className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

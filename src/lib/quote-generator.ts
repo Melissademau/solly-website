@@ -16,6 +16,7 @@ import {
   ShadingType,
   ImageRun,
 } from 'docx';
+import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
 
 export interface BookingPayload {
   formData: {
@@ -29,6 +30,15 @@ export interface BookingPayload {
     location: string;
     message?: string;
     selectedBars: string[];
+    mainBar?: 'cake-bar' | 'charcuterie';
+    hasExtraBar?: boolean;
+    extraBarType?: 'cake-bar' | 'charcuterie';
+    hasDrinks?: boolean;
+    hasCartCustomization?: boolean;
+    hasCustomPackaging?: boolean;
+    personalization?: string;
+    themeColor?: string;
+    isAdvised?: boolean;
     experience?: string;
     inspirations?: Array<{ name: string; size: number }>;
     inspirationPhotos?: Array<{ name: string; size: number; dataUrl?: string }>;
@@ -46,6 +56,18 @@ export interface BookingPayload {
       format?: string;
       composants: string[];
     };
+  };
+  pricing?: {
+    guestCount: number;
+    effectiveGuests: number;
+    basePrice: number;
+    extraBarPrice: number;
+    drinksPrice: number;
+    cartCustomizationPrice: number;
+    customPackagingPrice: number;
+    total: number;
+    deposit70: number;
+    balance30: number;
   };
 }
 
@@ -81,6 +103,16 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
   const muted = rgb(120 / 255, 120 / 255, 120 / 255);
 
   const { formData, orderChoices } = payload;
+  const pricing =
+    payload.pricing ||
+    calculateBookingPrice({
+      guestCount: formData.guestCount,
+      hasExtraBar: formData.hasExtraBar,
+      hasDrinks: formData.hasDrinks,
+      hasCartCustomization: formData.hasCartCustomization,
+      hasCustomPackaging: formData.hasCustomPackaging,
+    });
+
   const quoteRef = `SOL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
   const quoteDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const eventDateFormatted = formData.eventDate
@@ -102,7 +134,6 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
   try {
     const logoBytes = await fs.promises.readFile(logoPath);
     const logoImage = await pdfDoc.embedPng(logoBytes);
-    // Aspect ratio 802 x 391 -> w: 90, h: 43.88
     page.drawImage(logoImage, {
       x: 40,
       y: 772,
@@ -198,7 +229,7 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
   // Column 2: Event Details
   page.drawText(`Date prevue : ${sanitizeForPdf(eventDateFormatted)}`, { x: 300, y: 708, size: 8.5, font: fontBold, color: charcoal });
   page.drawText(`Creneau : ${sanitizeForPdf(formData.timeSlot || 'A convenir')}`, { x: 300, y: 694, size: 8.5, font, color: charcoal });
-  page.drawText(`Nombre d'invites : ${formData.guestCount} personnes`, { x: 300, y: 680, size: 8.5, font: fontBold, color: pink });
+  page.drawText(`Nombre d'invites : ${pricing.effectiveGuests} personnes (min. 20)`, { x: 300, y: 680, size: 8.5, font: fontBold, color: pink });
   if (formData.message) {
     const note = sanitizeForPdf(formData.message).substring(0, 50);
     page.drawText(`Note : ${note}`, { x: 300, y: 666, size: 8, font: fontOblique, color: muted });
@@ -206,7 +237,7 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
 
   // 3. TABLE OF LINE ITEMS
   const tableY = 635;
-  const rowHeight = 44;
+  const rowHeight = 36;
 
   // Table Header Row
   page.drawRectangle({
@@ -216,69 +247,111 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
     height: 20,
     color: pink,
   });
-  page.drawText('Prestation / Composition Choisie', { x: 48, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText('Qte', { x: 315, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText('Prix Unit. (FCFA)', { x: 365, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText('Total (FCFA)', { x: 468, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText('Prestation / Options Choisies', { x: 48, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText('Qte', { x: 305, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText('Prix Unit.', { x: 360, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText('Total (FCFA)', { x: 455, y: tableY - 14, size: 8.5, font: fontBold, color: rgb(1, 1, 1) });
 
   // Build Item Rows based on user selections
   interface LineItem {
     title: string;
     details: string;
     qte: string;
-    isIncluded?: boolean;
+    pu: string;
+    total: string;
   }
   const items: LineItem[] = [];
 
-  if (formData.selectedBars.includes('cake-bar')) {
-    const pkg = orderChoices.packageType || "L'experience Solly (80 000 FCFA)";
-    const barq = orderChoices.cakeBar?.barquette || 'Standard Solly';
-    const base = orderChoices.cakeBar?.base || 'Vanille';
-    const sauces = orderChoices.cakeBar?.sauces?.length ? orderChoices.cakeBar.sauces.join(', ') : 'Chocolat';
-    const toppings = orderChoices.cakeBar?.composants?.length ? orderChoices.cakeBar.composants.join(', ') : '6 toppings choisis';
+  // Main Bar
+  const mainBarName = formData.mainBar === 'charcuterie' ? 'Bar sale / Charcuterie' : 'Cake Bar';
+  let mainDetails = `Bar principal inclus (${mainBarName}) avec chariot Solly et service inclus`;
+  if (formData.mainBar === 'charcuterie' && orderChoices.charcuterie) {
+    const fmt = orderChoices.charcuterie.format || 'Cornet';
+    const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
+    mainDetails = `Format: ${fmt} | Bouchees: ${comps}`;
+  } else if (orderChoices.cakeBar) {
+    const base = orderChoices.cakeBar.base || 'Vanille';
+    const barq = orderChoices.cakeBar.barquette || 'Standard';
+    const sauces = orderChoices.cakeBar.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.cakeBar.composants?.join(', ') || 'Toppings';
+    mainDetails = `Base: ${base} | Barquette: ${barq} | Sauces: ${sauces} | Toppings: ${tops}`;
+  }
+
+  items.push({
+    title: `Formule de base Solly (${mainBarName})`,
+    details: mainDetails,
+    qte: `${pricing.effectiveGuests} pers.`,
+    pu: '4 000 FCFA',
+    total: formatPriceFCFA(pricing.basePrice),
+  });
+
+  // Extra Bar
+  if (formData.hasExtraBar) {
+    const extraName = formData.extraBarType === 'charcuterie' ? 'Bar sale / Charcuterie' : 'Cake Bar';
+    let extraDetails = '2eme bar complet au choix des invites';
+    if (formData.extraBarType === 'charcuterie' && orderChoices.charcuterie) {
+      const fmt = orderChoices.charcuterie.format || 'Cornet';
+      const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
+      extraDetails = `Format: ${fmt} | Bouchees: ${comps}`;
+    } else if (orderChoices.cakeBar) {
+      const base = orderChoices.cakeBar.base || 'Vanille';
+      extraDetails = `Base: ${base} avec toppings et nappages`;
+    }
     items.push({
-      title: 'Cake Bar Solly (Chariot gourmand)',
-      details: `${pkg} | Barquette: ${barq} | Base: ${base} | Sauces: ${sauces} | Toppings: ${toppings}`,
-      qte: `${formData.guestCount} pers.`,
+      title: `Option Bar supplementaire (${extraName})`,
+      details: extraDetails,
+      qte: `${pricing.effectiveGuests} pers.`,
+      pu: '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.extraBarPrice)}`,
     });
   }
 
-  if (formData.selectedBars.includes('drinks')) {
+  // Drinks
+  if (formData.hasDrinks) {
     const juices = orderChoices.drinks?.length ? orderChoices.drinks.join(', ') : 'Bissap, Ananas, Passion';
     items.push({
-      title: 'Bar a Boissons Solly (Jus frais locaux)',
-      details: `Saveurs selectionnees (3 max) : ${juices} (Servi frais avec verres)`,
-      qte: `${formData.guestCount} pers.`,
+      title: 'Option Boissons Solly (Jus frais locaux)',
+      details: `3 saveurs : ${juices} (verres et service inclus)`,
+      qte: `${pricing.effectiveGuests} pers.`,
+      pu: '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.drinksPrice)}`,
     });
   }
 
-  if (formData.selectedBars.includes('charcuterie')) {
-    const fmt = orderChoices.charcuterie?.format || 'Cornet';
-    const comps = orderChoices.charcuterie?.composants?.length ? orderChoices.charcuterie.composants.join(', ') : '6 composants choisis';
+  // Cart Customization
+  if (formData.hasCartCustomization) {
     items.push({
-      title: 'Bar a Charcuterie & Fromages Solly',
-      details: `Format : ${fmt} | Compositions : ${comps}`,
-      qte: `${formData.guestCount} pers.`,
+      title: 'Option Personnalisation du chariot',
+      details: 'Facade avant amovible sur mesure (prenom, logo ou visuel)',
+      qte: '1 forfait',
+      pu: '+15 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.cartCustomizationPrice)}`,
     });
   }
 
-  // Mandatory / standard event logistics rows (exactement 2 lignes)
+  // Packaging Customization
+  if (formData.hasCustomPackaging) {
+    items.push({
+      title: 'Option Couverts & contenants personnalises',
+      details: 'Stickers personnalises sur les contenants de l evenement',
+      qte: '1 forfait',
+      pu: '+10 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.customPackagingPrice)}`,
+    });
+  }
+
+  // Transport
   items.push({
-    title: "Inclus dans l'experience",
-    details: 'Chariot Solly jaune  -  Service pendant la prestation  -  Demontage',
+    title: 'Transport & Logistique (Dakar & environs)',
+    details: `Acheminement et retour du materiel a ${sanitizeForPdf(formData.location || 'Dakar')}`,
     qte: '1 forfait',
-    isIncluded: true,
-  });
-  items.push({
-    title: 'Logistique & Deplacement (Dakar)',
-    details: `Acheminement du materiel a ${sanitizeForPdf(formData.location || 'Dakar')}`,
-    qte: '1 forfait',
-    isIncluded: false,
+    pu: 'A confirmer',
+    total: 'Selon adresse',
   });
 
   let currentY = tableY - 20;
 
-  items.slice(0, 5).forEach((item, idx) => {
+  items.forEach((item, idx) => {
     currentY -= rowHeight;
     const isEven = idx % 2 === 0;
 
@@ -295,17 +368,17 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
     // Title
     page.drawText(sanitizeForPdf(item.title), {
       x: 48,
-      y: currentY + 28,
+      y: currentY + 20,
       size: 8.5,
       font: fontBold,
       color: charcoal,
     });
 
     // Details snippet
-    const lineDetails = sanitizeForPdf(item.details).substring(0, 65);
+    const lineDetails = sanitizeForPdf(item.details).substring(0, 68);
     page.drawText(lineDetails, {
       x: 48,
-      y: currentY + 14,
+      y: currentY + 8,
       size: 7.5,
       font,
       color: muted,
@@ -313,90 +386,60 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
 
     // Qte
     page.drawText(item.qte, {
-      x: 315,
-      y: currentY + 20,
+      x: 305,
+      y: currentY + 14,
       size: 8,
       font,
       color: charcoal,
     });
 
-    // PU Box for manual write-in
-    page.drawRectangle({
+    // PU
+    page.drawText(sanitizeForPdf(item.pu), {
       x: 360,
-      y: currentY + 10,
-      width: 90,
-      height: 22,
-      color: rgb(1, 1, 1),
-      borderColor: borderGray,
-      borderWidth: 0.5,
+      y: currentY + 14,
+      size: 8,
+      font,
+      color: charcoal,
     });
-    if (item.isIncluded) {
-      page.drawText('Inclus', {
-        x: 390,
-        y: currentY + 17,
-        size: 8,
-        font: fontBold,
-        color: pink,
-      });
-    } else {
-      page.drawText('............ FCFA', {
-        x: 370,
-        y: currentY + 18,
-        size: 7.5,
-        font: fontOblique,
-        color: muted,
-      });
-    }
 
-    // Total Box for manual write-in
-    page.drawRectangle({
-      x: 460,
-      y: currentY + 10,
-      width: 90,
-      height: 22,
-      color: rgb(1, 1, 1),
-      borderColor: borderGray,
-      borderWidth: 0.5,
+    // Total
+    page.drawText(sanitizeForPdf(item.total), {
+      x: 455,
+      y: currentY + 14,
+      size: 8,
+      font,
+      color: pink,
     });
-    if (item.isIncluded) {
-      page.drawText('Inclus', {
-        x: 490,
-        y: currentY + 17,
-        size: 8,
-        font: fontBold,
-        color: pink,
-      });
-    } else {
-      page.drawText('............ FCFA', {
-        x: 470,
-        y: currentY + 18,
-        size: 7.5,
-        font: fontOblique,
-        color: muted,
-      });
-    }
   });
 
   // 4. TOTALS RECAP CARD (Right aligned)
-  const totalsY = currentY - 66;
+  const totalsY = currentY - 70;
   page.drawRectangle({
-    x: 300,
+    x: 275,
     y: totalsY,
-    width: 255.28,
-    height: 58,
+    width: 280.28,
+    height: 62,
     color: softPink,
     borderColor: pink,
     borderWidth: 0.8,
   });
 
-  page.drawText('Sous-total HT :', { x: 312, y: totalsY + 42, size: 8, font, color: charcoal });
-  page.drawText('.................................... FCFA', { x: 400, y: totalsY + 42, size: 8, font: fontBold, color: charcoal });
+  page.drawText('Sous-total HT (hors transport) :', { x: 287, y: totalsY + 45, size: 8, font, color: charcoal });
+  page.drawText(sanitizeForPdf(formatPriceFCFA(pricing.total)), { x: 440, y: totalsY + 45, size: 8, font: fontBold, color: charcoal });
 
-  page.drawText('TOTAL A PAYER (FCFA) :', { x: 312, y: totalsY + 25, size: 9, font: fontBold, color: pink });
-  page.drawText('.................................... FCFA', { x: 420, y: totalsY + 25, size: 9, font: fontBold, color: pink });
+  page.drawText('Transport & Deplacement :', { x: 287, y: totalsY + 31, size: 8, font, color: charcoal });
+  page.drawText('A confirmer selon adresse', { x: 420, y: totalsY + 31, size: 7.5, font: fontOblique, color: muted });
 
-  page.drawText('Acompte 70% :', { x: 312, y: totalsY + 9, size: 7.5, font: fontBold, color: charcoal });
-  page.drawText('....................... FCFA  |  Solde 30% a Jour J', { x: 375, y: totalsY + 9, size: 7.5, font, color: muted });
+  page.drawText('TOTAL ESTIMÉ PRESTATION :', { x: 287, y: totalsY + 16, size: 8.5, font: fontBold, color: pink });
+  page.drawText(sanitizeForPdf(formatPriceFCFA(pricing.total)), { x: 440, y: totalsY + 16, size: 9, font: fontBold, color: pink });
+
+  page.drawText(`Acompte 70% : ${sanitizeForPdf(formatPriceFCFA(pricing.deposit70))}  |  Solde 30% a J-2 : ${sanitizeForPdf(formatPriceFCFA(pricing.balance30))}`, {
+    x: 287,
+    y: totalsY + 4,
+    size: 7,
+    font: fontBold,
+    color: charcoal,
+  });
 
   // 5. PAYMENT TERMS & SIGNATURE BOX
   const signY = totalsY - 96;
@@ -424,21 +467,21 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
     font: fontBold,
     color: charcoal,
   });
-  page.drawText('- Modalites de paiement : 70% a la reservation, 30% a Jour J avant le debut de la prestation.', {
+  page.drawText('- Modalites de reglement : 70% d acompte a la reservation, 30% de solde a J-2 de l evenement.', {
     x: 52,
     y: signY + 50,
     size: 7.5,
     font,
     color: charcoal,
   });
-  page.drawText("- La date de l'evenement n'est definitivement reservee qu'apres reception de l'acompte de 70%.", {
+  page.drawText("- La date de l evenement n est definitivement reservee qu apres reception de l acompte de 70%.", {
     x: 52,
     y: signY + 38,
     size: 7.5,
     font,
     color: charcoal,
   });
-  page.drawText("- La reception de l'acompte constitue un accord avec acceptation des CGV sur www.monsolly.com.", {
+  page.drawText("- La reception de l acompte constitue un accord avec acceptation des CGV sur www.monsolly.com.", {
     x: 52,
     y: signY + 26,
     size: 7.5,
@@ -478,6 +521,16 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
  */
 export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer> {
   const { formData, orderChoices } = payload;
+  const pricing =
+    payload.pricing ||
+    calculateBookingPrice({
+      guestCount: formData.guestCount,
+      hasExtraBar: formData.hasExtraBar,
+      hasDrinks: formData.hasDrinks,
+      hasCartCustomization: formData.hasCartCustomization,
+      hasCustomPackaging: formData.hasCustomPackaging,
+    });
+
   const quoteRef = `SOL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
   const quoteDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const eventDateFormatted = formData.eventDate
@@ -499,57 +552,90 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
     title: string;
     details: string;
     qte: string;
-    isIncluded?: boolean;
+    pu: string;
+    total: string;
   }
   const items: DocxLineItem[] = [];
 
-  if (formData.selectedBars.includes('cake-bar')) {
-    const pkg = orderChoices.packageType || "L'expérience Solly (80 000 FCFA)";
-    const barq = orderChoices.cakeBar?.barquette || 'Standard Solly';
-    const base = orderChoices.cakeBar?.base || 'Vanille';
-    const sauces = orderChoices.cakeBar?.sauces?.length ? orderChoices.cakeBar.sauces.join(', ') : 'Chocolat';
-    const toppings = orderChoices.cakeBar?.composants?.length ? orderChoices.cakeBar.composants.join(', ') : '6 toppings choisis';
-    items.push({
-      title: 'Cake Bar Solly (Chariot gourmand)',
-      details: `${pkg}\nBarquette : ${barq} | Base : ${base}\nSauces : ${sauces}\nToppings : ${toppings}`,
-      qte: `${formData.guestCount} personnes`,
-      isIncluded: false,
-    });
+  const mainBarName = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+  let mainDetails = `Bar principal inclus (${mainBarName}) · Chariot Solly · Service pendant la prestation`;
+  if (formData.mainBar === 'charcuterie' && orderChoices.charcuterie) {
+    const fmt = orderChoices.charcuterie.format || 'Cornet';
+    const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
+    mainDetails = `Format : ${fmt} · Ingrédients : ${comps}`;
+  } else if (orderChoices.cakeBar) {
+    const base = orderChoices.cakeBar.base || 'Vanille';
+    const barq = orderChoices.cakeBar.barquette || 'Standard';
+    const sauces = orderChoices.cakeBar.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.cakeBar.composants?.join(', ') || 'Toppings';
+    mainDetails = `Base : ${base} · Barquette : ${barq}\nSauces : ${sauces} · Toppings : ${tops}`;
   }
 
-  if (formData.selectedBars.includes('drinks')) {
-    const juices = orderChoices.drinks?.length ? orderChoices.drinks.join(', ') : 'Bissap glacé, Jus d’ananas, Orange-passion';
-    items.push({
-      title: 'Bar à Boissons Solly (Jus frais locaux)',
-      details: `Saveurs sélectionnées (3 max) : ${juices}\nServi frais avec verres, pailles et garnitures`,
-      qte: `${formData.guestCount} personnes`,
-      isIncluded: false,
-    });
-  }
-
-  if (formData.selectedBars.includes('charcuterie')) {
-    const fmt = orderChoices.charcuterie?.format || 'Cornet';
-    const comps = orderChoices.charcuterie?.composants?.length ? orderChoices.charcuterie.composants.join(', ') : '6 composants choisis';
-    items.push({
-      title: 'Bar à Charcuterie & Fromages Solly',
-      details: `Format : ${fmt}\nIngrédients : ${comps}`,
-      qte: `${formData.guestCount} personnes`,
-      isIncluded: false,
-    });
-  }
-
-  // Mandatory / standard event logistics rows (exactement 2 lignes)
   items.push({
-    title: 'Inclus dans l’expérience',
-    details: 'Chariot Solly jaune · Service pendant la prestation · Démontage',
-    qte: '1 forfait',
-    isIncluded: true,
+    title: `Formule Solly de base (${mainBarName})`,
+    details: mainDetails,
+    qte: `${pricing.effectiveGuests} pers.`,
+    pu: '4 000 FCFA',
+    total: formatPriceFCFA(pricing.basePrice),
   });
+
+  if (formData.hasExtraBar) {
+    const extraName = formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+    let extraDetails = '2ème bar complet au choix des invités';
+    if (formData.extraBarType === 'charcuterie' && orderChoices.charcuterie) {
+      const fmt = orderChoices.charcuterie.format || 'Cornet';
+      const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
+      extraDetails = `Format : ${fmt} · Bouchées : ${comps}`;
+    } else if (orderChoices.cakeBar) {
+      const base = orderChoices.cakeBar.base || 'Vanille';
+      extraDetails = `Base : ${base} avec toppings et nappages`;
+    }
+    items.push({
+      title: `Option Bar supplémentaire (${extraName})`,
+      details: extraDetails,
+      qte: `${pricing.effectiveGuests} pers.`,
+      pu: '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.extraBarPrice)}`,
+    });
+  }
+
+  if (formData.hasDrinks) {
+    const juices = orderChoices.drinks?.length ? orderChoices.drinks.join(', ') : 'Bissap, Ananas, Passion';
+    items.push({
+      title: 'Option Boissons Solly (Jus frais locaux)',
+      details: `3 saveurs : ${juices} (verres, pailles et service inclus)`,
+      qte: `${pricing.effectiveGuests} pers.`,
+      pu: '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.drinksPrice)}`,
+    });
+  }
+
+  if (formData.hasCartCustomization) {
+    items.push({
+      title: 'Option Personnalisation du chariot',
+      details: 'Façade avant amovible sur mesure (prénom, logo ou visuel événementiel)',
+      qte: '1 forfait',
+      pu: '+15 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.cartCustomizationPrice)}`,
+    });
+  }
+
+  if (formData.hasCustomPackaging) {
+    items.push({
+      title: 'Option Couverts & contenants personnalisés',
+      details: 'Stickers personnalisés sur les contenants de l’événement',
+      qte: '1 forfait',
+      pu: '+10 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.customPackagingPrice)}`,
+    });
+  }
+
   items.push({
-    title: 'Logistique & Déplacement (Dakar)',
+    title: 'Transport & Logistique (Dakar & environs)',
     details: `Acheminement sécurisé et retour du matériel à ${formData.location || 'Dakar'}`,
     qte: '1 forfait',
-    isIncluded: false,
+    pu: 'À confirmer',
+    total: 'Selon adresse',
   });
 
   const tableRows = [
@@ -567,14 +653,14 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
           width: { size: 15, type: WidthType.PERCENTAGE },
         }),
         new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text: 'Prix Unit. (FCFA)', bold: true, color: 'FFFFFF' })] })],
+          children: [new Paragraph({ children: [new TextRun({ text: 'Prix Unit.', bold: true, color: 'FFFFFF' })] })],
           shading: { fill: 'DE1B52', type: ShadingType.CLEAR },
-          width: { size: 18, type: WidthType.PERCENTAGE },
+          width: { size: 17, type: WidthType.PERCENTAGE },
         }),
         new TableCell({
           children: [new Paragraph({ children: [new TextRun({ text: 'Total (FCFA)', bold: true, color: 'FFFFFF' })] })],
           shading: { fill: 'DE1B52', type: ShadingType.CLEAR },
-          width: { size: 17, type: WidthType.PERCENTAGE },
+          width: { size: 18, type: WidthType.PERCENTAGE },
         }),
       ],
     }),
@@ -602,26 +688,14 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [
-                    new TextRun(
-                      item.isIncluded
-                        ? { text: 'Inclus', bold: true, color: 'DE1B52' }
-                        : { text: '..................... FCFA', color: '999999' }
-                    ),
-                  ],
+                  children: [new TextRun({ text: item.pu, color: '444444' })],
                 }),
               ],
             }),
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [
-                    new TextRun(
-                      item.isIncluded
-                        ? { text: 'Inclus', bold: true, color: 'DE1B52' }
-                        : { text: '..................... FCFA', color: '999999' }
-                    ),
-                  ],
+                  children: [new TextRun({ text: item.total, bold: true, color: 'DE1B52' })],
                 }),
               ],
             }),
@@ -702,7 +776,7 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
               new TextRun({ text: `Lieu / Quartier : `, bold: true }),
               new TextRun({ text: formData.location || 'Dakar' }),
               new TextRun({ text: `   |   Nombre d'invités : `, bold: true }),
-              new TextRun({ text: `${formData.guestCount} personnes`, bold: true, color: 'DE1B52' }),
+              new TextRun({ text: `${pricing.effectiveGuests} personnes`, bold: true, color: 'DE1B52' }),
               new TextRun({ text: `   |   Créneau : `, bold: true }),
               new TextRun({ text: formData.timeSlot || 'Après-midi' }),
             ],
@@ -734,10 +808,11 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: 'Sous-total HT : ................................................................ FCFA\n' }),
-              new TextRun({ text: 'TOTAL À PAYER TTC : .................................................... FCFA\n', bold: true, color: 'DE1B52' }),
-              new TextRun({ text: 'Acompte de réservation (70%) : ................................... FCFA\n' }),
-              new TextRun({ text: 'Solde restant (30% à Jour J avant le début de la prestation) : ................. FCFA' }),
+              new TextRun({ text: `Sous-total prestation HT : ${formatPriceFCFA(pricing.total)}\n` }),
+              new TextRun({ text: `Transport & Logistique : À confirmer selon l'adresse exacte\n` }),
+              new TextRun({ text: `TOTAL ESTIMÉ PRESTATION : ${formatPriceFCFA(pricing.total)} (hors transport)\n`, bold: true, color: 'DE1B52' }),
+              new TextRun({ text: `Acompte de réservation (70% pour bloquer la date) : ${formatPriceFCFA(pricing.deposit70)}\n`, bold: true }),
+              new TextRun({ text: `Solde restant (30% à régler à J-2) : ${formatPriceFCFA(pricing.balance30)}` }),
             ],
             spacing: { after: 200 },
           }),
@@ -754,8 +829,8 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
               new TextRun({
                 text:
                   '• Devis valable 72 heures.\n' +
-                  '• Modalités de paiement : 70 % à la réservation, 30 % à Jour J avant le début de la prestation.\n' +
-                  '• La date de l’événement n’est définitivement réservée qu’après réception de l’acompte de 70 % et la réception de l’acompte constitue un accord avec acceptation des CGV dans le site www.monsolly.com.\n' +
+                  '• Modalités de règlement : 70 % d’acompte à la réservation (bloque la date), 30 % de solde à J-2 de l’événement.\n' +
+                  '• La date de l’événement n’est définitivement réservée qu’après réception de l’acompte de 70 % et la réception de l’acompte constitue un accord avec acceptation des CGV sur www.monsolly.com.\n' +
                   '• Modes de règlement acceptés : Wave ou Orange Money au +221 77 690 04 58, ou Virement bancaire.\n\n' +
                   'Bon pour accord (Date et Signature du client) : ............................................................................',
                 size: 19,
@@ -776,16 +851,22 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
  */
 export function generateQuoteHtmlEmail(payload: BookingPayload): string {
   const { formData, orderChoices } = payload;
+  const pricing =
+    payload.pricing ||
+    calculateBookingPrice({
+      guestCount: formData.guestCount,
+      hasExtraBar: formData.hasExtraBar,
+      hasDrinks: formData.hasDrinks,
+      hasCartCustomization: formData.hasCartCustomization,
+      hasCustomPackaging: formData.hasCustomPackaging,
+    });
+
   const fullPhone = `${formData.countryCode || '+221'} ${formData.phone}`.trim();
   const eventDateFormatted = formData.eventDate
     ? new Date(formData.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'À convenir';
 
-  const barsLabels: string[] = [];
-  if (formData.selectedBars.includes('cake-bar')) barsLabels.push('Cake Bar');
-  if (formData.selectedBars.includes('drinks')) barsLabels.push('Bar à boissons');
-  if (formData.selectedBars.includes('charcuterie')) barsLabels.push('Bar à charcuterie');
-
+  const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
   const waLink = `https://wa.me/${formData.countryCode ? formData.countryCode.replace(/\+/g, '') : '221'}${formData.phone.replace(/\s+/g, '')}`;
 
   return `
@@ -808,8 +889,8 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
     <div style="padding: 24px 28px;">
       <p style="font-size: 15px; line-height: 1.5; color: #2E1C14; margin-top: 0;">
         Bonjour l'équipe Solly,<br><br>
-        Une nouvelle demande de réservation vient d'être enregistrée sur <strong>monsolly.com</strong>.
-        Vous trouverez ci-joint le <strong>devis pré-rempli au format PDF</strong> et au format <strong>Word (.docx)</strong>, prêt à être complété avec les montants et envoyé au client.
+        Une nouvelle demande de réservation vient d'être enregistrée sur <strong>monsolly.com</strong>.<br>
+        Vous trouverez ci-joint le <strong>devis pré-rempli au format PDF</strong> et au format <strong>Word (.docx)</strong> avec le calcul tarifaire complet.
       </p>
 
       <!-- Client Details Box -->
@@ -834,6 +915,53 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
         </table>
       </div>
 
+      <!-- Financial Estimation Box -->
+      <div style="background: #fff; border-radius: 16px; padding: 18px 20px; margin: 20px 0; border: 2px solid #DE1B52;">
+        <h3 style="margin: 0 0 12px; color: #DE1B52; font-size: 16px;">💰 Estimation tarifaire détaillée</h3>
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Formule de base :</strong> ${pricing.effectiveGuests} pers. × 4 000 FCFA (${mainBarLabel})</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold;">${formatPriceFCFA(pricing.basePrice)}</td>
+          </tr>
+          ${formData.hasExtraBar ? `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Bar supplémentaire :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.extraBarPrice)}</td>
+          </tr>
+          ` : ''}
+          ${formData.hasDrinks ? `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Option Boissons Solly :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.drinksPrice)}</td>
+          </tr>
+          ` : ''}
+          ${formData.hasCartCustomization ? `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Personnalisation chariot :</strong> Façade amovible</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.cartCustomizationPrice)}</td>
+          </tr>
+          ` : ''}
+          ${formData.hasCustomPackaging ? `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Contenants personnalisés :</strong> Stickers</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.customPackagingPrice)}</td>
+          </tr>
+          ` : ''}
+          <tr style="border-bottom: 2px solid #DE1B52;">
+            <td style="padding: 10px 0; font-size: 15px; font-weight: bold; color: #2E1C14;">TOTAL ESTIMÉ (hors transport)</td>
+            <td style="padding: 10px 0; font-size: 16px; font-weight: bold; color: #DE1B52; text-align: right;">${formatPriceFCFA(pricing.total)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; font-size: 12px; color: #666;">Acompte de réservation (70% pour bloquer la date) :</td>
+            <td style="padding: 6px 0; font-size: 13px; font-weight: bold; color: #DE1B52; text-align: right;">${formatPriceFCFA(pricing.deposit70)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; font-size: 12px; color: #666;">Solde restant (30% à régler à J-2) :</td>
+            <td style="padding: 4px 0; font-size: 12px; font-weight: bold; text-align: right;">${formatPriceFCFA(pricing.balance30)}</td>
+          </tr>
+        </table>
+      </div>
+
       <!-- Event Details Box -->
       <div style="background: #FAF7F2; border-radius: 16px; padding: 18px 20px; margin: 20px 0; border: 1px solid #ede8e1;">
         <h3 style="margin: 0 0 12px; color: #DE1B52; font-size: 16px;">🎉 Détails de l'événement</h3>
@@ -852,11 +980,11 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
           </tr>
           <tr>
             <td style="padding: 4px 0; color: #666;">Invités :</td>
-            <td style="padding: 4px 0; font-weight: bold; color: #DE1B52;">${formData.guestCount} personnes</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #DE1B52;">${pricing.effectiveGuests} personnes</td>
           </tr>
           <tr>
-            <td style="padding: 4px 0; color: #666;">Bars choisis :</td>
-            <td style="padding: 4px 0; font-weight: bold; color: #2E1C14;">${barsLabels.join(' + ') || 'Aucun bar'}</td>
+            <td style="padding: 4px 0; color: #666;">Bar principal :</td>
+            <td style="padding: 4px 0; font-weight: bold; color: #2E1C14;">${mainBarLabel}</td>
           </tr>
           ${formData.message ? `
           <tr>
@@ -868,11 +996,10 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
       </div>
 
       <!-- Selections Summary -->
-      ${formData.selectedBars.includes('cake-bar') && orderChoices.cakeBar ? `
+      ${orderChoices.cakeBar ? `
       <div style="border-left: 3px solid #DE1B52; padding-left: 14px; margin-bottom: 14px;">
         <strong style="color: #DE1B52; font-size: 14px;">🍰 Cake Bar :</strong><br>
         <span style="font-size: 13px; color: #444;">
-          Formule : ${orderChoices.packageType || 'L’expérience Solly'}<br>
           Base : ${orderChoices.cakeBar.base || 'Vanille'} | Barquette : ${orderChoices.cakeBar.barquette || 'Standard'}<br>
           Sauces : ${orderChoices.cakeBar.sauces.join(', ') || 'Chocolat'}<br>
           Toppings (6) : ${orderChoices.cakeBar.composants.join(', ') || '6 toppings choisis'}
@@ -880,38 +1007,38 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
       </div>
       ` : ''}
 
-      ${formData.selectedBars.includes('drinks') && orderChoices.drinks ? `
+      ${formData.hasDrinks && orderChoices.drinks ? `
       <div style="border-left: 3px solid #DE1B52; padding-left: 14px; margin-bottom: 14px;">
-        <strong style="color: #DE1B52; font-size: 14px;">🍹 Bar à Boissons (3 max) :</strong><br>
+        <strong style="color: #DE1B52; font-size: 14px;">🍹 Option Boissons Solly :</strong><br>
         <span style="font-size: 13px; color: #444;">
           Jus : ${orderChoices.drinks.join(', ')}
         </span>
       </div>
       ` : ''}
 
-      ${formData.selectedBars.includes('charcuterie') && orderChoices.charcuterie ? `
+      ${orderChoices.charcuterie ? `
       <div style="border-left: 3px solid #DE1B52; padding-left: 14px; margin-bottom: 14px;">
-        <strong style="color: #DE1B52; font-size: 14px;">🧀 Bar à Charcuterie :</strong><br>
+        <strong style="color: #DE1B52; font-size: 14px;">🧀 Bar à Charcuterie / Salé :</strong><br>
         <span style="font-size: 13px; color: #444;">
           Format : ${orderChoices.charcuterie.format || 'Cornet'}<br>
-          Composants (6) : ${orderChoices.charcuterie.composants.join(', ')}
+          Composants (6) : ${orderChoices.charcuterie.composants.join(', ') || '6 composants'}
         </span>
       </div>
       ` : ''}
 
-      <!-- Services & Logistique (2 lignes clés) -->
+      <!-- Services & Logistique -->
       <div style="background: #FAF7F2; border-radius: 14px; padding: 14px 18px; margin: 16px 0; border: 1px solid #ede8e1;">
         <div style="font-size: 13px; color: #2E1C14; margin-bottom: 6px;">
-          ✓ <strong>Inclus dans l’expérience :</strong> Chariot Solly jaune · Service pendant la prestation · Démontage
+          ✓ <strong>Inclus :</strong> Chariot Solly · Service pendant la prestation · Démontage
         </div>
         <div style="font-size: 13px; color: #2E1C14;">
-          🚚 <strong>Logistique & Déplacement :</strong> Acheminement sécurisé à ${formData.location || 'Dakar'}
+          🚚 <strong>Transport :</strong> Acheminement à confirmer selon l'adresse exacte à ${formData.location || 'Dakar'}
         </div>
       </div>
 
       <!-- Conditions Reminder -->
       <div style="margin: 16px 0; padding: 12px 16px; background: #FFF8E3; border-radius: 12px; border: 1px solid #FDE68A; font-size: 12px; color: #854D0E;">
-        ⏱️ <strong>Modalités de paiement :</strong> 70 % à la réservation, 30 % à Jour J avant le début de la prestation.<br>
+        ⏱️ <strong>Modalités de règlement :</strong> 70 % à la réservation (bloque la date), 30 % à J-2 de l'événement.<br>
         • Devis valable <strong>72 heures</strong>.<br>
         • La date de l’événement n’est définitivement réservée qu’après réception de l’acompte de 70 % (constitue acceptation des CGV sur monsolly.com).
       </div>
@@ -934,9 +1061,9 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
       <!-- Attachments note -->
       <div style="margin-top: 24px; padding: 14px; background: #fff8eb; border-radius: 12px; border: 1px solid #ffe8b5; font-size: 13px; color: #8a5300;">
         📎 <strong>Pièces jointes incluses :</strong><br>
-        1. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.pdf</strong> : Devis avec logo officiel Solly, prêt à imprimer ou annoter.<br>
-        2. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.docx</strong> : Fichier Word éditable pour insérer directement vos prix.<br>
-        ${formData.inspirationPhotos && formData.inspirationPhotos.length > 0 ? `3. <strong>${formData.inspirationPhotos.length} photo(s) d'inspiration</strong> en pièce jointe.` : ''}
+        1. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.pdf</strong> : Devis avec logo officiel Solly et calculs pré-remplis.<br>
+        2. <strong>devis-solly-${formData.name.toLowerCase().replace(/\s+/g, '-')}.docx</strong> : Fichier Word éditable.<br>
+        ${formData.inspirationPhotos && formData.inspirationPhotos.length > 0 ? `3. <strong>${formData.inspirationPhotos.length} photo(s) d'inspiration</strong> en pièce jointes.` : ''}
       </div>
 
       <!-- Quick Action Button -->

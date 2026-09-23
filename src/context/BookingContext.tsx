@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
+
 export type EventType =
   | "Anniversaire d'enfant"
   | "Célébration familiale"
@@ -15,6 +17,7 @@ export type ExperienceType =
   | 'Charcuterie'
   | 'Souhaite être conseillé';
 
+export type MainBarType = 'cake-bar' | 'charcuterie';
 export type SelectedBarType = 'cake-bar' | 'drinks' | 'charcuterie';
 
 export interface CakeCustomization {
@@ -30,7 +33,7 @@ export interface CharcuterieCustomization {
 }
 
 export interface OrderChoices {
-  packageType?: string; // e.g. "L’expérience Solly (80 000 FCFA)" | "L’expérience personnalisée (100 000 FCFA)"
+  packageType?: string; // e.g. "Cake Bar", "Bar salé / Charcuterie", etc.
   cakeBar?: CakeCustomization;
   drinks?: string[];
   charcuterie?: CharcuterieCustomization;
@@ -49,7 +52,14 @@ export interface BookingFormData {
   guestCount: number | '';
   address: string; // Strictly "Adresse de l'événement"
   experience: ExperienceType | '';
+  // New pricing & bars model
+  mainBar: MainBarType | '';
   selectedBars: SelectedBarType[];
+  hasExtraBar: boolean;
+  extraBarType?: MainBarType;
+  hasDrinks: boolean;
+  hasCartCustomization: boolean; // +15 000 FCFA
+  hasCustomPackaging: boolean;   // +10 000 FCFA
   isAdvised: boolean;
   personalization: 'oui' | 'non' | 'a-definir' | '';
   themeColor: string;
@@ -98,10 +108,16 @@ const initialFormData: BookingFormData = {
   eventDate: '',
   eventTime: '',
   eventType: '',
-  guestCount: '',
+  guestCount: 20, // Base minimum 20 invités
   address: '',
   experience: '',
-  selectedBars: [],
+  mainBar: 'cake-bar',
+  selectedBars: ['cake-bar'],
+  hasExtraBar: false,
+  extraBarType: undefined,
+  hasDrinks: false,
+  hasCartCustomization: false,
+  hasCustomPackaging: false,
   isAdvised: false,
   personalization: '',
   themeColor: '',
@@ -144,32 +160,43 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   const openBooking = (options?: ExperienceType | OpenBookingOptions) => {
     if (typeof options === 'string') {
+      const isCharc = options === 'Charcuterie';
+      const isDrinks = options === 'Boissons';
+
       setFormData((prev) => ({
         ...prev,
         experience: options,
-        selectedBars:
-          options === 'Cake Bar'
-            ? Array.from(new Set([...prev.selectedBars, 'cake-bar']))
-            : options === 'Boissons'
-            ? Array.from(new Set([...prev.selectedBars, 'drinks']))
-            : options === 'Charcuterie'
-            ? Array.from(new Set([...prev.selectedBars, 'charcuterie']))
-            : prev.selectedBars,
+        mainBar: isCharc ? 'charcuterie' : 'cake-bar',
+        hasDrinks: isDrinks ? true : prev.hasDrinks,
+        selectedBars: isCharc ? ['charcuterie'] : isDrinks ? ['cake-bar', 'drinks'] : ['cake-bar'],
         isAdvised: options === 'Souhaite être conseillé' ? true : prev.isAdvised,
       }));
     } else if (options && typeof options === 'object') {
+      const pkg = options.packageType || '';
+      const isMix = pkg.includes('2 Bars') || pkg.includes('mix');
+      const isCharcuterie = options.experience === 'Charcuterie' || pkg.includes('Charcuterie') || pkg.includes('salé');
+      const isDrinks = options.experience === 'Boissons' || (options.drinks && options.drinks.length > 0);
+
       setFormData((prev) => {
-        const nextBars = [...prev.selectedBars];
-        if (options.experience === 'Cake Bar' && !nextBars.includes('cake-bar')) nextBars.push('cake-bar');
-        if (options.experience === 'Boissons' && !nextBars.includes('drinks')) nextBars.push('drinks');
-        if (options.experience === 'Charcuterie' && !nextBars.includes('charcuterie')) nextBars.push('charcuterie');
+        const mainBar: MainBarType = isCharcuterie && !isMix ? 'charcuterie' : 'cake-bar';
+        const hasExtraBar = isMix;
+        const extraBarType: MainBarType | undefined = isMix ? 'charcuterie' : undefined;
+        const hasDrinks = Boolean(isDrinks);
+
+        const nextBars: SelectedBarType[] = [mainBar];
+        if (hasExtraBar && extraBarType && !nextBars.includes(extraBarType)) nextBars.push(extraBarType);
+        if (hasDrinks && !nextBars.includes('drinks')) nextBars.push('drinks');
 
         return {
           ...prev,
           experience: options.experience !== undefined ? options.experience : prev.experience,
           eventType: options.eventType !== undefined ? options.eventType : prev.eventType,
           themeColor: options.eventInspiration !== undefined ? options.eventInspiration : prev.themeColor,
-          selectedBars: nextBars.length > 0 ? nextBars : prev.selectedBars,
+          mainBar,
+          hasExtraBar,
+          extraBarType,
+          hasDrinks,
+          selectedBars: nextBars,
           isAdvised: options.experience === 'Souhaite être conseillé' ? true : prev.isAdvised,
         };
       });
@@ -223,11 +250,15 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   );
 
   const getWhatsAppUrl = () => {
-    const barsLabels: string[] = [];
-    if (formData.selectedBars.includes('cake-bar')) barsLabels.push('Cake Bar');
-    if (formData.selectedBars.includes('drinks')) barsLabels.push('Bar à boissons');
-    if (formData.selectedBars.includes('charcuterie')) barsLabels.push('Bar à charcuterie');
+    const pricing = calculateBookingPrice({
+      guestCount: formData.guestCount,
+      hasExtraBar: formData.hasExtraBar,
+      hasDrinks: formData.hasDrinks,
+      hasCartCustomization: formData.hasCartCustomization,
+      hasCustomPackaging: formData.hasCustomPackaging,
+    });
 
+    const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
     const phoneWithCountry = formData.countryCode
       ? `${formData.countryCode} ${formData.phone}`.trim()
       : formData.phone;
@@ -235,32 +266,45 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     let text = `Bonjour Solly ! ✨ Je souhaite organiser un événement gourmand.\n\n` +
       `🎉 Type d'événement : ${formData.eventType || 'À préciser'}\n` +
       `📅 Date : ${formData.eventDate || 'À définir'} ${formData.eventTime ? `à ${formData.eventTime}` : ''}\n` +
-      `👥 Invités : ${formData.guestCount || 'À préciser'} personnes\n` +
+      `👥 Invités : ${formData.guestCount || '20'} personnes\n` +
       `📍 Lieu : ${formData.address || 'Dakar'}\n\n` +
-      `🍰 Bars sélectionnés : ${barsLabels.join(' + ') || 'À composer'}\n` +
-      (formData.isAdvised ? `💡 Demande : Je souhaite être conseillé(e) sur les quantités et choix\n` : '') +
-      `🎨 Personnalisation : ${formData.personalization === 'oui' ? 'Oui' : formData.personalization === 'non' ? 'Non' : 'À définir'}\n` +
-      (formData.themeColor ? `🎈 Thème / Couleurs : ${formData.themeColor}\n` : '') +
-      (formData.inspirationPhotos && formData.inspirationPhotos.length > 0
-        ? `📸 Inspirations : ${formData.inspirationPhotos.length} photo(s) jointe(s) (${formData.inspirationPhotos.map((p) => p.name).join(', ')}) - je vous envoie la/les photo(s) directement ci-dessous !\n\n`
-        : '\n') +
+      `🍰 Bar principal : ${mainBarLabel} (inclus à 4 000 FCFA / invité)\n`;
+
+    if (formData.hasExtraBar) {
+      const extraLabel = formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+      text += `➕ Bar supplémentaire : ${extraLabel} (+1 000 FCFA / invité)\n`;
+    }
+    if (formData.hasDrinks) {
+      text += `🍹 Option Boissons Solly : +1 000 FCFA / invité\n`;
+    }
+    if (formData.hasCartCustomization) {
+      text += `🎨 Personnalisation du chariot : +15 000 FCFA\n`;
+    }
+    if (formData.hasCustomPackaging) {
+      text += `✨ Couverts / contenants personnalisés : +10 000 FCFA\n`;
+    }
+
+    text += `\n💰 Estimation totale : ${formatPriceFCFA(pricing.total)} (hors transport)\n` +
+      `📌 Acompte de 70% pour bloquer la date : ${formatPriceFCFA(pricing.deposit70)}\n` +
+      `📌 Solde de 30% à J-2 : ${formatPriceFCFA(pricing.balance30)}\n` +
+      `🚚 Transport : À confirmer selon l'adresse exacte\n\n` +
       `👤 Contact :\n` +
       `• Nom : ${formData.firstName || ''} ${formData.lastName || ''}\n` +
       `• Téléphone (WhatsApp) : ${phoneWithCountry || 'Non renseigné'}\n`;
 
-    if (orderChoices.cakeBar && formData.selectedBars.includes('cake-bar')) {
+    if (orderChoices.cakeBar && (formData.mainBar === 'cake-bar' || (formData.hasExtraBar && formData.extraBarType === 'cake-bar'))) {
       text += `\n🍰 Détails Cake Bar :\n` +
         (orderChoices.cakeBar.barquette ? `  - Barquette : ${orderChoices.cakeBar.barquette}\n` : '') +
         `  - Base : ${orderChoices.cakeBar.base || 'Vanille'}\n` +
         `  - Sauces : ${orderChoices.cakeBar.sauces.join(', ') || 'Chocolat'}\n` +
-        `  - Composants : ${orderChoices.cakeBar.composants.join(', ') || 'Oreo, Vermicelles'}\n`;
+        `  - Composants : ${orderChoices.cakeBar.composants.join(', ') || 'Toppings'}\n`;
     }
 
-    if (orderChoices.drinks && orderChoices.drinks.length > 0 && formData.selectedBars.includes('drinks')) {
+    if (formData.hasDrinks && orderChoices.drinks && orderChoices.drinks.length > 0) {
       text += `\n🍹 Détails Boissons : ${orderChoices.drinks.join(', ')}\n`;
     }
 
-    if (orderChoices.charcuterie && formData.selectedBars.includes('charcuterie')) {
+    if (orderChoices.charcuterie && (formData.mainBar === 'charcuterie' || (formData.hasExtraBar && formData.extraBarType === 'charcuterie'))) {
       text += `\n🧀 Détails Charcuterie : Format ${orderChoices.charcuterie.format || 'Cornet'} (${orderChoices.charcuterie.composants.join(', ')})\n`;
     }
 

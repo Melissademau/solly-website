@@ -21,7 +21,7 @@ export default function ReservationPage() {
           </h1>
 
           <p className="mt-2 sm:mt-3 text-xs sm:text-base text-solly-muted max-w-lg mx-auto">
-            Renseignez votre projet en quelques clics ludiques. Formules clés en main à partir de 80 000 FCFA avec réponse sous 24h.
+            Renseignez votre projet en quelques clics ludiques. Formules gourmandes à partir de 4 000 FCFA / invité avec réponse sous 24h.
           </p>
         </div>
 
