@@ -43,9 +43,19 @@ export default function HomePage() {
               </div>
 
               {/* Subtitle with high-intent keywords */}
-              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-7 leading-snug mx-auto lg:mx-0">
+              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-5 leading-snug mx-auto lg:mx-0">
                 L’expérience gourmande mobile pour vos anniversaires et célébrations à Dakar : un joli chariot événementiel, un Cake Bar à composer et des souvenirs inoubliables.
               </p>
+
+              {/* Pricing Information (Visible & Elegant) */}
+              <div className="mb-6 flex flex-col items-center lg:items-start">
+                <span className="text-lg sm:text-xl font-display font-black text-solly-pink tracking-tight">
+                  À partir de 4 000 FCFA / invité
+                </span>
+                <span className="text-xs sm:text-[13px] font-bold text-solly-charcoal/70 mt-0.5">
+                  Minimum 20 invités
+                </span>
+              </div>
 
               {/* Stacked CTAs + Beside Handwritten Script Note */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 sm:gap-7 w-full">
@@ -138,8 +148,8 @@ export default function HomePage() {
                 <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
               </div>
             </div>
-            <p className="text-xs sm:text-sm md:text-base text-solly-charcoal/75 font-medium mt-2 max-w-xl mx-auto">
-              L'animation originale pour anniversaire d’enfant et événements à Dakar : Cake Bar, bar à boissons fraîches et chariot salé.
+            <p className="text-xs sm:text-sm md:text-base text-solly-charcoal/80 font-medium mt-2 max-w-xl mx-auto">
+              Choisissez votre bar principal, puis ajoutez d’autres gourmandises selon vos envies.
             </p>
           </div>
 
@@ -162,6 +172,9 @@ export default function HomePage() {
               <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
                 Des douceurs à composer.
               </p>
+              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
+                Bar principal au choix
+              </span>
               <Link
                 href="/experiences#cake-bar"
                 className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
@@ -187,6 +200,9 @@ export default function HomePage() {
               <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
                 Des saveurs qui rassemblent.
               </p>
+              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
+                Boissons Solly : +1 000 FCFA / invité
+              </span>
               <Link
                 href="/experiences#boissons"
                 className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
@@ -212,6 +228,9 @@ export default function HomePage() {
               <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
                 Des bouchées qui créent du lien.
               </p>
+              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
+                Bar principal ou +1 000 FCFA / invité
+              </span>
               <Link
                 href="/experiences#charcuterie"
                 className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
@@ -250,7 +269,7 @@ export default function HomePage() {
                     Choisissez votre bar
                   </h4>
                   <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
-                    Sélectionnez le ou les bars qui font plaisir.
+                    Sélectionnez votre bar gourmand et indiquez le nombre d’invités.
                   </p>
                 </div>
               </div>
@@ -262,10 +281,10 @@ export default function HomePage() {
                 </div>
                 <div>
                   <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
-                    Composez vos envies
+                    Ajoutez vos options
                   </h4>
                   <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
-                    Nous vous accompagnons dans les détails.
+                    Boissons, bar supplémentaire ou personnalisation : composez votre expérience.
                   </p>
                 </div>
               </div>
@@ -277,10 +296,10 @@ export default function HomePage() {
                 </div>
                 <div>
                   <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
-                    On installe, on vous régale
+                    Réservez votre date
                   </h4>
                   <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
-                    Le jour J, on s'occupe de tout pour un moment inoubliable.
+                    Validez votre réservation avec un acompte de 70 %. Le solde est réglé à J-2.
                   </p>
                 </div>
               </div>
@@ -289,7 +308,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. SECTION: Un chariot aux couleurs de votre fête. */}
+      {/* 5. SECTION: Une formule qui s’adapte à votre événement */}
+      <section className="py-14 sm:py-20 bg-solly-cream">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-[28px] sm:rounded-[36px] p-7 sm:p-10 border border-solly-border shadow-solly-card text-center relative overflow-hidden">
+            {/* Top Right Subtle Sparkle */}
+            <div className="absolute top-4 right-5 text-solly-pink/40 pointer-events-none select-none">
+              <Sparkle size={26} color="#DE1B52" />
+            </div>
+
+            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+              Une formule qui s’adapte à votre événement
+            </h2>
+
+            {/* Price highlight */}
+            <div className="mt-4 mb-2 flex flex-col items-center">
+              <span className="text-3xl sm:text-4xl lg:text-5xl font-display font-black text-solly-pink tracking-tight">
+                À partir de 4 000 FCFA <span className="text-xl sm:text-2xl text-solly-charcoal font-extrabold">/ invité</span>
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-solly-charcoal/70 mt-1">
+                Minimum 20 invités
+              </span>
+            </div>
+
+            <p className="text-sm sm:text-base text-solly-charcoal/80 font-medium max-w-xl mx-auto mt-3 leading-relaxed">
+              Choisissez votre bar principal et enrichissez votre expérience avec les options qui vous ressemblent.
+            </p>
+
+            <p className="text-xs sm:text-[13px] text-solly-muted font-semibold mt-1.5">
+              Options supplémentaires à partir de +1 000 FCFA / invité.
+            </p>
+
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="pink"
+                size="lg"
+                onClick={() => openBooking()}
+                className="!px-8 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink"
+              >
+                Composer mon événement →
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. SECTION: Un chariot aux couleurs de votre fête. */}
       <section className="py-16 sm:py-24 bg-solly-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -306,7 +370,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Title with Sparkle, subtitle and CTA */}
+            {/* Right Column: Title with Sparkle, subtitle, price badges and CTA */}
             <div className="lg:col-span-6 flex flex-col items-start text-left">
               <div className="relative mb-3">
                 <h2 className="font-display font-black text-3xl sm:text-4xl text-solly-charcoal tracking-tight leading-tight">
@@ -318,9 +382,21 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <p className="text-sm sm:text-base text-solly-charcoal/90 font-medium mb-6">
+              <p className="text-sm sm:text-base text-solly-charcoal/90 font-medium mb-4">
                 Prénom, thème personnalisé ou logo : votre chariot gourmand anniversaire à Dakar pensé dans les moindres détails.
               </p>
+
+              {/* Options tarifaires légères de personnalisation */}
+              <div className="flex flex-wrap gap-2.5 mb-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-solly-border text-xs font-semibold text-solly-charcoal shadow-2xs">
+                  <span>Personnalisation du chariot</span>
+                  <span className="font-bold text-solly-pink">+15 000 FCFA</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-solly-border text-xs font-semibold text-solly-charcoal shadow-2xs">
+                  <span>Couverts / contenants personnalisés</span>
+                  <span className="font-bold text-solly-pink">+10 000 FCFA</span>
+                </div>
+              </div>
 
               <button
                 onClick={() => openBooking('Souhaite être conseillé')}
@@ -333,8 +409,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. CONVERSION BANNER */}
-      <SollyCtaBanner />
+      {/* 7. CONVERSION BANNER */}
+      <SollyCtaBanner
+        title="Et si la prochaine histoire était la vôtre ?"
+        subtitle="Dites-nous combien vous serez, choisissez vos gourmandises et composez votre événement Solly."
+        buttonText="Composer mon événement"
+      />
     </div>
   );
 }

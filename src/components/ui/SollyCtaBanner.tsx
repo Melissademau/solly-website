@@ -6,6 +6,7 @@ import { useBooking } from '@/context/BookingContext';
 
 interface SollyCtaBannerProps {
   title?: string;
+  subtitle?: string;
   buttonText?: string;
   onButtonClick?: () => void;
   bookingPackage?: string;
@@ -14,6 +15,7 @@ interface SollyCtaBannerProps {
 
 export function SollyCtaBanner({
   title = 'Et si la prochaine histoire était la vôtre ?',
+  subtitle,
   buttonText = 'Parlons de votre événement',
   onButtonClick,
   bookingPackage,
@@ -55,6 +57,11 @@ export function SollyCtaBanner({
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-white tracking-tight leading-snug">
               {title}
             </h2>
+            {subtitle && (
+              <p className="mt-2.5 text-xs sm:text-sm text-white/90 font-medium leading-relaxed max-w-md mx-auto">
+                {subtitle}
+              </p>
+            )}
             <button
               type="button"
               onClick={handleClick}
