@@ -272,12 +272,12 @@ const FAQ_ITEMS = [
   {
     question: 'Peut-on personnaliser le chariot ?',
     answer:
-      'Absolument ! Avec notre formule Expérience personnalisée, la façade avant du chariot est amovible. Nous pouvons y inscrire un prénom, un âge, le thème de la fête ou le logo de votre entreprise, avec des contenants coordonnés.',
+      'Absolument ! La façade du chariot peut être personnalisée aux couleurs et au thème de votre événement (+15 000 FCFA : prénom, âge, thème ou logo d’entreprise). Vous pouvez également opter pour des contenants et couverts personnalisés (+10 000 FCFA).',
   },
   {
-    question: 'Peut-on ajouter des boissons ?',
+    question: 'Peut-on ajouter des boissons ou un second bar ?',
     answer:
-      'Oui, nos formules sont 100% modulables. Vous pouvez combiner le Cake Bar avec notre Bar à boissons fraîches (bissap glacé infusé aux fleurs d’hibiscus, jus d’ananas, gingembre-agrumes) pour une expérience complète.',
+      'Oui, nos formules sont 100% modulables ! Vous pouvez ajouter l’option Boissons Solly (+1 000 FCFA / invité) avec des fontaines de jus et infusions fraîches locales (bissap, ananas, gingembre-agrumes), ou même combiner deux bars (par exemple Cake Bar + Bar salé) pour seulement +1 000 FCFA / invité supplémentaire.',
   },
 ];
 
@@ -466,14 +466,14 @@ export default function CakeBarPage() {
             >
               {/* Category Eyebrow */}
               <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] uppercase text-solly-charcoal/90 mb-4">
-                Cake Bar anniversaire & expérience gourmande à Dakar
+                Expériences gourmandes & bars à thème à Dakar
               </p>
 
               {/* Main Headline with Pink Sparkle ✦ */}
               <div className="relative mb-5">
-                <h1 className="font-display font-black text-5xl sm:text-6xl lg:text-[68px] xl:text-[74px] text-solly-pink leading-[1.02] tracking-tight">
-                  Un petit gâteau. <br />
-                  Mille envies.
+                <h1 className="font-display font-black text-4xl sm:text-6xl lg:text-[64px] xl:text-[70px] text-solly-pink leading-[1.04] tracking-tight">
+                  Choisissez votre <br />
+                  expérience Solly.
                 </h1>
                 <div className="absolute top-1 sm:top-2 -right-8 sm:-right-9 text-solly-pink select-none pointer-events-none">
                   <Sparkle size={32} color="#DE1B52" />
@@ -481,8 +481,11 @@ export default function CakeBarPage() {
               </div>
 
               {/* Subtitle */}
-              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-8 leading-snug">
-                L’expérience gourmande incontournable pour votre fête : des cakes moelleux, des sauces fondantes et vos toppings préférés, assemblés minute devant vos invités à Dakar.
+              <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-2 leading-snug">
+                Un bar gourmand à partir de 4 000 FCFA / invité. À vous de choisir celui qui accompagnera votre événement à Dakar.
+              </p>
+              <p className="text-xs sm:text-sm font-bold text-solly-charcoal/70 mb-8 uppercase tracking-wider">
+                ✦ Minimum 20 invités
               </p>
 
               {/* CTA with 3 pink action dashes to the left */}
@@ -496,7 +499,7 @@ export default function CakeBarPage() {
                   onClick={() => handleAddToBooking()}
                   className="!px-7 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink whitespace-nowrap"
                 >
-                  Composer mon Cake Bar →
+                  Composer mon événement →
                 </Button>
               </div>
             </motion.div>
@@ -511,9 +514,10 @@ export default function CakeBarPage() {
               <div className="relative rounded-[28px] sm:rounded-[36px] overflow-hidden">
                 {/* Floating Handwritten Price Badge at top right */}
                 <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex flex-col items-center select-none pointer-events-none">
-                  <div className="font-handwriting text-lg sm:text-xl font-bold text-solly-charcoal leading-none rotate-[6deg] text-center drop-shadow-sm">
+                  <div className="font-handwriting text-base sm:text-lg font-bold text-solly-charcoal leading-tight rotate-[6deg] text-center drop-shadow-sm bg-solly-cream/90 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-solly-charcoal/10 shadow-xs">
                     À partir de <br />
-                    80 000 FCFA
+                    <span className="text-solly-pink font-black text-lg sm:text-xl">4 000 FCFA</span> <br />
+                    <span className="text-[11px] sm:text-xs text-solly-charcoal/70">/ invité</span>
                   </div>
                   <div className="-mt-1">
                     <BurstDoodle direction="top-right" color="#2E1C14" size={18} />
@@ -561,18 +565,23 @@ export default function CakeBarPage() {
         <div className="bg-[#FCECEF] py-16 sm:py-20 px-4">
           <div className="max-w-6xl mx-auto">
             {/* Section Heading */}
-            <div className="text-center mb-12 flex items-center justify-center gap-2">
-              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-                Le Cake Bar pour votre fête.
-              </h2>
-              <div className="-mt-3 select-none pointer-events-none">
-                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+            <div className="text-center mb-12 flex flex-col items-center justify-center">
+              <div className="inline-flex items-center justify-center gap-2">
+                <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+                  Choisissez votre bar principal
+                </h2>
+                <div className="-mt-3 select-none pointer-events-none">
+                  <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+                </div>
               </div>
+              <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/80 mt-2 max-w-xl mx-auto">
+                Le bar principal est compris dans notre tarif de base à 4 000 FCFA / invité (minimum 20 invités), chariot et service inclus.
+              </p>
             </div>
 
-            {/* 2 Packages Cards Side-by-Side */}
+            {/* 2 Packages Cards Side-by-Side: 2 Main Bars */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
-              {/* Package 1: L'expérience Solly */}
+              {/* Card 1: Cake Bar */}
               <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
                 <div>
                   <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
@@ -586,23 +595,31 @@ export default function CakeBarPage() {
                   </div>
                   <div className="text-left mb-6">
                     <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
-                      L’expérience Solly
+                      Cake Bar
                     </h3>
-                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
-                      À partir de <span className="text-solly-pink">80 000 FCFA</span>
+                    <div className="mt-1 mb-4">
+                      <p className="text-xs sm:text-sm font-bold text-solly-charcoal">
+                        Compris dans la formule : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      </p>
+                      <span className="inline-block text-[11px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                        Minimum 20 invités
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-solly-charcoal/85 mb-4 leading-relaxed font-medium">
+                      Des cakes moelleux à personnaliser avec sauces, crèmes et toppings pour une expérience aussi jolie que délicieuse.
                     </p>
                     <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>Cakes décorés</span>
+                        <span>Bases moelleuses vanille & chocolat</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot aux couleurs Solly</span>
+                        <span>Sauces fondantes & toppings gourmands</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>Installation et service</span>
+                        <span>Chariot Solly & service minute inclus</span>
                       </li>
                     </ul>
                   </div>
@@ -612,44 +629,52 @@ export default function CakeBarPage() {
                   variant="pink"
                   size="md"
                   fullWidth
-                  onClick={() => handleAddToBooking("L’expérience Solly (80 000 FCFA)")}
+                  onClick={() => handleAddToBooking("Cake Bar")}
                   className="!py-3 text-sm font-bold"
                 >
-                  Choisir cette formule →
+                  Choisir le Cake Bar →
                 </Button>
               </div>
 
-              {/* Package 2: L'expérience personnalisée */}
+              {/* Card 2: Bar salé / Charcuterie */}
               <div className="bg-white rounded-[26px] p-6 sm:p-7 border border-solly-border shadow-solly-soft flex flex-col justify-between">
                 <div>
                   <div className="w-full aspect-[16/10] rounded-[18px] overflow-hidden shrink-0 bg-solly-cream/50 mb-5">
                     <SollyImage
-                      src={CAKE_ASSETS.packageCustom.src}
-                      alt={CAKE_ASSETS.packageCustom.alt}
-                      category="cake-bar"
+                      src="/images/solly-assets/04-charcuterie/chariot-charcuterie.png"
+                      alt="Bar à charcuterie et bouchées salées Solly"
+                      category="charcuterie"
                       aspectRatioClass="aspect-[16/10]"
                       className="w-full h-full object-cover object-center"
                     />
                   </div>
                   <div className="text-left mb-6">
                     <h3 className="font-display font-black text-xl sm:text-2xl text-solly-pink">
-                      L’expérience personnalisée
+                      Bar salé / Charcuterie
                     </h3>
-                    <p className="text-xs sm:text-sm font-bold text-solly-charcoal mt-1 mb-4">
-                      À partir de <span className="text-solly-pink">100 000 FCFA</span>
+                    <div className="mt-1 mb-4">
+                      <p className="text-xs sm:text-sm font-bold text-solly-charcoal">
+                        Compris dans la formule : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      </p>
+                      <span className="inline-block text-[11px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                        Minimum 20 invités
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-solly-charcoal/85 mb-4 leading-relaxed font-medium">
+                      Des bouchées salées et charcuteries de qualité, joliment présentées pour apporter une touche conviviale à votre fête.
                     </p>
                     <ul className="space-y-2 text-xs sm:text-sm font-semibold text-solly-charcoal/90">
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>L’expérience Solly incluse</span>
+                        <span>Charcuteries fines & garnitures salées</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>Façade au thème de votre fête</span>
+                        <span>Présentation en cornets ou pots élégants</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-solly-pink font-bold">✓</span>
-                        <span>Contenants personnalisés</span>
+                        <span>Chariot Solly & service minute inclus</span>
                       </li>
                     </ul>
                   </div>
@@ -659,17 +684,53 @@ export default function CakeBarPage() {
                   variant="pink"
                   size="md"
                   fullWidth
-                  onClick={() => handleAddToBooking("L’expérience personnalisée (100 000 FCFA)")}
+                  onClick={() => handleAddToBooking("Bar salé / Charcuterie")}
                   className="!py-3 text-sm font-bold"
                 >
-                  Personnaliser ma fête →
+                  Choisir le Bar salé →
+                </Button>
+              </div>
+            </div>
+
+            {/* Bar supplémentaire & Options Callout */}
+            <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft max-w-5xl mx-auto mb-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <div className="inline-flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-solly-pink" />
+                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal">
+                      Envie de mixer les plaisirs ?
+                    </h3>
+                  </div>
+                  <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/85 max-w-xl">
+                    Ajoutez un deuxième bar à votre fête pour seulement <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> (par exemple : Cake Bar + Bar salé).
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mt-4 text-[11px] sm:text-xs font-bold text-solly-charcoal/80">
+                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
+                      🥤 Boissons Solly : +1 000 FCFA / invité
+                    </span>
+                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
+                      🎨 Personnalisation du chariot : +15 000 FCFA
+                    </span>
+                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
+                      ✨ Contenants personnalisés : +10 000 FCFA
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  variant="pink"
+                  size="md"
+                  onClick={() => handleAddToBooking('Formule 2 Bars (Cake Bar + Bar salé)')}
+                  className="!py-3.5 !px-6 text-sm font-bold whitespace-nowrap shadow-solly-pink shrink-0"
+                >
+                  Composer mon mix →
                 </Button>
               </div>
             </div>
 
             {/* Footnote */}
             <p className="text-center text-[11px] sm:text-xs text-solly-charcoal/70 font-medium">
-              Quantités, durée et déplacement précisés dans votre devis.
+              Base minimum 20 invités. Transport calculé selon le lieu. Acompte de 70% à la réservation, solde à J-2.
             </p>
           </div>
         </div>
@@ -1082,7 +1143,7 @@ export default function CakeBarPage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1">
-              Des infusions glacées et purs jus de fruits locaux servis minute à la fontaine.
+              Option à <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> à ajouter à votre bar principal : infusions glacées et purs jus locaux servis minute à la fontaine (jusqu’à 3 jus au choix).
             </p>
             <div className="mt-3 inline-flex items-center gap-2">
               <span
@@ -1194,7 +1255,7 @@ export default function CakeBarPage() {
               onClick={handleAddDrinksToBooking}
               className="!py-3 !px-6 text-xs sm:text-sm font-bold whitespace-nowrap shadow-solly-pink"
             >
-              Ajouter mes boissons au devis →
+              Ajouter l’option boissons (+1 000 FCFA / invité) →
             </Button>
           </div>
         </div>
