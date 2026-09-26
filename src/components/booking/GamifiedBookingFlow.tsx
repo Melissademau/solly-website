@@ -31,7 +31,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
-import { useBooking, EventType, SelectedBarType, MainBarType, CakeCustomization, CharcuterieCustomization } from '@/context/BookingContext';
+import { useBooking, EventType, SelectedBarType, MainBarType, CakeCustomization, CharcuterieCustomization, getBarTitle } from '@/context/BookingContext';
 import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
 
 interface GamifiedBookingFlowProps {
@@ -81,6 +81,16 @@ const CAKE_OPTIONS = {
   bases: ['Vanille', 'Chocolat'],
   sauces: ['Chocolat', 'Caramel beurre salé', 'Fruits rouges', 'Lait concentré sucré'],
   toppings: ['Oreo', 'Spéculoos', 'Vermicelles festifs', 'Mangue', 'Marshmallow', 'Fraises fraîches', 'Banane', 'Autres'],
+};
+
+const PANCAKE_OPTIONS = {
+  sauces: ['Chocolat fondant', 'Caramel beurre salé', 'Coulis fraise', 'Miel doré', 'Sirop d’érable'],
+  toppings: ['Bananes fraîches', 'Fraises fraîches', 'Mini marshmallows', 'Pépites de chocolat', 'Vermicelles festifs', 'Éclats de spéculoos'],
+};
+
+const CROFFLE_OPTIONS = {
+  sauces: ['Chocolat fondant', 'Caramel beurre salé', 'Coulis fruits rouges', 'Miel & cannelle'],
+  toppings: ['Fraises fraîches', 'Noisettes concassées', 'Éclats de biscuits', 'Mini marshmallows', 'Pépites de chocolat', 'Bananes fraîches'],
 };
 
 const DRINK_OPTIONS = [
@@ -223,30 +233,36 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     setErrors((prev) => ({ ...prev, guestCount: '' }));
   };
 
+  const extraBarsCount = formData.extraBars && formData.extraBars.length > 0
+    ? formData.extraBars.length
+    : (formData.hasExtraBar ? 1 : 0);
+
   // Centralized dynamic pricing calculation
   const pricing = calculateBookingPrice({
     guestCount: formData.guestCount,
-    hasExtraBar: formData.hasExtraBar,
+    extraBarsCount,
+    hasExtraBar: extraBarsCount > 0,
     hasDrinks: formData.hasDrinks,
     hasCartCustomization: formData.hasCartCustomization,
     hasCustomPackaging: formData.hasCustomPackaging,
   });
 
   // Handler for selecting the main bar (included at base 4 000 FCFA / guest)
-  const handleMainBarSelect = (bar: 'cake-bar' | 'charcuterie') => {
+  const handleMainBarSelect = (bar: MainBarType) => {
     setFormData((prev) => {
-      const hasExtra = prev.hasExtraBar && prev.extraBarType !== bar;
-      const extraType = hasExtra ? prev.extraBarType : undefined;
+      const currentExtras = prev.extraBars || (prev.hasExtraBar && prev.extraBarType ? [prev.extraBarType] : []);
+      const nextExtras = currentExtras.filter((b) => b !== bar);
+      const hasExtra = nextExtras.length > 0;
 
-      const nextBars: SelectedBarType[] = [bar];
-      if (hasExtra && extraType) nextBars.push(extraType);
+      const nextBars: SelectedBarType[] = [bar, ...nextExtras];
       if (prev.hasDrinks) nextBars.push('drinks');
 
       return {
         ...prev,
         mainBar: bar,
         hasExtraBar: hasExtra,
-        extraBarType: extraType,
+        extraBarType: nextExtras[0],
+        extraBars: nextExtras,
         selectedBars: nextBars,
       };
     });
@@ -263,6 +279,22 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           composants: ['Oreo'],
         },
       }));
+    } else if (bar === 'mini-pancakes' && !orderChoices.miniPancakes) {
+      setOrderChoices((prev) => ({
+        ...prev,
+        miniPancakes: {
+          sauces: ['Chocolat fondant'],
+          toppings: ['Bananes fraîches', 'Vermicelles festifs'],
+        },
+      }));
+    } else if (bar === 'croffles' && !orderChoices.croffles) {
+      setOrderChoices((prev) => ({
+        ...prev,
+        croffles: {
+          sauces: ['Chocolat fondant'],
+          toppings: ['Fraises fraîches', 'Noisettes concassées'],
+        },
+      }));
     } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
       setOrderChoices((prev) => ({
         ...prev,
@@ -275,22 +307,29 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   };
 
   // Handler for toggling an additional bar (+1 000 FCFA / guest)
-  const handleExtraBarToggle = (bar: 'cake-bar' | 'charcuterie') => {
+  const handleExtraBarToggle = (bar: MainBarType) => {
     setFormData((prev) => {
-      const willEnable = !prev.hasExtraBar || prev.extraBarType !== bar;
-      const nextBars: SelectedBarType[] = [prev.mainBar || 'cake-bar'];
-      if (willEnable) nextBars.push(bar);
+      const currentExtras = prev.extraBars || (prev.hasExtraBar && prev.extraBarType ? [prev.extraBarType] : []);
+      const isAlreadySelected = currentExtras.includes(bar);
+      const nextExtras = isAlreadySelected
+        ? currentExtras.filter((b) => b !== bar)
+        : [...currentExtras, bar];
+
+      const hasExtra = nextExtras.length > 0;
+      const nextBars: SelectedBarType[] = [prev.mainBar || 'cake-bar', ...nextExtras];
       if (prev.hasDrinks) nextBars.push('drinks');
 
       return {
         ...prev,
-        hasExtraBar: willEnable,
-        extraBarType: willEnable ? bar : undefined,
+        hasExtraBar: hasExtra,
+        extraBarType: nextExtras[0],
+        extraBars: nextExtras,
         selectedBars: nextBars,
       };
     });
 
-    if (!formData.hasExtraBar) {
+    const currentExtras = formData.extraBars || (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
+    if (!currentExtras.includes(bar)) {
       setActiveCustomizer(bar);
       if (bar === 'cake-bar' && !orderChoices.cakeBar) {
         setOrderChoices((prev) => ({
@@ -300,6 +339,22 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
             base: 'Vanille',
             sauces: ['Chocolat'],
             composants: ['Oreo'],
+          },
+        }));
+      } else if (bar === 'mini-pancakes' && !orderChoices.miniPancakes) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          miniPancakes: {
+            sauces: ['Chocolat fondant'],
+            toppings: ['Bananes fraîches', 'Vermicelles festifs'],
+          },
+        }));
+      } else if (bar === 'croffles' && !orderChoices.croffles) {
+        setOrderChoices((prev) => ({
+          ...prev,
+          croffles: {
+            sauces: ['Chocolat fondant'],
+            toppings: ['Fraises fraîches', 'Noisettes concassées'],
           },
         }));
       } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
@@ -362,13 +417,82 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     if (bar === 'drinks') {
       handleDrinksToggle();
     } else if (bar === formData.mainBar) {
-      // already main bar, no-op or open customizer
       setActiveCustomizer(bar);
     } else if (formData.mainBar && bar !== formData.mainBar) {
-      handleExtraBarToggle(bar as 'cake-bar' | 'charcuterie');
+      handleExtraBarToggle(bar as MainBarType);
     } else {
-      handleMainBarSelect(bar as 'cake-bar' | 'charcuterie');
+      handleMainBarSelect(bar as MainBarType);
     }
+  };
+
+  // Customization handlers for Mini Pancakes
+  const handlePancakeSauceToggle = (sauce: string) => {
+    const current = orderChoices.miniPancakes?.sauces || [];
+    let updated: string[];
+    if (current.includes(sauce)) {
+      updated = current.filter((s) => s !== sauce);
+    } else {
+      updated = current.length >= 2 ? [...current.slice(1), sauce] : [...current, sauce];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      miniPancakes: {
+        sauces: updated,
+        toppings: prev.miniPancakes?.toppings || [],
+      },
+    }));
+  };
+
+  const handlePancakeToppingToggle = (top: string) => {
+    const current = orderChoices.miniPancakes?.toppings || [];
+    let updated: string[];
+    if (current.includes(top)) {
+      updated = current.filter((t) => t !== top);
+    } else {
+      updated = current.length >= 3 ? [...current.slice(1), top] : [...current, top];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      miniPancakes: {
+        sauces: prev.miniPancakes?.sauces || [],
+        toppings: updated,
+      },
+    }));
+  };
+
+  // Customization handlers for Croffles
+  const handleCroffleSauceToggle = (sauce: string) => {
+    const current = orderChoices.croffles?.sauces || [];
+    let updated: string[];
+    if (current.includes(sauce)) {
+      updated = current.filter((s) => s !== sauce);
+    } else {
+      updated = current.length >= 2 ? [...current.slice(1), sauce] : [...current, sauce];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      croffles: {
+        sauces: updated,
+        toppings: prev.croffles?.toppings || [],
+      },
+    }));
+  };
+
+  const handleCroffleToppingToggle = (top: string) => {
+    const current = orderChoices.croffles?.toppings || [];
+    let updated: string[];
+    if (current.includes(top)) {
+      updated = current.filter((t) => t !== top);
+    } else {
+      updated = current.length >= 3 ? [...current.slice(1), top] : [...current, top];
+    }
+    setOrderChoices((prev) => ({
+      ...prev,
+      croffles: {
+        sauces: prev.croffles?.sauces || [],
+        toppings: updated,
+      },
+    }));
   };
 
   // Customization handlers for Cake Bar
@@ -1042,183 +1166,159 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {/* Main Bar 1: Cake Bar */}
-                  <motion.div
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleMainBarSelect('cake-bar')}
-                    className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                      formData.mainBar === 'cake-bar'
-                        ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                        : 'border-solly-border hover:border-solly-pink/40'
-                    }`}
-                  >
-                    <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                      <Image
-                        src="/images/solly-assets/05-experience/gateau-marshmallow.png"
-                        alt="Cake Bar"
-                        fill
-                        sizes="(max-width: 640px) 50vw, 250px"
-                        loading="lazy"
-                        decoding="async"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div
-                        className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                          formData.mainBar === 'cake-bar'
-                            ? 'bg-solly-pink text-white shadow-sm scale-110'
-                            : 'bg-white/85 border border-solly-border text-transparent'
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {[
+                    {
+                      id: 'cake-bar' as MainBarType,
+                      title: 'Cake Bar',
+                      desc: formData.mainBar === 'cake-bar' ? '✦ Bar principal' : 'Gâteaux moelleux minute',
+                      image: '/images/solly-assets/05-experience/gateau-marshmallow.png',
+                      isNew: false,
+                    },
+                    {
+                      id: 'mini-pancakes' as MainBarType,
+                      title: 'Mini Pancakes',
+                      desc: formData.mainBar === 'mini-pancakes' ? '✦ Bar principal' : 'Moelleux & dorés minute',
+                      image: '/images/mini-pancakes/pancakes-preview.webp',
+                      isNew: true,
+                    },
+                    {
+                      id: 'croffles' as MainBarType,
+                      title: 'Croffles',
+                      desc: formData.mainBar === 'croffles' ? '✦ Bar principal' : 'Croustillant & doré',
+                      image: '/images/croffles/croffle-preview.webp',
+                      isNew: true,
+                    },
+                    {
+                      id: 'charcuterie' as MainBarType,
+                      title: 'Bar salé / Charcuterie',
+                      desc: formData.mainBar === 'charcuterie' ? '✦ Bar principal' : 'Cornets & pots salés',
+                      image: '/images/solly-assets/05-experience/pot-charcuterie-partage.png',
+                      isNew: false,
+                    },
+                  ].map((bar) => {
+                    const isSelected = formData.mainBar === bar.id;
+                    return (
+                      <motion.div
+                        key={bar.id}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleMainBarSelect(bar.id)}
+                        className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
+                          isSelected
+                            ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
+                            : 'border-solly-border hover:border-solly-pink/40'
                         }`}
                       >
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
-                        Inclus
-                      </span>
-                    </div>
-                    <div className="py-2.5 px-2 text-center">
-                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                        Cake Bar
-                      </span>
-                      <span className="text-[10px] text-solly-muted block mt-0.5">
-                        {formData.mainBar === 'cake-bar' ? '✦ Bar principal sélectionné' : 'Gâteaux moelleux minute'}
-                      </span>
-                    </div>
-                  </motion.div>
-
-                  {/* Main Bar 2: Bar salé / Charcuterie */}
-                  <motion.div
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleMainBarSelect('charcuterie')}
-                    className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                      formData.mainBar === 'charcuterie'
-                        ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                        : 'border-solly-border hover:border-solly-pink/40'
-                    }`}
-                  >
-                    <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                      <Image
-                        src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
-                        alt="Bar salé / Charcuterie"
-                        fill
-                        sizes="(max-width: 640px) 50vw, 250px"
-                        loading="lazy"
-                        decoding="async"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div
-                        className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                          formData.mainBar === 'charcuterie'
-                            ? 'bg-solly-pink text-white shadow-sm scale-110'
-                            : 'bg-white/85 border border-solly-border text-transparent'
-                        }`}
-                      >
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
-                        Inclus
-                      </span>
-                    </div>
-                    <div className="py-2.5 px-2 text-center">
-                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                        Bar salé / Charcuterie
-                      </span>
-                      <span className="text-[10px] text-solly-muted block mt-0.5">
-                        {formData.mainBar === 'charcuterie' ? '✦ Bar principal sélectionné' : 'Cornets & pots salés'}
-                      </span>
-                    </div>
-                  </motion.div>
+                        <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
+                          <Image
+                            src={bar.image}
+                            alt={bar.title}
+                            fill
+                            sizes="(max-width: 640px) 50vw, 250px"
+                            loading="lazy"
+                            decoding="async"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {bar.isNew && (
+                            <span className="absolute top-2 left-2 bg-solly-pink text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full shadow-xs tracking-wider z-10">
+                              Nouveau
+                            </span>
+                          )}
+                          <div
+                            className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
+                              isSelected
+                                ? 'bg-solly-pink text-white shadow-sm scale-110'
+                                : 'bg-white/85 border border-solly-border text-transparent'
+                            }`}
+                          >
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                          <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
+                            Inclus
+                          </span>
+                        </div>
+                        <div className="py-2 px-1.5 text-center">
+                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
+                            {bar.title}
+                          </span>
+                          <span className="text-[10px] text-solly-muted block mt-0.5 truncate">
+                            {bar.desc}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* 2. Options gourmandes (Bar supplémentaire & Boissons) */}
+              {/* 2. Options gourmandes (Bars supplémentaires & Boissons) */}
               <div className="space-y-2 pt-1">
                 <label className="block text-xs font-bold text-solly-charcoal">
                   2. Options gourmandes (à ajouter selon vos envies)
                 </label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Bar supplémentaire */}
-                  {formData.mainBar === 'charcuterie' ? (
-                    <div
-                      onClick={() => handleExtraBarToggle('cake-bar')}
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                        formData.hasExtraBar && formData.extraBarType === 'cake-bar'
-                          ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                          : 'border-solly-border bg-white hover:border-solly-pink/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
-                          <Image
-                            src="/images/solly-assets/05-experience/gateau-marshmallow.png"
-                            alt="Cake Bar supplémentaire"
-                            fill
-                            className="object-cover"
-                          />
+                  {[
+                    { id: 'cake-bar' as MainBarType, title: '+ Cake Bar', image: '/images/solly-assets/05-experience/gateau-marshmallow.png', isNew: false },
+                    { id: 'mini-pancakes' as MainBarType, title: '+ Mini Pancakes', image: '/images/mini-pancakes/pancakes-preview.webp', isNew: true },
+                    { id: 'croffles' as MainBarType, title: '+ Croffles', image: '/images/croffles/croffle-preview.webp', isNew: true },
+                    { id: 'charcuterie' as MainBarType, title: '+ Bar salé / Charcuterie', image: '/images/solly-assets/05-experience/pot-charcuterie-partage.png', isNew: false },
+                  ]
+                    .filter((bar) => bar.id !== formData.mainBar)
+                    .map((bar) => {
+                      const isChecked = (formData.extraBars || []).includes(bar.id);
+                      return (
+                        <div
+                          key={bar.id}
+                          onClick={() => handleExtraBarToggle(bar.id)}
+                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                            isChecked
+                              ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
+                              : 'border-solly-border bg-white hover:border-solly-pink/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
+                              <Image
+                                src={bar.image}
+                                alt={bar.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
+                                  {bar.title}
+                                </span>
+                                {bar.isNew && (
+                                  <span className="bg-solly-pink text-white text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full">
+                                    Nouveau
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-bold text-solly-pink block">
+                                +1 000 FCFA / invité
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                              isChecked
+                                ? 'bg-solly-pink text-white'
+                                : 'border border-solly-border bg-[#FAF7F2] text-transparent'
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                            + Cake Bar
-                          </span>
-                          <span className="text-[11px] font-bold text-solly-pink block">
-                            +1 000 FCFA / invité
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                          formData.hasExtraBar && formData.extraBarType === 'cake-bar'
-                            ? 'bg-solly-pink text-white'
-                            : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                        }`}
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => handleExtraBarToggle('charcuterie')}
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                        formData.hasExtraBar && formData.extraBarType === 'charcuterie'
-                          ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                          : 'border-solly-border bg-white hover:border-solly-pink/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
-                          <Image
-                            src="/images/solly-assets/05-experience/pot-charcuterie-partage.png"
-                            alt="Bar salé supplémentaire"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                            + Bar salé / Charcuterie
-                          </span>
-                          <span className="text-[11px] font-bold text-solly-pink block">
-                            +1 000 FCFA / invité
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                          formData.hasExtraBar && formData.extraBarType === 'charcuterie'
-                            ? 'bg-solly-pink text-white'
-                            : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                        }`}
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                    </div>
-                  )}
+                      );
+                    })}
 
                   {/* Option Boissons Solly */}
                   <div
                     onClick={handleDrinksToggle}
-                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                    className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
                       formData.hasDrinks
                         ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
                         : 'border-solly-border bg-white hover:border-solly-pink/40'
@@ -1411,6 +1511,160 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         {errors.cakeBarToppings}
                       </p>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* 1.bis MINI PANCAKES CUSTOMIZER */}
+              {formData.selectedBars.includes('mini-pancakes') && (
+                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🥞</span>
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Personnalisation des Mini Pancakes
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
+                      Préparés minute
+                    </span>
+                  </div>
+
+                  {/* Choix des sauces (Max 2) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        1. Vos sauces préférées
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {PANCAKE_OPTIONS.sauces.map((sauce) => {
+                        const isSelected = orderChoices.miniPancakes?.sauces?.includes(sauce);
+                        return (
+                          <button
+                            key={sauce}
+                            type="button"
+                            onClick={() => handlePancakeSauceToggle(sauce)}
+                            className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
+                            }`}
+                          >
+                            <span>{sauce}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Choix des toppings & fruits frais (Max 3) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        2. Fruits frais & toppings gourmands
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Max 3 toppings</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {PANCAKE_OPTIONS.toppings.map((top) => {
+                        const isSelected = orderChoices.miniPancakes?.toppings?.includes(top);
+                        return (
+                          <button
+                            key={top}
+                            type="button"
+                            onClick={() => handlePancakeToppingToggle(top)}
+                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>{top}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 1.ter CROFFLES CUSTOMIZER */}
+              {formData.selectedBars.includes('croffles') && (
+                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🥐</span>
+                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                        Personnalisation des Croffles
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
+                      Croustillant & doré
+                    </span>
+                  </div>
+
+                  {/* Choix des sauces (Max 2) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        1. Vos sauces d’accompagnement
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CROFFLE_OPTIONS.sauces.map((sauce) => {
+                        const isSelected = orderChoices.croffles?.sauces?.includes(sauce);
+                        return (
+                          <button
+                            key={sauce}
+                            type="button"
+                            onClick={() => handleCroffleSauceToggle(sauce)}
+                            className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
+                            }`}
+                          >
+                            <span>{sauce}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Choix des toppings & fruits (Max 3) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        2. Garnitures & toppings
+                      </label>
+                      <span className="text-[11px] text-solly-muted font-medium">Max 3 toppings</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {CROFFLE_OPTIONS.toppings.map((top) => {
+                        const isSelected = orderChoices.croffles?.toppings?.includes(top);
+                        return (
+                          <button
+                            key={top}
+                            type="button"
+                            onClick={() => handleCroffleToppingToggle(top)}
+                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>{top}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1977,7 +2231,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         Formule de base ({pricing.effectiveGuests} invités × 4 000 FCFA)
                       </span>
                       <span className="text-[11px] text-solly-muted block">
-                        Bar principal inclus : {formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                        Bar principal inclus : {formData.mainBar ? getBarTitle(formData.mainBar) : 'Cake Bar'}
                       </span>
                     </div>
                     <span className="font-bold text-solly-charcoal shrink-0">
@@ -1985,12 +2239,28 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     </span>
                   </div>
 
-                  {/* Extra bar if selected */}
-                  {formData.hasExtraBar && (
+                  {/* Extra bars if selected */}
+                  {formData.extraBars && formData.extraBars.length > 0 ? (
+                    formData.extraBars.map((extraBar) => (
+                      <div key={extraBar} className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-solly-charcoal block">
+                            Bar supplémentaire : {getBarTitle(extraBar)}
+                          </span>
+                          <span className="text-[11px] text-solly-muted block">
+                            {pricing.effectiveGuests} invités × 1 000 FCFA
+                          </span>
+                        </div>
+                        <span className="font-bold text-solly-pink shrink-0">
+                          +{formatPriceFCFA(pricing.effectiveGuests * 1000)}
+                        </span>
+                      </div>
+                    ))
+                  ) : formData.hasExtraBar && formData.extraBarType ? (
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <span className="font-bold text-solly-charcoal block">
-                          Bar supplémentaire : {formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                          Bar supplémentaire : {getBarTitle(formData.extraBarType)}
                         </span>
                         <span className="text-[11px] text-solly-muted block">
                           {pricing.effectiveGuests} invités × 1 000 FCFA
@@ -2000,7 +2270,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                         +{formatPriceFCFA(pricing.extraBarPrice)}
                       </span>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Drinks if selected */}
                   {formData.hasDrinks && (
@@ -2197,7 +2467,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     Bar principal
                   </span>
                   <p className="text-xs font-bold text-solly-charcoal">
-                    {formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'}
+                    {formData.mainBar ? getBarTitle(formData.mainBar) : 'Cake Bar'}
                   </p>
                 </div>
 
@@ -2208,9 +2478,13 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                   </span>
                   {(() => {
                     const opts: string[] = [];
-                    if (formData.hasExtraBar) {
+                    if (formData.extraBars && formData.extraBars.length > 0) {
+                      formData.extraBars.forEach((b) => {
+                        opts.push(`Bar supplémentaire : ${getBarTitle(b)} (+1 000 FCFA / invité)`);
+                      });
+                    } else if (formData.hasExtraBar && formData.extraBarType) {
                       opts.push(
-                        `Bar supplémentaire : ${formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar'} (+1 000 FCFA / invité)`
+                        `Bar supplémentaire : ${getBarTitle(formData.extraBarType)} (+1 000 FCFA / invité)`
                       );
                     }
                     if (formData.hasDrinks) {

@@ -17,6 +17,7 @@ export const PRICING_CONFIG = {
 export interface BookingPricingParams {
   guestCount: number | '' | undefined;
   hasExtraBar?: boolean;
+  extraBarsCount?: number;
   hasDrinks?: boolean;
   hasCartCustomization?: boolean;
   hasCustomPackaging?: boolean;
@@ -27,6 +28,7 @@ export interface BookingPricingResult {
   effectiveGuests: number;
   basePrice: number;
   extraBarPrice: number;
+  extraBarsCount: number;
   drinksPrice: number;
   cartCustomizationPrice: number;
   customPackagingPrice: number;
@@ -47,8 +49,15 @@ export function calculateBookingPrice(params: BookingPricingParams): BookingPric
   // Le minimum contractuel est de 20 invités
   const effectiveGuests = Math.max(PRICING_CONFIG.MIN_GUESTS, rawCount);
 
+  const extraBarsCount =
+    typeof params.extraBarsCount === 'number'
+      ? params.extraBarsCount
+      : params.hasExtraBar
+      ? 1
+      : 0;
+
   const basePrice = effectiveGuests * PRICING_CONFIG.BASE_PRICE_PER_GUEST;
-  const extraBarPrice = params.hasExtraBar ? effectiveGuests * PRICING_CONFIG.EXTRA_BAR_PER_GUEST : 0;
+  const extraBarPrice = effectiveGuests * PRICING_CONFIG.EXTRA_BAR_PER_GUEST * extraBarsCount;
   const drinksPrice = params.hasDrinks ? effectiveGuests * PRICING_CONFIG.DRINKS_PER_GUEST : 0;
   const cartCustomizationPrice = params.hasCartCustomization ? PRICING_CONFIG.CART_CUSTOMIZATION : 0;
   const customPackagingPrice = params.hasCustomPackaging ? PRICING_CONFIG.CUSTOM_PACKAGING : 0;
@@ -62,6 +71,7 @@ export function calculateBookingPrice(params: BookingPricingParams): BookingPric
     effectiveGuests,
     basePrice,
     extraBarPrice,
+    extraBarsCount,
     drinksPrice,
     cartCustomizationPrice,
     customPackagingPrice,

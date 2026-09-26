@@ -16,14 +16,26 @@ const EXPERIENCE_SUBMENU = [
     href: '/experiences#cake-bar',
   },
   {
-    label: 'Boissons',
-    description: 'Bissap, ananas et jus signature',
-    href: '/experiences#boissons',
+    label: 'Mini Pancakes',
+    description: 'Moelleux, nappés & préparés minute',
+    badge: 'Nouveau',
+    href: '/experiences#mini-pancakes',
   },
   {
-    label: 'Charcuterie',
-    description: 'Cornets gourmands & fromages',
+    label: 'Croffles',
+    description: 'Croustillants, dorés & servis chauds',
+    badge: 'Nouveau',
+    href: '/experiences#croffles',
+  },
+  {
+    label: 'Bar à Charcuterie',
+    description: 'Cornets apéritifs & bouchées salées',
     href: '/experiences#charcuterie',
+  },
+  {
+    label: 'Bar à Boissons',
+    description: 'Bissap, ananas et jus signature',
+    href: '/experiences#boissons',
   },
 ];
 
@@ -136,9 +148,16 @@ export function Navbar() {
                         className="px-3.5 py-2.5 rounded-xl hover:bg-solly-pink-soft text-left transition-colors group flex items-start justify-between"
                       >
                         <div>
-                          <p className="text-sm font-bold text-solly-charcoal group-hover:text-solly-pink">
-                            {subItem.label}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-bold text-solly-charcoal group-hover:text-solly-pink">
+                              {subItem.label}
+                            </p>
+                            {subItem.badge && (
+                              <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full">
+                                {subItem.badge}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] font-medium text-solly-muted mt-0.5">
                             {subItem.description}
                           </p>
@@ -275,10 +294,17 @@ export function Navbar() {
                       <Link
                         key={subItem.label}
                         href={subItem.href}
-                        className="px-3.5 py-2 rounded-xl text-sm font-bold text-solly-charcoal/80 hover:text-solly-pink hover:bg-white/80 transition-colors flex items-center gap-2"
+                        className="px-3.5 py-2 rounded-xl text-sm font-bold text-solly-charcoal/80 hover:text-solly-pink hover:bg-white/80 transition-colors flex items-center justify-between"
                       >
-                        <span className="text-solly-pink text-xs font-bold">✦</span>
-                        <span>{subItem.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-solly-pink text-xs font-bold">✦</span>
+                          <span>{subItem.label}</span>
+                        </div>
+                        {subItem.badge && (
+                          <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full">
+                            {subItem.badge}
+                          </span>
+                        )}
                       </Link>
                     ))}
                   </div>

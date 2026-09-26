@@ -26,10 +26,15 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="lg:col-span-5 xl:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left z-10"
             >
-              {/* Category Eyebrow */}
-              <p className="text-xs sm:text-[13px] font-bold tracking-[0.2em] uppercase text-solly-charcoal/90 mb-4">
-                Chariot événement & animation anniversaire à Dakar
-              </p>
+              {/* Category Eyebrow & Taglines */}
+              <div className="flex flex-col items-center lg:items-start gap-2 mb-4">
+                <span className="text-[11px] sm:text-xs font-black tracking-[0.16em] uppercase text-solly-pink bg-solly-pink/10 px-3.5 py-1 rounded-full">
+                  Croffles · Mini pancakes · Cakes · Charcuterie
+                </span>
+                <p className="text-xs sm:text-[13px] font-bold tracking-[0.18em] uppercase text-solly-charcoal/80">
+                  Chariot événement & animation gourmande à Dakar
+                </p>
+              </div>
 
               {/* Main Headline with Pink Sparkle ✦ */}
               <div className="relative mb-5 inline-block">
@@ -44,7 +49,7 @@ export default function HomePage() {
 
               {/* Subtitle with high-intent keywords */}
               <p className="text-base sm:text-lg font-semibold text-solly-charcoal max-w-md mb-5 leading-snug mx-auto lg:mx-0">
-                L’expérience gourmande mobile pour vos anniversaires et célébrations à Dakar : un joli chariot événementiel, un Cake Bar à composer et des souvenirs inoubliables.
+                <span className="text-solly-pink font-extrabold">Votre bar gourmand, préparé minute.</span> L’expérience mobile pour vos anniversaires et célébrations à Dakar : un joli chariot événementiel, vos bars gourmands au choix et des souvenirs inoubliables.
               </p>
 
               {/* Pricing Information (Visible & Elegant) */}
@@ -140,6 +145,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Heading with 3 pink action dashes */}
           <div className="text-center mb-10 sm:mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-solly-pink/10 text-solly-pink text-xs font-bold uppercase tracking-wider mb-3">
+              <span>Croffles · Mini pancakes · Cakes · Charcuterie</span>
+            </div>
             <div className="flex items-center justify-center gap-2">
               <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
                 À chaque envie, son bar gourmand.
@@ -149,95 +157,152 @@ export default function HomePage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm md:text-base text-solly-charcoal/80 font-medium mt-2 max-w-xl mx-auto">
-              Choisissez votre bar principal, puis ajoutez d’autres gourmandises selon vos envies.
+              Votre bar gourmand, préparé minute. Choisissez votre bar principal inclus dans votre formule, puis ajoutez d’autres bars ou options selon vos envies.
             </p>
           </div>
 
-          {/* 3 Experience Cards Grid: 2 rows on mobile (Row 1: Cake Bar & Bar à Boissons; Row 2: Bar à Charcuterie) */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 lg:gap-10 max-w-5xl mx-auto">
-            {/* Card 1: Cake Bar (Row 1 Col 1 on mobile) */}
-            <div className="flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
-              <div className="w-full rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+          {/* 4 Main Bars Grid: 2 cols on mobile, 4 cols on lg */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6 max-w-6xl mx-auto">
+            {/* Card 1: Cake Bar */}
+            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300">
+              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02]">
                 <SollyImage
                   src={SOLLY_IMAGES.hero.cakeBarPreview.src}
                   alt={SOLLY_IMAGES.hero.cakeBarPreview.alt}
                   category="cake-bar"
-                  aspectRatioClass="aspect-[4/3] sm:aspect-[16/11]"
+                  aspectRatioClass="aspect-[4/3]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
+              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
                 Cake Bar
               </h3>
-              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
-                Des douceurs à composer.
+              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
+                Des douceurs à composer avec nappages et toppings.
               </p>
-              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
+              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
                 Bar principal au choix
               </span>
               <Link
                 href="/experiences#cake-bar"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
               >
                 Découvrir →
               </Link>
             </div>
 
-            {/* Card 2: Bar à boissons (Row 1 Col 2 on mobile) */}
-            <div className="flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
-              <div className="w-full rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+            {/* Card 2: Mini Pancakes (Nouveau) */}
+            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
+              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FFF3D6] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
+                <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                  Nouveau
+                </span>
                 <SollyImage
-                  src={SOLLY_IMAGES.hero.drinksPreview.src}
-                  alt={SOLLY_IMAGES.hero.drinksPreview.alt}
-                  category="drinks"
-                  aspectRatioClass="aspect-[4/3] sm:aspect-[16/11]"
+                  src={SOLLY_IMAGES.hero.miniPancakesPreview.src}
+                  alt={SOLLY_IMAGES.hero.miniPancakesPreview.alt}
+                  category="cake-bar"
+                  aspectRatioClass="aspect-[4/3]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
-                Bar à boissons
+              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
+                Mini Pancakes
               </h3>
-              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5 line-clamp-2 sm:line-clamp-none">
-                Des saveurs qui rassemblent.
+              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
+                Préparés minute, moelleux et généreusement nappés.
               </p>
-              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
-                Boissons Solly : +1 000 FCFA / invité
+              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
+                Bar principal ou +1 000 FCFA
               </span>
               <Link
-                href="/experiences#boissons"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
+                href="/experiences#mini-pancakes"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
               >
                 Découvrir →
               </Link>
             </div>
 
-            {/* Card 3: Bar à charcuterie (Row 2 on mobile spanning 2 cols, col-span-1 on md) */}
-            <div className="col-span-2 md:col-span-1 flex flex-col items-center text-center group bg-white/60 sm:bg-transparent p-3 sm:p-0 rounded-[22px] sm:rounded-none border sm:border-0 border-solly-border/60 shadow-2xs sm:shadow-none">
-              <div className="w-full max-w-[280px] sm:max-w-none rounded-[18px] sm:rounded-[22px] overflow-hidden bg-[#FFF2CE] p-0 transition-transform duration-300 group-hover:scale-[1.02] shadow-solly-soft">
+            {/* Card 3: Croffles (Nouveau) */}
+            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
+              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
+                <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                  Nouveau
+                </span>
+                <SollyImage
+                  src={SOLLY_IMAGES.hero.crofflesPreview.src}
+                  alt={SOLLY_IMAGES.hero.crofflesPreview.alt}
+                  category="cake-bar"
+                  aspectRatioClass="aspect-[4/3]"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
+                Croffles
+              </h3>
+              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
+                Croissant et gaufre : croustillant, doré et servi chaud.
+              </p>
+              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
+                Bar principal ou +1 000 FCFA
+              </span>
+              <Link
+                href="/experiences#croffles"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
+              >
+                Découvrir →
+              </Link>
+            </div>
+
+            {/* Card 4: Bar salé / Charcuterie */}
+            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300">
+              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FFF2CE] p-0 transition-transform duration-300 group-hover:scale-[1.02]">
                 <SollyImage
                   src={SOLLY_IMAGES.hero.charcuteriePreview.src}
                   alt={SOLLY_IMAGES.hero.charcuteriePreview.alt}
                   category="charcuterie"
-                  aspectRatioClass="aspect-[16/10] sm:aspect-[16/11]"
+                  aspectRatioClass="aspect-[4/3]"
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <h3 className="font-display font-black text-base sm:text-xl text-solly-charcoal mt-2.5 sm:mt-4">
+              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
                 Bar à charcuterie
               </h3>
-              <p className="text-[11px] sm:text-sm text-solly-charcoal/80 font-medium mt-0.5">
-                Des bouchées qui créent du lien.
+              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
+                Cornets raffinés avec charcuteries, gouda et fruits secs.
               </p>
-              <span className="text-[10px] sm:text-xs font-bold text-solly-pink/90 mt-1">
-                Bar principal ou +1 000 FCFA / invité
+              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
+                Bar principal ou +1 000 FCFA
               </span>
               <Link
                 href="/experiences#charcuterie"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-1.5 sm:mt-2"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
               >
                 Découvrir →
               </Link>
             </div>
+          </div>
+
+          {/* Option Boissons Banner (Complementary) */}
+          <div className="mt-8 sm:mt-10 max-w-4xl mx-auto bg-white/80 rounded-[20px] p-4 sm:p-5 border border-solly-border/80 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <div className="w-11 h-11 rounded-full bg-[#FEEED8] flex items-center justify-center shrink-0 text-xl">
+                🍹
+              </div>
+              <div>
+                <h4 className="font-display font-black text-sm sm:text-base text-solly-charcoal">
+                  Option Bar à boissons Solly
+                </h4>
+                <p className="text-xs sm:text-sm text-solly-charcoal/75 font-medium">
+                  3 jus frais locaux (Bissap, Ananas, Passion) servis en fontaines réfrigérées · <strong>+1 000 FCFA / invité</strong>
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/experiences#boissons"
+              className="shrink-0 text-xs sm:text-sm font-bold text-solly-pink hover:underline inline-flex items-center gap-1"
+            >
+              Découvrir les boissons →
+            </Link>
           </div>
         </div>
       </section>

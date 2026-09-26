@@ -56,6 +56,22 @@ export const SOLLY_IMAGES = {
       height: 1024,
       aspectRatio: '3/2',
     },
+    miniPancakesPreview: {
+      src: '/images/mini-pancakes/pancakes-preview.webp',
+      alt: 'Mini Pancakes Solly préparés minute avec sauces et toppings',
+      category: 'cake-bar',
+      width: 800,
+      height: 600,
+      aspectRatio: '4/3',
+    },
+    crofflesPreview: {
+      src: '/images/croffles/croffle-preview.webp',
+      alt: 'Croffles Solly dorés et croustillants avec toppings gourmands',
+      category: 'cake-bar',
+      width: 800,
+      height: 800,
+      aspectRatio: '1/1',
+    },
     customPanel: {
       src: '/images/solly-assets/01-accueil/cart-details.png',
       alt: 'Chariot Solly personnalisé avec façade rose Joyeux Anniversaire',

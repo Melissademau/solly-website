@@ -42,6 +42,7 @@ export interface StoredBooking {
     mainBar: string;
     hasExtraBar: boolean;
     extraBarType?: string;
+    extraBars?: string[];
     hasDrinks: boolean;
     hasCartCustomization: boolean;
     hasCustomPackaging: boolean;
@@ -53,6 +54,7 @@ export interface StoredBooking {
     effectiveGuests: number;
     basePrice: number;
     extraBarPrice: number;
+    extraBarsCount?: number;
     drinksPrice: number;
     cartCustomizationPrice: number;
     customPackagingPrice: number;

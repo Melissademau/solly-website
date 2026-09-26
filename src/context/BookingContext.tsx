@@ -13,12 +13,29 @@ export type EventType =
 
 export type ExperienceType =
   | 'Cake Bar'
+  | 'Mini Pancakes'
+  | 'Croffles'
   | 'Boissons'
   | 'Charcuterie'
   | 'Souhaite être conseillé';
 
-export type MainBarType = 'cake-bar' | 'charcuterie';
-export type SelectedBarType = 'cake-bar' | 'drinks' | 'charcuterie';
+export type MainBarType = 'cake-bar' | 'mini-pancakes' | 'croffles' | 'charcuterie';
+export type SelectedBarType = 'cake-bar' | 'mini-pancakes' | 'croffles' | 'drinks' | 'charcuterie';
+
+export function getBarTitle(bar: MainBarType): string {
+  switch (bar) {
+    case 'cake-bar':
+      return 'Cake Bar';
+    case 'mini-pancakes':
+      return 'Mini Pancakes';
+    case 'croffles':
+      return 'Croffles';
+    case 'charcuterie':
+      return 'Bar salé / Charcuterie';
+    default:
+      return 'Bar gourmand';
+  }
+}
 
 export interface CakeCustomization {
   barquette?: string; // 'Barquette standard Solly' | 'Barquette à thème' | 'Barquette premium'
@@ -27,14 +44,26 @@ export interface CakeCustomization {
   composants: string[];
 }
 
+export interface PancakeCustomization {
+  sauces: string[];
+  toppings: string[];
+}
+
+export interface CroffleCustomization {
+  sauces: string[];
+  toppings: string[];
+}
+
 export interface CharcuterieCustomization {
   format: string; // 'Le Cornet' | 'Le Pot'
   composants: string[];
 }
 
 export interface OrderChoices {
-  packageType?: string; // e.g. "Cake Bar", "Bar salé / Charcuterie", etc.
+  packageType?: string; // e.g. "Cake Bar", "Mini Pancakes", etc.
   cakeBar?: CakeCustomization;
+  miniPancakes?: PancakeCustomization;
+  croffles?: CroffleCustomization;
   drinks?: string[];
   charcuterie?: CharcuterieCustomization;
   eventInspiration?: string;
@@ -52,11 +81,12 @@ export interface BookingFormData {
   guestCount: number | '';
   address: string; // Strictly "Adresse de l'événement"
   experience: ExperienceType | '';
-  // New pricing & bars model
+  // Pricing & bars model
   mainBar: MainBarType | '';
   selectedBars: SelectedBarType[];
   hasExtraBar: boolean;
   extraBarType?: MainBarType;
+  extraBars?: MainBarType[];
   hasDrinks: boolean;
   hasCartCustomization: boolean; // +15 000 FCFA
   hasCustomPackaging: boolean;   // +10 000 FCFA
@@ -89,6 +119,8 @@ interface BookingContextType {
   orderChoices: OrderChoices;
   setOrderChoices: React.Dispatch<React.SetStateAction<OrderChoices>>;
   updateCakeCustomization: (cake: CakeCustomization) => void;
+  updateMiniPancakesCustomization: (pancakes: PancakeCustomization) => void;
+  updateCrofflesCustomization: (croffles: CroffleCustomization) => void;
   updatePackageType: (pkg: string) => void;
   updateDrinksCustomization: (drinks: string[]) => void;
   updateCharcuterieCustomization: (charcuterie: CharcuterieCustomization) => void;
@@ -119,6 +151,7 @@ const initialFormData: BookingFormData = {
   selectedBars: ['cake-bar'],
   hasExtraBar: false,
   extraBarType: undefined,
+  extraBars: [],
   hasDrinks: false,
   hasCartCustomization: false,
   hasCustomPackaging: false,
@@ -132,6 +165,8 @@ const initialFormData: BookingFormData = {
 const initialOrderChoices: OrderChoices = {
   packageType: '',
   cakeBar: undefined,
+  miniPancakes: undefined,
+  croffles: undefined,
   drinks: [],
   charcuterie: undefined,
   eventInspiration: '',
@@ -152,6 +187,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setOrderChoices((prev) => ({ ...prev, cakeBar: cake }));
   };
 
+  const updateMiniPancakesCustomization = (pancakes: PancakeCustomization) => {
+    setOrderChoices((prev) => ({ ...prev, miniPancakes: pancakes }));
+  };
+
+  const updateCrofflesCustomization = (croffles: CroffleCustomization) => {
+    setOrderChoices((prev) => ({ ...prev, croffles }));
+  };
+
   const updatePackageType = (pkg: string) => {
     setOrderChoices((prev) => ({ ...prev, packageType: pkg }));
   };
@@ -167,26 +210,42 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const openBooking = (options?: ExperienceType | OpenBookingOptions) => {
     if (typeof options === 'string') {
       const isCharc = options === 'Charcuterie';
+      const isPancakes = options === 'Mini Pancakes';
+      const isCroffles = options === 'Croffles';
       const isDrinks = options === 'Boissons';
+
+      let bar: MainBarType = 'cake-bar';
+      if (isCharc) bar = 'charcuterie';
+      else if (isPancakes) bar = 'mini-pancakes';
+      else if (isCroffles) bar = 'croffles';
 
       setFormData((prev) => ({
         ...prev,
         experience: options,
-        mainBar: isCharc ? 'charcuterie' : 'cake-bar',
+        mainBar: bar,
         hasDrinks: isDrinks ? true : prev.hasDrinks,
-        selectedBars: isCharc ? ['charcuterie'] : isDrinks ? ['cake-bar', 'drinks'] : ['cake-bar'],
+        selectedBars: isDrinks ? [bar, 'drinks'] : [bar],
+        extraBars: [],
+        hasExtraBar: false,
         isAdvised: options === 'Souhaite être conseillé' ? true : prev.isAdvised,
       }));
     } else if (options && typeof options === 'object') {
       const pkg = options.packageType || '';
       const isMix = pkg.includes('2 Bars') || pkg.includes('mix');
       const isCharcuterie = options.experience === 'Charcuterie' || pkg.includes('Charcuterie') || pkg.includes('salé');
+      const isPancakes = options.experience === 'Mini Pancakes' || pkg.includes('Pancakes');
+      const isCroffles = options.experience === 'Croffles' || pkg.includes('Croffles');
       const isDrinks = options.experience === 'Boissons' || (options.drinks && options.drinks.length > 0);
 
+      let mainBar: MainBarType = 'cake-bar';
+      if (isCharcuterie) mainBar = 'charcuterie';
+      else if (isPancakes) mainBar = 'mini-pancakes';
+      else if (isCroffles) mainBar = 'croffles';
+
       setFormData((prev) => {
-        const mainBar: MainBarType = isCharcuterie && !isMix ? 'charcuterie' : 'cake-bar';
         const hasExtraBar = isMix;
-        const extraBarType: MainBarType | undefined = isMix ? 'charcuterie' : undefined;
+        const extraBarType: MainBarType | undefined = isMix ? (mainBar === 'charcuterie' ? 'cake-bar' : 'charcuterie') : undefined;
+        const extraBars: MainBarType[] = extraBarType ? [extraBarType] : [];
         const hasDrinks = Boolean(isDrinks);
 
         const nextBars: SelectedBarType[] = [mainBar];
@@ -201,6 +260,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
           mainBar,
           hasExtraBar,
           extraBarType,
+          extraBars,
           hasDrinks,
           selectedBars: nextBars,
           isAdvised: options.experience === 'Souhaite être conseillé' ? true : prev.isAdvised,
@@ -255,21 +315,28 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const hasCustomChoices = Boolean(
     orderChoices.packageType ||
     (orderChoices.cakeBar && (orderChoices.cakeBar.barquette || orderChoices.cakeBar.base || orderChoices.cakeBar.composants.length > 0)) ||
+    (orderChoices.miniPancakes && (orderChoices.miniPancakes.sauces.length > 0 || orderChoices.miniPancakes.toppings.length > 0)) ||
+    (orderChoices.croffles && (orderChoices.croffles.sauces.length > 0 || orderChoices.croffles.toppings.length > 0)) ||
     (orderChoices.drinks && orderChoices.drinks.length > 0) ||
     (orderChoices.charcuterie && (orderChoices.charcuterie.format || orderChoices.charcuterie.composants.length > 0)) ||
     orderChoices.eventInspiration
   );
 
   const getWhatsAppUrl = () => {
+    const extraBarsCount = formData.extraBars && formData.extraBars.length > 0
+      ? formData.extraBars.length
+      : (formData.hasExtraBar ? 1 : 0);
+
     const pricing = calculateBookingPrice({
       guestCount: formData.guestCount,
-      hasExtraBar: formData.hasExtraBar,
+      extraBarsCount,
+      hasExtraBar: extraBarsCount > 0,
       hasDrinks: formData.hasDrinks,
       hasCartCustomization: formData.hasCartCustomization,
       hasCustomPackaging: formData.hasCustomPackaging,
     });
 
-    const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+    const mainBarLabel = formData.mainBar ? getBarTitle(formData.mainBar) : 'Cake Bar';
     const phoneWithCountry = formData.countryCode
       ? `${formData.countryCode} ${formData.phone}`.trim()
       : formData.phone;
@@ -281,10 +348,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       `📍 Lieu : ${formData.address || 'Dakar'}\n\n` +
       `🍰 Bar principal : ${mainBarLabel} (inclus à 4 000 FCFA / invité)\n`;
 
-    if (formData.hasExtraBar) {
-      const extraLabel = formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
-      text += `➕ Bar supplémentaire : ${extraLabel} (+1 000 FCFA / invité)\n`;
+    if (formData.extraBars && formData.extraBars.length > 0) {
+      formData.extraBars.forEach((b) => {
+        text += `➕ Bar supplémentaire : ${getBarTitle(b)} (+1 000 FCFA / invité)\n`;
+      });
+    } else if (formData.hasExtraBar && formData.extraBarType) {
+      text += `➕ Bar supplémentaire : ${getBarTitle(formData.extraBarType)} (+1 000 FCFA / invité)\n`;
     }
+
     if (formData.hasDrinks) {
       text += `🍹 Option Boissons Solly : +1 000 FCFA / invité\n`;
     }
@@ -303,7 +374,9 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       `• Nom : ${formData.firstName || ''} ${formData.lastName || ''}\n` +
       `• Téléphone (WhatsApp) : ${phoneWithCountry || 'Non renseigné'}\n`;
 
-    if (orderChoices.cakeBar && (formData.mainBar === 'cake-bar' || (formData.hasExtraBar && formData.extraBarType === 'cake-bar'))) {
+    const allBars = [formData.mainBar, ...(formData.extraBars || [])];
+
+    if (orderChoices.cakeBar && allBars.includes('cake-bar')) {
       text += `\n🍰 Détails Cake Bar :\n` +
         (orderChoices.cakeBar.barquette ? `  - Barquette : ${orderChoices.cakeBar.barquette}\n` : '') +
         `  - Base : ${orderChoices.cakeBar.base || 'Vanille'}\n` +
@@ -311,11 +384,23 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         `  - Composants : ${orderChoices.cakeBar.composants.join(', ') || 'Toppings'}\n`;
     }
 
+    if (orderChoices.miniPancakes && allBars.includes('mini-pancakes')) {
+      text += `\n🥞 Détails Mini Pancakes :\n` +
+        (orderChoices.miniPancakes.sauces.length > 0 ? `  - Sauces : ${orderChoices.miniPancakes.sauces.join(', ')}\n` : '') +
+        (orderChoices.miniPancakes.toppings.length > 0 ? `  - Toppings : ${orderChoices.miniPancakes.toppings.join(', ')}\n` : '');
+    }
+
+    if (orderChoices.croffles && allBars.includes('croffles')) {
+      text += `\n🥐 Détails Croffles :\n` +
+        (orderChoices.croffles.sauces.length > 0 ? `  - Sauces : ${orderChoices.croffles.sauces.join(', ')}\n` : '') +
+        (orderChoices.croffles.toppings.length > 0 ? `  - Toppings : ${orderChoices.croffles.toppings.join(', ')}\n` : '');
+    }
+
     if (formData.hasDrinks && orderChoices.drinks && orderChoices.drinks.length > 0) {
       text += `\n🍹 Détails Boissons : ${orderChoices.drinks.join(', ')}\n`;
     }
 
-    if (orderChoices.charcuterie && (formData.mainBar === 'charcuterie' || (formData.hasExtraBar && formData.extraBarType === 'charcuterie'))) {
+    if (orderChoices.charcuterie && allBars.includes('charcuterie')) {
       text += `\n🧀 Détails Charcuterie : Format ${orderChoices.charcuterie.format || 'Cornet'} (${orderChoices.charcuterie.composants.join(', ')})\n`;
     }
 
@@ -341,6 +426,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         orderChoices,
         setOrderChoices,
         updateCakeCustomization,
+        updateMiniPancakesCustomization,
+        updateCrofflesCustomization,
         updatePackageType,
         updateDrinksCustomization,
         updateCharcuterieCustomization,

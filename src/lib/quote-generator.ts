@@ -34,9 +34,10 @@ export interface BookingPayload {
     location: string;
     message?: string;
     selectedBars: string[];
-    mainBar?: 'cake-bar' | 'charcuterie';
+    mainBar?: 'cake-bar' | 'mini-pancakes' | 'croffles' | 'charcuterie';
     hasExtraBar?: boolean;
-    extraBarType?: 'cake-bar' | 'charcuterie';
+    extraBarType?: string;
+    extraBars?: string[];
     hasDrinks?: boolean;
     hasCartCustomization?: boolean;
     hasCustomPackaging?: boolean;
@@ -54,6 +55,14 @@ export interface BookingPayload {
       base?: string;
       sauces: string[];
       composants: string[];
+    };
+    miniPancakes?: {
+      sauces: string[];
+      toppings: string[];
+    };
+    croffles?: {
+      sauces: string[];
+      toppings: string[];
     };
     drinks?: string[];
     charcuterie?: {
@@ -86,6 +95,36 @@ function sanitizeForPdf(str: string): string {
     .replace(/[…]/g, '...')
     .replace(/[✦♡✨🍹🧀🍰🎉❤️]/g, '')
     .trim();
+}
+
+export function getBarNameForQuote(bar?: string): string {
+  switch (bar) {
+    case 'cake-bar':
+      return 'Cake Bar';
+    case 'mini-pancakes':
+      return 'Mini Pancakes';
+    case 'croffles':
+      return 'Croffles';
+    case 'charcuterie':
+      return 'Bar sale / Charcuterie';
+    default:
+      return 'Cake Bar';
+  }
+}
+
+export function getBarNameWithAccents(bar?: string): string {
+  switch (bar) {
+    case 'cake-bar':
+      return 'Cake Bar';
+    case 'mini-pancakes':
+      return 'Mini Pancakes';
+    case 'croffles':
+      return 'Croffles';
+    case 'charcuterie':
+      return 'Bar salé / Charcuterie';
+    default:
+      return 'Cake Bar';
+  }
 }
 
 /**
@@ -267,12 +306,20 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
   const items: LineItem[] = [];
 
   // Main Bar
-  const mainBarName = formData.mainBar === 'charcuterie' ? 'Bar sale / Charcuterie' : 'Cake Bar';
+  const mainBarName = getBarNameForQuote(formData.mainBar);
   let mainDetails = `Bar principal inclus (${mainBarName}) avec chariot Solly et service inclus`;
   if (formData.mainBar === 'charcuterie' && orderChoices.charcuterie) {
     const fmt = orderChoices.charcuterie.format || 'Cornet';
     const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
     mainDetails = `Format: ${fmt} | Bouchees: ${comps}`;
+  } else if (formData.mainBar === 'mini-pancakes' && orderChoices.miniPancakes) {
+    const sauces = orderChoices.miniPancakes.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.miniPancakes.toppings?.join(', ') || 'Toppings';
+    mainDetails = `Mini pancakes minutes | Sauces: ${sauces} | Toppings: ${tops}`;
+  } else if (formData.mainBar === 'croffles' && orderChoices.croffles) {
+    const sauces = orderChoices.croffles.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.croffles.toppings?.join(', ') || 'Toppings';
+    mainDetails = `Croffles dores minutes | Sauces: ${sauces} | Toppings: ${tops}`;
   } else if (orderChoices.cakeBar) {
     const base = orderChoices.cakeBar.base || 'Vanille';
     const barq = orderChoices.cakeBar.barquette || 'Standard';
@@ -289,14 +336,26 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
     total: formatPriceFCFA(pricing.basePrice),
   });
 
-  // Extra Bar
-  if (formData.hasExtraBar) {
-    const extraName = formData.extraBarType === 'charcuterie' ? 'Bar sale / Charcuterie' : 'Cake Bar';
-    let extraDetails = '2eme bar complet au choix des invites';
-    if (formData.extraBarType === 'charcuterie' && orderChoices.charcuterie) {
+  // Extra Bars
+  const extraBarsList = formData.extraBars && formData.extraBars.length > 0
+    ? formData.extraBars
+    : (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
+
+  extraBarsList.forEach((extraBar) => {
+    const extraName = getBarNameForQuote(extraBar);
+    let extraDetails = 'Bar supplementaire au choix des invites';
+    if (extraBar === 'charcuterie' && orderChoices.charcuterie) {
       const fmt = orderChoices.charcuterie.format || 'Cornet';
       const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
       extraDetails = `Format: ${fmt} | Bouchees: ${comps}`;
+    } else if (extraBar === 'mini-pancakes' && orderChoices.miniPancakes) {
+      const sauces = orderChoices.miniPancakes.sauces?.join(', ') || 'Chocolat';
+      const tops = orderChoices.miniPancakes.toppings?.join(', ') || 'Toppings';
+      extraDetails = `Sauces: ${sauces} | Toppings: ${tops}`;
+    } else if (extraBar === 'croffles' && orderChoices.croffles) {
+      const sauces = orderChoices.croffles.sauces?.join(', ') || 'Chocolat';
+      const tops = orderChoices.croffles.toppings?.join(', ') || 'Toppings';
+      extraDetails = `Sauces: ${sauces} | Toppings: ${tops}`;
     } else if (orderChoices.cakeBar) {
       const base = orderChoices.cakeBar.base || 'Vanille';
       extraDetails = `Base: ${base} avec toppings et nappages`;
@@ -306,9 +365,9 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
       details: extraDetails,
       qte: `${pricing.effectiveGuests} pers.`,
       pu: '+1 000 FCFA',
-      total: `+${formatPriceFCFA(pricing.extraBarPrice)}`,
+      total: `+${formatPriceFCFA(pricing.effectiveGuests * 1000)}`,
     });
-  }
+  });
 
   // Drinks
   if (formData.hasDrinks) {
@@ -530,6 +589,7 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
     calculateBookingPrice({
       guestCount: formData.guestCount,
       hasExtraBar: formData.hasExtraBar,
+      extraBarsCount: formData.extraBars?.length,
       hasDrinks: formData.hasDrinks,
       hasCartCustomization: formData.hasCartCustomization,
       hasCustomPackaging: formData.hasCustomPackaging,
@@ -561,12 +621,20 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
   }
   const items: DocxLineItem[] = [];
 
-  const mainBarName = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+  const mainBarName = getBarNameWithAccents(formData.mainBar);
   let mainDetails = `Bar principal inclus (${mainBarName}) · Chariot Solly · Service pendant la prestation`;
   if (formData.mainBar === 'charcuterie' && orderChoices.charcuterie) {
     const fmt = orderChoices.charcuterie.format || 'Cornet';
     const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
     mainDetails = `Format : ${fmt} · Ingrédients : ${comps}`;
+  } else if (formData.mainBar === 'mini-pancakes' && orderChoices.miniPancakes) {
+    const sauces = orderChoices.miniPancakes.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.miniPancakes.toppings?.join(', ') || 'Toppings';
+    mainDetails = `Mini pancakes minute · Sauces : ${sauces} · Toppings : ${tops}`;
+  } else if (formData.mainBar === 'croffles' && orderChoices.croffles) {
+    const sauces = orderChoices.croffles.sauces?.join(', ') || 'Chocolat';
+    const tops = orderChoices.croffles.toppings?.join(', ') || 'Toppings';
+    mainDetails = `Croffles dorés minute · Sauces : ${sauces} · Toppings : ${tops}`;
   } else if (orderChoices.cakeBar) {
     const base = orderChoices.cakeBar.base || 'Vanille';
     const barq = orderChoices.cakeBar.barquette || 'Standard';
@@ -583,13 +651,25 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
     total: formatPriceFCFA(pricing.basePrice),
   });
 
-  if (formData.hasExtraBar) {
-    const extraName = formData.extraBarType === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
-    let extraDetails = '2ème bar complet au choix des invités';
-    if (formData.extraBarType === 'charcuterie' && orderChoices.charcuterie) {
+  const extraBarsList = formData.extraBars && formData.extraBars.length > 0
+    ? formData.extraBars
+    : (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
+
+  extraBarsList.forEach((extraBar) => {
+    const extraName = getBarNameWithAccents(extraBar);
+    let extraDetails = 'Bar supplémentaire complet au choix des invités';
+    if (extraBar === 'charcuterie' && orderChoices.charcuterie) {
       const fmt = orderChoices.charcuterie.format || 'Cornet';
       const comps = orderChoices.charcuterie.composants?.join(', ') || '6 composants';
       extraDetails = `Format : ${fmt} · Bouchées : ${comps}`;
+    } else if (extraBar === 'mini-pancakes' && orderChoices.miniPancakes) {
+      const sauces = orderChoices.miniPancakes.sauces?.join(', ') || 'Chocolat';
+      const tops = orderChoices.miniPancakes.toppings?.join(', ') || 'Toppings';
+      extraDetails = `Sauces : ${sauces} · Toppings : ${tops}`;
+    } else if (extraBar === 'croffles' && orderChoices.croffles) {
+      const sauces = orderChoices.croffles.sauces?.join(', ') || 'Chocolat';
+      const tops = orderChoices.croffles.toppings?.join(', ') || 'Toppings';
+      extraDetails = `Sauces : ${sauces} · Toppings : ${tops}`;
     } else if (orderChoices.cakeBar) {
       const base = orderChoices.cakeBar.base || 'Vanille';
       extraDetails = `Base : ${base} avec toppings et nappages`;
@@ -599,9 +679,9 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
       details: extraDetails,
       qte: `${pricing.effectiveGuests} pers.`,
       pu: '+1 000 FCFA',
-      total: `+${formatPriceFCFA(pricing.extraBarPrice)}`,
+      total: `+${formatPriceFCFA(pricing.effectiveGuests * 1000)}`,
     });
-  }
+  });
 
   if (formData.hasDrinks) {
     const juices = orderChoices.drinks?.length ? orderChoices.drinks.join(', ') : 'Bissap, Ananas, Passion';
@@ -860,6 +940,7 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
     calculateBookingPrice({
       guestCount: formData.guestCount,
       hasExtraBar: formData.hasExtraBar,
+      extraBarsCount: formData.extraBars?.length,
       hasDrinks: formData.hasDrinks,
       hasCartCustomization: formData.hasCartCustomization,
       hasCustomPackaging: formData.hasCustomPackaging,
@@ -874,7 +955,10 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
     ? new Date(formData.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'À convenir';
 
-  const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+  const mainBarLabel = getBarNameWithAccents(formData.mainBar);
+  const extraBarsList = formData.extraBars && formData.extraBars.length > 0
+    ? formData.extraBars
+    : (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
   const waLink = `https://wa.me/${formData.countryCode ? formData.countryCode.replace(/\+/g, '') : '221'}${formData.phone.replace(/\s+/g, '')}`;
 
   return `
@@ -946,12 +1030,12 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
             <td style="padding: 6px 0; color: #2E1C14;"><strong>Formule de base :</strong> ${pricing.effectiveGuests} pers. × 4 000 FCFA (${mainBarLabel})</td>
             <td style="padding: 6px 0; text-align: right; font-weight: bold;">${formatPriceFCFA(pricing.basePrice)}</td>
           </tr>
-          ${formData.hasExtraBar ? `
+          ${extraBarsList.map(eb => `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 6px 0; color: #2E1C14;"><strong>Bar supplémentaire :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
-            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.extraBarPrice)}</td>
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Bar supplémentaire (${getBarNameWithAccents(eb)}) :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.effectiveGuests * 1000)}</td>
           </tr>
-          ` : ''}
+          `).join('')}
           ${formData.hasDrinks ? `
           <tr style="border-bottom: 1px solid #eee;">
             <td style="padding: 6px 0; color: #2E1C14;"><strong>Option Boissons Solly :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
@@ -1026,6 +1110,28 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
           Base : ${orderChoices.cakeBar.base || 'Vanille'} | Barquette : ${orderChoices.cakeBar.barquette || 'Standard'}<br>
           Sauces : ${orderChoices.cakeBar.sauces.join(', ') || 'Chocolat'}<br>
           Toppings (6) : ${orderChoices.cakeBar.composants.join(', ') || '6 toppings choisis'}
+        </span>
+      </div>
+      ` : ''}
+
+      ${orderChoices.miniPancakes ? `
+      <div style="border-left: 3px solid #DE1B52; padding-left: 14px; margin-bottom: 14px;">
+        <strong style="color: #DE1B52; font-size: 14px;">🥞 Mini Pancakes :</strong><br>
+        <span style="font-size: 13px; color: #444;">
+          Préparés minute moelleux et généreusement nappés<br>
+          Sauces : ${orderChoices.miniPancakes.sauces.join(', ') || 'Chocolat'}<br>
+          Toppings : ${orderChoices.miniPancakes.toppings.join(', ') || 'Toppings choisis'}
+        </span>
+      </div>
+      ` : ''}
+
+      ${orderChoices.croffles ? `
+      <div style="border-left: 3px solid #DE1B52; padding-left: 14px; margin-bottom: 14px;">
+        <strong style="color: #DE1B52; font-size: 14px;">🥐 Croffles :</strong><br>
+        <span style="font-size: 13px; color: #444;">
+          Dorés et croustillants minute<br>
+          Sauces : ${orderChoices.croffles.sauces.join(', ') || 'Chocolat'}<br>
+          Toppings : ${orderChoices.croffles.toppings.join(', ') || 'Toppings choisis'}
         </span>
       </div>
       ` : ''}
@@ -1122,6 +1228,7 @@ export function generateCustomerConfirmationEmailHtml(
     calculateBookingPrice({
       guestCount: formData.guestCount,
       hasExtraBar: formData.hasExtraBar,
+      extraBarsCount: formData.extraBars?.length,
       hasDrinks: formData.hasDrinks,
       hasCartCustomization: formData.hasCartCustomization,
       hasCustomPackaging: formData.hasCustomPackaging,
@@ -1137,16 +1244,16 @@ export function generateCustomerConfirmationEmailHtml(
       })
     : 'Date à définir';
 
-  const mainBarLabel = formData.mainBar === 'charcuterie' ? 'Bar salé / Charcuterie' : 'Cake Bar';
+  const mainBarLabel = getBarNameWithAccents(formData.mainBar);
+
+  const extraBarsList = formData.extraBars && formData.extraBars.length > 0
+    ? formData.extraBars
+    : (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
 
   const options: string[] = [];
-  if (formData.hasExtraBar) {
-    options.push(
-      formData.extraBarType === 'charcuterie'
-        ? 'Bar supplémentaire : Bar salé / Charcuterie (+1 000 FCFA / invité)'
-        : 'Bar supplémentaire : Cake Bar (+1 000 FCFA / invité)'
-    );
-  }
+  extraBarsList.forEach((eb) => {
+    options.push(`Bar supplémentaire : ${getBarNameWithAccents(eb)} (+1 000 FCFA / invité)`);
+  });
   if (formData.hasDrinks) {
     options.push('Boissons Solly (+1 000 FCFA / invité)');
   }
