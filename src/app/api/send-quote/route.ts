@@ -32,6 +32,8 @@ export async function POST(req: NextRequest) {
       calculateBookingPrice({
         guestCount: formData.guestCount,
         hasExtraBar: formData.hasExtraBar,
+        extraBarType: formData.extraBarType,
+        extraBars: formData.extraBars,
         hasDrinks: formData.hasDrinks,
         hasCartCustomization: formData.hasCartCustomization,
         hasCustomPackaging: formData.hasCustomPackaging,
@@ -64,6 +66,7 @@ export async function POST(req: NextRequest) {
           mainBar: formData.mainBar || 'cake-bar',
           hasExtraBar: Boolean(formData.hasExtraBar),
           extraBarType: formData.extraBarType,
+          extraBars: formData.extraBars,
           hasDrinks: Boolean(formData.hasDrinks),
           hasCartCustomization: Boolean(formData.hasCartCustomization),
           hasCustomPackaging: Boolean(formData.hasCustomPackaging),

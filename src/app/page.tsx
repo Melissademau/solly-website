@@ -243,7 +243,7 @@ export default function HomePage() {
                 Croissant et gaufre : croustillant, doré et servi chaud.
               </p>
               <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
-                Bar principal ou +1 000 FCFA
+                Bar principal ou +1 500 FCFA
               </span>
               <Link
                 href="/experiences#croffles"

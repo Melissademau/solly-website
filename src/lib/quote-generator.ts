@@ -360,12 +360,13 @@ export async function generateQuotePdf(payload: BookingPayload): Promise<Buffer>
       const base = orderChoices.cakeBar.base || 'Vanille';
       extraDetails = `Base: ${base} avec toppings et nappages`;
     }
+    const rate = extraBar === 'croffles' ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
     items.push({
       title: `Option Bar supplementaire (${extraName})`,
       details: extraDetails,
       qte: `${pricing.effectiveGuests} pers.`,
-      pu: '+1 000 FCFA',
-      total: `+${formatPriceFCFA(pricing.effectiveGuests * 1000)}`,
+      pu: extraBar === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.effectiveGuests * rate)}`,
     });
   });
 
@@ -674,12 +675,13 @@ export async function generateQuoteDocx(payload: BookingPayload): Promise<Buffer
       const base = orderChoices.cakeBar.base || 'Vanille';
       extraDetails = `Base : ${base} avec toppings et nappages`;
     }
+    const rate = extraBar === 'croffles' ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
     items.push({
       title: `Option Bar supplémentaire (${extraName})`,
       details: extraDetails,
       qte: `${pricing.effectiveGuests} pers.`,
-      pu: '+1 000 FCFA',
-      total: `+${formatPriceFCFA(pricing.effectiveGuests * 1000)}`,
+      pu: extraBar === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA',
+      total: `+${formatPriceFCFA(pricing.effectiveGuests * rate)}`,
     });
   });
 
@@ -1030,12 +1032,16 @@ export function generateQuoteHtmlEmail(payload: BookingPayload): string {
             <td style="padding: 6px 0; color: #2E1C14;"><strong>Formule de base :</strong> ${pricing.effectiveGuests} pers. × 4 000 FCFA (${mainBarLabel})</td>
             <td style="padding: 6px 0; text-align: right; font-weight: bold;">${formatPriceFCFA(pricing.basePrice)}</td>
           </tr>
-          ${extraBarsList.map(eb => `
+          ${extraBarsList.map(eb => {
+            const rate = eb === 'croffles' ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
+            const rateFormatted = eb === 'croffles' ? '1 500' : '1 000';
+            return `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 6px 0; color: #2E1C14;"><strong>Bar supplémentaire (${getBarNameWithAccents(eb)}) :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
-            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.effectiveGuests * 1000)}</td>
+            <td style="padding: 6px 0; color: #2E1C14;"><strong>Bar supplémentaire (${getBarNameWithAccents(eb)}) :</strong> ${pricing.effectiveGuests} pers. × ${rateFormatted} FCFA</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #DE1B52;">+${formatPriceFCFA(pricing.effectiveGuests * rate)}</td>
           </tr>
-          `).join('')}
+          `;
+          }).join('')}
           ${formData.hasDrinks ? `
           <tr style="border-bottom: 1px solid #eee;">
             <td style="padding: 6px 0; color: #2E1C14;"><strong>Option Boissons Solly :</strong> ${pricing.effectiveGuests} pers. × 1 000 FCFA</td>
@@ -1252,7 +1258,8 @@ export function generateCustomerConfirmationEmailHtml(
 
   const options: string[] = [];
   extraBarsList.forEach((eb) => {
-    options.push(`Bar supplémentaire : ${getBarNameWithAccents(eb)} (+1 000 FCFA / invité)`);
+    const rateText = eb === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA';
+    options.push(`Bar supplémentaire : ${getBarNameWithAccents(eb)} (${rateText} / invité)`);
   });
   if (formData.hasDrinks) {
     options.push('Boissons Solly (+1 000 FCFA / invité)');

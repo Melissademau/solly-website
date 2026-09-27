@@ -864,7 +864,7 @@ export default function CakeBarPage() {
                     </h3>
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/85 max-w-xl">
-                    Ajoutez un ou plusieurs bars supplémentaires à votre événement pour seulement <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> par bar (par exemple : Cake Bar + Mini Pancakes, ou Croffles + Bar salé).
+                    Ajoutez un ou plusieurs bars supplémentaires à votre événement à partir de <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> par bar (+1 500 FCFA pour les Croffles).
                   </p>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mt-4 text-[11px] sm:text-xs font-bold text-solly-charcoal/80">
                     <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
@@ -1475,7 +1475,7 @@ export default function CakeBarPage() {
             <div className="mt-3 inline-flex items-center gap-3 text-xs sm:text-sm font-bold text-solly-charcoal">
               <span className="text-solly-pink">Compris dans la formule de base (4 000 FCFA / invité)</span>
               <span>•</span>
-              <span className="text-solly-charcoal/70">Ou en bar supplémentaire (+1 000 FCFA / invité)</span>
+              <span className="text-solly-charcoal/70">Ou en bar supplémentaire (+1 500 FCFA / invité)</span>
             </div>
           </div>
 

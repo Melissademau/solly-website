@@ -147,8 +147,8 @@ const initialFormData: BookingFormData = {
   guestCount: 20, // Base minimum 20 invités
   address: '',
   experience: '',
-  mainBar: 'cake-bar',
-  selectedBars: ['cake-bar'],
+  mainBar: '',
+  selectedBars: [],
   hasExtraBar: false,
   extraBarType: undefined,
   extraBars: [],
@@ -212,19 +212,24 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       const isCharc = options === 'Charcuterie';
       const isPancakes = options === 'Mini Pancakes';
       const isCroffles = options === 'Croffles';
+      const isCake = options === 'Cake Bar';
       const isDrinks = options === 'Boissons';
 
-      let bar: MainBarType = 'cake-bar';
+      let bar: MainBarType | '' = '';
       if (isCharc) bar = 'charcuterie';
       else if (isPancakes) bar = 'mini-pancakes';
       else if (isCroffles) bar = 'croffles';
+      else if (isCake) bar = 'cake-bar';
+
+      const nextBars: SelectedBarType[] = bar ? [bar] : [];
+      if (isDrinks && !nextBars.includes('drinks')) nextBars.push('drinks');
 
       setFormData((prev) => ({
         ...prev,
         experience: options,
         mainBar: bar,
         hasDrinks: isDrinks ? true : prev.hasDrinks,
-        selectedBars: isDrinks ? [bar, 'drinks'] : [bar],
+        selectedBars: nextBars,
         extraBars: [],
         hasExtraBar: false,
         isAdvised: options === 'Souhaite être conseillé' ? true : prev.isAdvised,
@@ -235,12 +240,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       const isCharcuterie = options.experience === 'Charcuterie' || pkg.includes('Charcuterie') || pkg.includes('salé');
       const isPancakes = options.experience === 'Mini Pancakes' || pkg.includes('Pancakes');
       const isCroffles = options.experience === 'Croffles' || pkg.includes('Croffles');
+      const isCake = options.experience === 'Cake Bar' || pkg.includes('Cake');
       const isDrinks = options.experience === 'Boissons' || (options.drinks && options.drinks.length > 0);
 
-      let mainBar: MainBarType = 'cake-bar';
+      let mainBar: MainBarType | '' = '';
       if (isCharcuterie) mainBar = 'charcuterie';
       else if (isPancakes) mainBar = 'mini-pancakes';
       else if (isCroffles) mainBar = 'croffles';
+      else if (isCake) mainBar = 'cake-bar';
 
       setFormData((prev) => {
         const hasExtraBar = isMix;
@@ -248,7 +255,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         const extraBars: MainBarType[] = extraBarType ? [extraBarType] : [];
         const hasDrinks = Boolean(isDrinks);
 
-        const nextBars: SelectedBarType[] = [mainBar];
+        const nextBars: SelectedBarType[] = mainBar ? [mainBar] : [];
         if (hasExtraBar && extraBarType && !nextBars.includes(extraBarType)) nextBars.push(extraBarType);
         if (hasDrinks && !nextBars.includes('drinks')) nextBars.push('drinks');
 
@@ -329,6 +336,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
     const pricing = calculateBookingPrice({
       guestCount: formData.guestCount,
+      extraBars: formData.extraBars,
       extraBarsCount,
       hasExtraBar: extraBarsCount > 0,
       hasDrinks: formData.hasDrinks,
@@ -350,10 +358,12 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
     if (formData.extraBars && formData.extraBars.length > 0) {
       formData.extraBars.forEach((b) => {
-        text += `➕ Bar supplémentaire : ${getBarTitle(b)} (+1 000 FCFA / invité)\n`;
+        const rateText = b === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA';
+        text += `➕ Bar supplémentaire : ${getBarTitle(b)} (${rateText} / invité)\n`;
       });
     } else if (formData.hasExtraBar && formData.extraBarType) {
-      text += `➕ Bar supplémentaire : ${getBarTitle(formData.extraBarType)} (+1 000 FCFA / invité)\n`;
+      const rateText = formData.extraBarType === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA';
+      text += `➕ Bar supplémentaire : ${getBarTitle(formData.extraBarType)} (${rateText} / invité)\n`;
     }
 
     if (formData.hasDrinks) {
