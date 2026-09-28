@@ -93,28 +93,36 @@ export function Navbar() {
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-bold text-solly-charcoal">
           <Link
-            href="/#bars"
-            className="relative py-1 transition-colors hover:text-solly-pink text-solly-charcoal"
+            href="/"
+            className={`relative py-1 transition-colors hover:text-solly-pink ${
+              pathname === '/' ? 'text-solly-pink font-extrabold' : 'text-solly-charcoal'
+            }`}
           >
-            Nos bars
+            Accueil
+            {pathname === '/' && (
+              <motion.div
+                layoutId="navbar-underline"
+                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-solly-pink rounded-full"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
           </Link>
 
-          {/* L'expérience Solly with Dropdown Sub-menu */}
+          {/* Nos expériences with Dropdown Sub-menu */}
           <div
             className="relative"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <button
-              type="button"
-              onClick={() => setExperienceDropdownOpen(!experienceDropdownOpen)}
-              className={`relative py-1 transition-colors flex items-center gap-1.5 cursor-pointer hover:text-solly-pink ${
+            <Link
+              href="/experiences"
+              className={`relative py-1 transition-colors flex items-center gap-1.5 hover:text-solly-pink ${
                 pathname === '/experiences'
                   ? 'text-solly-pink font-extrabold'
                   : 'text-solly-charcoal'
               }`}
             >
-              <span>L’expérience Solly</span>
+              <span>Nos expériences</span>
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform duration-200 ${
                   experienceDropdownOpen ? 'rotate-180 text-solly-pink' : 'text-solly-charcoal/70'
@@ -127,7 +135,7 @@ export function Navbar() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-            </button>
+            </Link>
 
             {/* Dropdown Menu Card */}
             <AnimatePresence>
@@ -174,33 +182,15 @@ export function Navbar() {
           </div>
 
           <Link
-            href="/evenements"
+            href="/partenaires"
             className={`relative py-1 transition-colors hover:text-solly-pink ${
-              pathname === '/evenements'
+              pathname === '/partenaires'
                 ? 'text-solly-pink font-extrabold'
                 : 'text-solly-charcoal'
             }`}
           >
-            Vos événements
-            {pathname === '/evenements' && (
-              <motion.div
-                layoutId="navbar-underline"
-                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-solly-pink rounded-full"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
-          </Link>
-
-          <Link
-            href="/notre-histoire"
-            className={`relative py-1 transition-colors hover:text-solly-pink ${
-              pathname === '/notre-histoire' || pathname === '/a-propos'
-                ? 'text-solly-pink font-extrabold'
-                : 'text-solly-charcoal'
-            }`}
-          >
-            Notre histoire
-            {(pathname === '/notre-histoire' || pathname === '/a-propos') && (
+            Partenaires
+            {pathname === '/partenaires' && (
               <motion.div
                 layoutId="navbar-underline"
                 className="absolute -bottom-1 left-0 right-0 h-0.5 bg-solly-pink rounded-full"
@@ -266,27 +256,32 @@ export function Navbar() {
                 Accueil
               </Link>
 
-              <Link
-                href="/#bars"
-                className="px-4 py-3 rounded-2xl text-base font-bold text-solly-charcoal hover:bg-white transition-colors"
-              >
-                Nos bars
-              </Link>
-
-              {/* Mobile Submenu for L'expérience Solly */}
+              {/* Mobile Submenu for Nos expériences */}
               <div className="flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)}
-                  className="w-full px-4 py-3 rounded-2xl text-base font-bold text-solly-charcoal hover:bg-white transition-colors flex items-center justify-between"
-                >
-                  <span>L’expérience Solly</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      mobileSubmenuOpen ? 'rotate-180 text-solly-pink' : ''
+                <div className="flex items-center justify-between">
+                  <Link
+                    href="/experiences"
+                    className={`flex-1 px-4 py-3 rounded-2xl text-base font-bold transition-colors ${
+                      pathname === '/experiences'
+                        ? 'bg-solly-pink-soft text-solly-pink'
+                        : 'text-solly-charcoal hover:bg-white'
                     }`}
-                  />
-                </button>
+                  >
+                    Nos expériences
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)}
+                    className="p-3 text-solly-charcoal hover:text-solly-pink"
+                    aria-label="Afficher le sous-menu"
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        mobileSubmenuOpen ? 'rotate-180 text-solly-pink' : ''
+                      }`}
+                    />
+                  </button>
+                </div>
 
                 {mobileSubmenuOpen && (
                   <div className="pl-6 pr-2 py-2 flex flex-col gap-1.5">
@@ -312,25 +307,14 @@ export function Navbar() {
               </div>
 
               <Link
-                href="/evenements"
+                href="/partenaires"
                 className={`px-4 py-3 rounded-2xl text-base font-bold transition-colors ${
-                  pathname === '/evenements'
+                  pathname === '/partenaires'
                     ? 'bg-solly-pink-soft text-solly-pink'
                     : 'text-solly-charcoal hover:bg-white'
                 }`}
               >
-                Vos événements
-              </Link>
-
-              <Link
-                href="/notre-histoire"
-                className={`px-4 py-3 rounded-2xl text-base font-bold transition-colors ${
-                  pathname === '/notre-histoire' || pathname === '/a-propos'
-                    ? 'bg-solly-pink-soft text-solly-pink'
-                    : 'text-solly-charcoal hover:bg-white'
-                }`}
-              >
-                Notre histoire
+                Partenaires
               </Link>
 
               <div className="pt-4 mt-2 border-t border-solly-border/70">

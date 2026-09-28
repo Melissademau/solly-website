@@ -48,6 +48,12 @@ export interface StoredBooking {
     hasCustomPackaging: boolean;
     orderChoices?: any;
     inspirationPhotosCount?: number;
+    experiences?: string[];
+    budgetDesired?: number;
+    budgetMinimum?: number;
+    personalization?: string;
+    personalizationCart?: boolean;
+    personalizationTableware?: boolean;
   };
   pricing: {
     guestCount: number;

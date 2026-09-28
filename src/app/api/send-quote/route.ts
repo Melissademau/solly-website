@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
     // 1. Generate unique human-readable booking reference (e.g. SOL-260923-001)
     const bookingRef = payload.bookingRef || generateBookingReference();
     payload.bookingRef = bookingRef;
+    payload.orderChoices = payload.orderChoices || {};
+    formData.selectedBars = formData.selectedBars || [];
 
     // 2. Ensure pricing is calculated
     const pricing =
@@ -70,8 +72,14 @@ export async function POST(req: NextRequest) {
           hasDrinks: Boolean(formData.hasDrinks),
           hasCartCustomization: Boolean(formData.hasCartCustomization),
           hasCustomPackaging: Boolean(formData.hasCustomPackaging),
-          orderChoices: payload.orderChoices,
+          orderChoices: payload.orderChoices || {},
           inspirationPhotosCount: formData.inspirationPhotos?.length || 0,
+          experiences: (formData as any).experiences || [],
+          budgetDesired: (formData as any).budgetDesired || 0,
+          budgetMinimum: (formData as any).budgetMinimum || 0,
+          personalization: (formData as any).personalization || '',
+          personalizationCart: Boolean((formData as any).personalizationCart),
+          personalizationTableware: Boolean((formData as any).personalizationTableware),
         },
         pricing,
       });

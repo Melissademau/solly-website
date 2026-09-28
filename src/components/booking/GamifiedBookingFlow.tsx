@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,18 +9,12 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Users,
   Check,
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  Upload,
-  FileText,
   MessageCircle,
-  Pencil,
-  Info,
   ChevronDown,
-  ChevronUp,
   Plus,
   Minus,
   Phone,
@@ -29,10 +23,19 @@ import {
   SlidersHorizontal,
   Loader2,
   Mail,
+  HelpCircle,
+  UtensilsCrossed,
+  Palette,
 } from 'lucide-react';
 import { SollyLogo, Sparkle } from '@/components/ui/Doodles';
-import { useBooking, EventType, SelectedBarType, MainBarType, CakeCustomization, CharcuterieCustomization, getBarTitle } from '@/context/BookingContext';
-import { calculateBookingPrice, formatPriceFCFA, PRICING_CONFIG } from '@/lib/pricing';
+import {
+  useBooking,
+  EventType,
+  ExperienceId,
+  getExperienceLabel,
+  calculateMinimumBudget,
+} from '@/context/BookingContext';
+import { formatPriceFCFA } from '@/lib/pricing';
 
 interface GamifiedBookingFlowProps {
   onClose?: () => void;
@@ -40,11 +43,13 @@ interface GamifiedBookingFlowProps {
 }
 
 const EVENT_TYPE_OPTIONS: EventType[] = [
-  "Anniversaire d'enfant",
-  "Célébration familiale",
-  "Événement scolaire / parents",
-  "Événement d'entreprise",
-  "Autre événement",
+  'Anniversaire',
+  'Baptême',
+  'Mariage',
+  'Baby shower',
+  "Événement d’entreprise",
+  'Activation de marque',
+  'Autre',
 ];
 
 const TIME_SLOTS = [
@@ -53,8 +58,8 @@ const TIME_SLOTS = [
   { label: 'Soirée (19h - 23h)', value: 'Soirée (19h - 23h)' },
 ];
 
-const GUEST_PRESETS = [20, 25, 30, 40, 50, 75];
-const DAKAR_QUICK_AREAS = ['Almadies', 'Plateau', 'Ngor', 'Point E', 'Mamelles'];
+const GUEST_PRESETS = [20, 25, 30, 40, 50, 75, 100];
+const DAKAR_QUICK_AREAS = ['Almadies', 'Plateau', 'Ngor', 'Point E', 'Mamelles', 'Fann Résidence'];
 
 const COUNTRY_CODES = [
   { country: 'Sénégal', code: '+221', flag: '🇸🇳' },
@@ -71,52 +76,38 @@ const COUNTRY_CODES = [
   { country: 'Royaume-Uni', code: '+44', flag: '🇬🇧' },
 ];
 
-// Bar items data matching the experiences pages
-const CAKE_OPTIONS = {
-  barquettes: [
-    { id: 'Barquette standard Solly', name: 'Standard Solly', badge: 'Incontournable' },
-    { id: 'Barquette à thème', name: 'À thème personnalisé', badge: 'Sur mesure' },
-    { id: 'Barquette premium', name: 'Premium dorée', badge: 'Élégance' },
-  ],
-  bases: ['Vanille', 'Chocolat'],
-  sauces: ['Chocolat', 'Caramel beurre salé', 'Fruits rouges', 'Lait concentré sucré'],
-  toppings: ['Oreo', 'Spéculoos', 'Vermicelles festifs', 'Mangue', 'Marshmallow', 'Fraises fraîches', 'Banane', 'Autres'],
-};
-
-const PANCAKE_OPTIONS = {
-  sauces: ['Chocolat fondant', 'Caramel beurre salé', 'Coulis fraise', 'Miel doré', 'Sirop d’érable'],
-  toppings: ['Bananes fraîches', 'Fraises fraîches', 'Mini marshmallows', 'Pépites de chocolat', 'Vermicelles festifs', 'Éclats de spéculoos'],
-};
-
-const CROFFLE_OPTIONS = {
-  sauces: ['Chocolat fondant', 'Caramel beurre salé', 'Coulis fruits rouges', 'Miel & cannelle'],
-  toppings: ['Fraises fraîches', 'Noisettes concassées', 'Éclats de biscuits', 'Mini marshmallows', 'Pépites de chocolat', 'Bananes fraîches'],
-};
-
-const DRINK_OPTIONS = [
-  { id: 'Bissap glacé', name: 'Bissap glacé', desc: 'Hibiscus, menthe douce & vanille' },
-  { id: 'Jus d’ananas', name: 'Jus d’ananas', desc: 'Pur jus frais pressé et doux' },
-  { id: 'Gingembre-agrumes', name: 'Gingembre-agrumes', desc: 'Gingembre tonique, oranges & citron vert' },
-  { id: 'Jus orange-passion', name: 'Jus orange-passion', desc: 'Nectar acidulé et doux aux fruits de la passion' },
+const EXPERIENCES_CATALOG = [
+  {
+    id: 'cake-bar' as ExperienceId,
+    title: 'Cake Bar',
+    subtitle: 'Gâteaux individuels généreux découpés et nappés à la minute',
+    tag: 'Signature Solly',
+    image: '/images/solly-assets/01-accueil/cake-bar-preview.png',
+  },
+  {
+    id: 'mini-pancakes' as ExperienceId,
+    title: 'Mini Pancakes',
+    subtitle: 'Moelleux, dorés à la machine officielle Solly et nappés minute',
+    tag: 'Nouveau & Ludique',
+    image: '/images/mini-pancakes/pancakes-preview.webp',
+  },
+  {
+    id: 'croffles' as ExperienceId,
+    title: 'Croffles',
+    subtitle: 'Croustillants, dorés et caramélisés, servis chauds',
+    tag: 'Tendance & Gourmand',
+    image: '/images/croffles/croffle-preview.webp',
+  },
+  {
+    id: 'charcuterie' as ExperienceId,
+    title: 'Charcuterie',
+    subtitle: 'Cornets et pots apéritifs chics avec fromages, salaisons et fruits',
+    tag: 'L’accord salé chic',
+    image: '/images/solly-assets/04-charcuterie/aperitif-gourmand.png',
+  },
 ];
 
-const CHARCUTERIE_OPTIONS = {
-  formats: [
-    { id: 'Le Cornet', name: 'Le Cornet', desc: 'Cône individuel pour picorer debout' },
-    { id: 'Le Pot', name: 'Le Pot', desc: 'Pot généreux facile à poser' },
-  ],
-  composants: [
-    'Rosettes de salami',
-    'Jambon cuit',
-    'Gouda doré',
-    'Fromage doux',
-    'Olives marinées',
-    'Raisins frais',
-    'Mini bretzels',
-    'Crackers dorés',
-    'Autres',
-  ],
-};
+const BUDGET_PRESETS = [80000, 100000, 150000, 200000, 300000, 500000, 1000000];
 
 export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBookingFlowProps) {
   const {
@@ -124,573 +115,181 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
     setCurrentStep,
     formData,
     setFormData,
-    orderChoices,
-    setOrderChoices,
     submitBooking,
     resetBooking,
     getWhatsAppUrl,
     bookingRef,
     setBookingRef,
-    bookingStatus,
-    setBookingStatus,
+    isSubmitted,
   } = useBooking();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [inspirationAdded, setInspirationAdded] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(false);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
-  const [inspirationError, setInspirationError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generatedQuote, setGeneratedQuote] = useState<{
-    bookingRef?: string;
-    status?: string;
-    statusLabel?: string;
-    pdfBase64?: string;
-    docxBase64?: string;
-    pdfFilename?: string;
-    docxFilename?: string;
-    emailSent?: boolean;
-    customerEmailSent?: boolean;
-  } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInspirationError('');
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    const currentPhotos = formData.inspirationPhotos || [];
-    if (currentPhotos.length + files.length > 2) {
-      setInspirationError('Vous pouvez joindre 2 photos maximum au total.');
-      e.target.value = '';
-      return;
-    }
-
-    const currentSize = currentPhotos.reduce((acc, p) => acc + p.size, 0);
-    const newFilesSize = files.reduce((acc, f) => acc + f.size, 0);
-    const totalBytes = currentSize + newFilesSize;
-    const maxBytes = 2 * 1024 * 1024; // 2 Mo
-
-    if (totalBytes > maxBytes) {
-      setInspirationError(
-        `Le poids total dépasse 2 Mo (actuellement ${(totalBytes / (1024 * 1024)).toFixed(1)} Mo). Veuillez choisir des photos plus légères.`
-      );
-      e.target.value = '';
-      return;
-    }
-
-    try {
-      const readAsDataUrl = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      };
-
-      const newPhotos = await Promise.all(
-        files.map(async (file) => ({
-          name: file.name,
-          size: file.size,
-          dataUrl: await readAsDataUrl(file),
-        }))
-      );
-
-      setFormData((prev) => ({
-        ...prev,
-        inspirationPhotos: [...(prev.inspirationPhotos || []), ...newPhotos].slice(0, 2),
-      }));
-    } catch {
-      setInspirationError('Impossible de charger cette image.');
-    }
-    e.target.value = '';
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      inspirationPhotos: (prev.inspirationPhotos || []).filter((_, i) => i !== index),
-    }));
-    setInspirationError('');
-  };
-
-  // Active accordion tab in step 2 (e.g. 'cake-bar' | 'drinks' | 'charcuterie')
-  const [activeCustomizer, setActiveCustomizer] = useState<SelectedBarType | null>(null);
-
-  // Guest count logic: minimum 20 invités
-  const guestCount =
-    typeof formData.guestCount === 'number'
+  // Compute dynamic minimum budget
+  const effectiveGuests =
+    typeof formData.guestCount === 'number' && !isNaN(formData.guestCount) && formData.guestCount >= 20
       ? formData.guestCount
-      : formData.guestCount
-      ? parseInt(String(formData.guestCount), 10)
       : 20;
 
+  const dynamicMinBudget = calculateMinimumBudget(effectiveGuests);
+
+  // Synchronize budgetDesired if it falls below the dynamic min budget
+  useEffect(() => {
+    if (!formData.budgetDesired || formData.budgetDesired < dynamicMinBudget) {
+      setFormData((prev) => ({
+        ...prev,
+        budgetMinimum: dynamicMinBudget,
+        budgetDesired: dynamicMinBudget,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        budgetMinimum: dynamicMinBudget,
+      }));
+    }
+  }, [dynamicMinBudget, formData.budgetDesired, setFormData]);
+
+  // Guest count adjuster
   const handleGuestChange = (delta: number) => {
-    const current = guestCount || 20;
-    const nextVal = Math.max(20, Math.min(500, current + delta));
-    setFormData((prev) => ({ ...prev, guestCount: nextVal }));
+    const current = typeof formData.guestCount === 'number' ? formData.guestCount : 20;
+    const nextVal = Math.max(20, current + delta);
+    const nextMin = calculateMinimumBudget(nextVal);
+    setFormData((prev) => ({
+      ...prev,
+      guestCount: nextVal,
+      budgetMinimum: nextMin,
+      budgetDesired: Math.max(nextMin, prev.budgetDesired || nextMin),
+    }));
     setErrors((prev) => ({ ...prev, guestCount: '' }));
   };
 
-  const extraBarsCount = formData.extraBars && formData.extraBars.length > 0
-    ? formData.extraBars.length
-    : (formData.hasExtraBar ? 1 : 0);
-
-  // Centralized dynamic pricing calculation
-  const pricing = calculateBookingPrice({
-    guestCount: formData.guestCount,
-    extraBars: formData.extraBars,
-    extraBarsCount,
-    hasExtraBar: extraBarsCount > 0,
-    hasDrinks: formData.hasDrinks,
-    hasCartCustomization: formData.hasCartCustomization,
-    hasCustomPackaging: formData.hasCustomPackaging,
-  });
-
-  // Handler for selecting the main bar (included at base 4 000 FCFA / guest)
-  const handleMainBarSelect = (bar: MainBarType) => {
+  // Toggle experience selection
+  const toggleExperience = (id: ExperienceId) => {
     setFormData((prev) => {
-      const currentExtras = prev.extraBars || (prev.hasExtraBar && prev.extraBarType ? [prev.extraBarType] : []);
-      const nextExtras = currentExtras.filter((b) => b !== bar);
-      const hasExtra = nextExtras.length > 0;
-
-      const nextBars: SelectedBarType[] = [bar, ...nextExtras];
-      if (prev.hasDrinks) nextBars.push('drinks');
-
-      return {
-        ...prev,
-        mainBar: bar,
-        hasExtraBar: hasExtra,
-        extraBarType: nextExtras[0],
-        extraBars: nextExtras,
-        selectedBars: nextBars,
-      };
-    });
-    setActiveCustomizer(bar);
-    setErrors((prev) => ({ ...prev, selectedBars: '' }));
-
-    if (bar === 'cake-bar' && !orderChoices.cakeBar) {
-      setOrderChoices((prev) => ({
-        ...prev,
-        cakeBar: {
-          barquette: 'Barquette standard Solly',
-          base: 'Vanille',
-          sauces: ['Chocolat'],
-          composants: ['Oreo'],
-        },
-      }));
-    } else if (bar === 'mini-pancakes' && !orderChoices.miniPancakes) {
-      setOrderChoices((prev) => ({
-        ...prev,
-        miniPancakes: {
-          sauces: ['Chocolat fondant'],
-          toppings: ['Bananes fraîches', 'Vermicelles festifs'],
-        },
-      }));
-    } else if (bar === 'croffles' && !orderChoices.croffles) {
-      setOrderChoices((prev) => ({
-        ...prev,
-        croffles: {
-          sauces: ['Chocolat fondant'],
-          toppings: ['Fraises fraîches', 'Noisettes concassées'],
-        },
-      }));
-    } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
-      setOrderChoices((prev) => ({
-        ...prev,
-        charcuterie: {
-          format: 'Le Cornet',
-          composants: ['Rosettes de salami', 'Gouda doré'],
-        },
-      }));
-    }
-  };
-
-  // Handler for toggling an additional bar (+1 000 FCFA / guest)
-  const handleExtraBarToggle = (bar: MainBarType) => {
-    setFormData((prev) => {
-      const currentExtras = prev.extraBars || (prev.hasExtraBar && prev.extraBarType ? [prev.extraBarType] : []);
-      const isAlreadySelected = currentExtras.includes(bar);
-      const nextExtras = isAlreadySelected
-        ? currentExtras.filter((b) => b !== bar)
-        : [...currentExtras, bar];
-
-      const hasExtra = nextExtras.length > 0;
-      const nextBars: SelectedBarType[] = prev.mainBar ? [prev.mainBar, ...nextExtras] : [...nextExtras];
-      if (prev.hasDrinks) nextBars.push('drinks');
-
-      return {
-        ...prev,
-        hasExtraBar: hasExtra,
-        extraBarType: nextExtras[0],
-        extraBars: nextExtras,
-        selectedBars: nextBars,
-      };
-    });
-
-    const currentExtras = formData.extraBars || (formData.hasExtraBar && formData.extraBarType ? [formData.extraBarType] : []);
-    if (!currentExtras.includes(bar)) {
-      setActiveCustomizer(bar);
-      if (bar === 'cake-bar' && !orderChoices.cakeBar) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          cakeBar: {
-            barquette: 'Barquette standard Solly',
-            base: 'Vanille',
-            sauces: ['Chocolat'],
-            composants: ['Oreo'],
-          },
-        }));
-      } else if (bar === 'mini-pancakes' && !orderChoices.miniPancakes) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          miniPancakes: {
-            sauces: ['Chocolat fondant'],
-            toppings: ['Bananes fraîches', 'Vermicelles festifs'],
-          },
-        }));
-      } else if (bar === 'croffles' && !orderChoices.croffles) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          croffles: {
-            sauces: ['Chocolat fondant'],
-            toppings: ['Fraises fraîches', 'Noisettes concassées'],
-          },
-        }));
-      } else if (bar === 'charcuterie' && !orderChoices.charcuterie) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          charcuterie: {
-            format: 'Le Cornet',
-            composants: ['Rosettes de salami', 'Gouda doré'],
-          },
-        }));
-      }
-    }
-  };
-
-  // Handler for drinks option (+1 000 FCFA / guest)
-  const handleDrinksToggle = () => {
-    setFormData((prev) => {
-      const willEnable = !prev.hasDrinks;
-      const nextBars = willEnable
-        ? Array.from(new Set([...prev.selectedBars, 'drinks' as SelectedBarType]))
-        : prev.selectedBars.filter((b) => b !== 'drinks');
-
-      return {
-        ...prev,
-        hasDrinks: willEnable,
-        selectedBars: nextBars,
-      };
-    });
-
-    if (!formData.hasDrinks) {
-      setActiveCustomizer('drinks');
-      if (!orderChoices.drinks || orderChoices.drinks.length === 0) {
-        setOrderChoices((prev) => ({
-          ...prev,
-          drinks: ['Bissap glacé'],
-        }));
-      }
-    }
-  };
-
-  // Handler for cart customization (+15 000 FCFA)
-  const handleCartCustomizationToggle = () => {
-    setFormData((prev) => ({
-      ...prev,
-      hasCartCustomization: !prev.hasCartCustomization,
-      personalization: !prev.hasCartCustomization ? 'oui' : prev.personalization,
-    }));
-  };
-
-  // Handler for custom packaging (+10 000 FCFA)
-  const handleCustomPackagingToggle = () => {
-    setFormData((prev) => ({
-      ...prev,
-      hasCustomPackaging: !prev.hasCustomPackaging,
-    }));
-  };
-
-  // Backward compatible handleBarToggle
-  const handleBarToggle = (bar: SelectedBarType) => {
-    if (bar === 'drinks') {
-      handleDrinksToggle();
-    } else if (bar === formData.mainBar) {
-      setActiveCustomizer(bar);
-    } else if (formData.mainBar && bar !== formData.mainBar) {
-      handleExtraBarToggle(bar as MainBarType);
-    } else {
-      handleMainBarSelect(bar as MainBarType);
-    }
-  };
-
-  // Customization handlers for Mini Pancakes
-  const handlePancakeSauceToggle = (sauce: string) => {
-    const current = orderChoices.miniPancakes?.sauces || [];
-    let updated: string[];
-    if (current.includes(sauce)) {
-      updated = current.filter((s) => s !== sauce);
-    } else {
-      updated = current.length >= 2 ? [...current.slice(1), sauce] : [...current, sauce];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      miniPancakes: {
-        sauces: updated,
-        toppings: prev.miniPancakes?.toppings || [],
-      },
-    }));
-  };
-
-  const handlePancakeToppingToggle = (top: string) => {
-    const current = orderChoices.miniPancakes?.toppings || [];
-    let updated: string[];
-    if (current.includes(top)) {
-      updated = current.filter((t) => t !== top);
-    } else {
-      updated = current.length >= 3 ? [...current.slice(1), top] : [...current, top];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      miniPancakes: {
-        sauces: prev.miniPancakes?.sauces || [],
-        toppings: updated,
-      },
-    }));
-  };
-
-  // Customization handlers for Croffles
-  const handleCroffleSauceToggle = (sauce: string) => {
-    const current = orderChoices.croffles?.sauces || [];
-    let updated: string[];
-    if (current.includes(sauce)) {
-      updated = current.filter((s) => s !== sauce);
-    } else {
-      updated = current.length >= 2 ? [...current.slice(1), sauce] : [...current, sauce];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      croffles: {
-        sauces: updated,
-        toppings: prev.croffles?.toppings || [],
-      },
-    }));
-  };
-
-  const handleCroffleToppingToggle = (top: string) => {
-    const current = orderChoices.croffles?.toppings || [];
-    let updated: string[];
-    if (current.includes(top)) {
-      updated = current.filter((t) => t !== top);
-    } else {
-      updated = current.length >= 3 ? [...current.slice(1), top] : [...current, top];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      croffles: {
-        sauces: prev.croffles?.sauces || [],
-        toppings: updated,
-      },
-    }));
-  };
-
-  // Customization handlers for Cake Bar
-  const handleCakeBarquette = (b: string) => {
-    setOrderChoices((prev) => ({
-      ...prev,
-      cakeBar: {
-        ...(prev.cakeBar || { base: 'Vanille', sauces: [], composants: [] }),
-        barquette: b,
-      },
-    }));
-  };
-
-  const handleCakeBase = (base: string) => {
-    setOrderChoices((prev) => ({
-      ...prev,
-      cakeBar: {
-        ...(prev.cakeBar || { sauces: [], composants: [] }),
-        base,
-      },
-    }));
-  };
-
-  const handleCakeSauceToggle = (sauce: string) => {
-    const current = orderChoices.cakeBar?.sauces || [];
-    let updated: string[];
-    if (current.includes(sauce)) {
-      updated = current.filter((s) => s !== sauce);
-    } else {
-      if (current.length >= 2) {
-        updated = [...current.slice(1), sauce];
+      const exists = prev.selectedExperiences.includes(id);
+      let updated: ExperienceId[];
+      if (exists) {
+        if (prev.selectedExperiences.length === 1) {
+          // Keep at least one selected
+          return prev;
+        }
+        updated = prev.selectedExperiences.filter((item) => item !== id);
       } else {
-        updated = [...current, sauce];
+        updated = [...prev.selectedExperiences, id];
       }
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      cakeBar: {
-        ...(prev.cakeBar || { base: 'Vanille', composants: [] }),
-        sauces: updated,
-      },
-    }));
+      return {
+        ...prev,
+        selectedExperiences: updated,
+      };
+    });
+    setErrors((prev) => ({ ...prev, selectedExperiences: '' }));
   };
 
-  const handleCakeToppingToggle = (top: string) => {
-    const current = orderChoices.cakeBar?.composants || [];
-    let updated: string[];
-    if (current.includes(top)) {
-      updated = current.filter((t) => t !== top);
-    } else {
-      if (current.length >= 6) {
-        return; // Maximum 6 toppings autorisés
-      }
-      updated = [...current, top];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      cakeBar: {
-        ...(prev.cakeBar || { base: 'Vanille', sauces: [] }),
-        composants: updated,
-      },
-    }));
-    setErrors((prev) => ({ ...prev, cakeBarToppings: '' }));
-  };
-
-  // Customization handlers for Drinks (Limited to 3 juices maximum)
-  const handleDrinkToggle = (drinkId: string) => {
-    const current = orderChoices.drinks || [];
-    let updated: string[];
-    if (current.includes(drinkId)) {
-      updated = current.filter((d) => d !== drinkId);
-    } else {
-      if (current.length >= 3) {
-        return; // Max 3 juices limit
-      }
-      updated = [...current, drinkId];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      drinks: updated,
-    }));
-  };
-
-  // Customization handlers for Charcuterie
-  const handleCharcuterieFormat = (format: string) => {
-    setOrderChoices((prev) => ({
-      ...prev,
-      charcuterie: {
-        ...(prev.charcuterie || { composants: [] }),
-        format,
-      },
-    }));
-  };
-
-  const handleCharcuterieComposantToggle = (comp: string) => {
-    const current = orderChoices.charcuterie?.composants || [];
-    let updated: string[];
-    if (current.includes(comp)) {
-      updated = current.filter((c) => c !== comp);
-    } else {
-      if (current.length >= 6) {
-        return; // Maximum 6 composants autorisés
-      }
-      updated = [...current, comp];
-    }
-    setOrderChoices((prev) => ({
-      ...prev,
-      charcuterie: {
-        ...(prev.charcuterie || { format: 'Le Cornet' }),
-        composants: updated,
-      },
-    }));
-    setErrors((prev) => ({ ...prev, charcuterieComposants: '' }));
-  };
-
+  // Step 1 validation
   const validateStep1 = () => {
     const errs: Record<string, string> = {};
-    if (!formData.eventType) errs.eventType = 'Choisissez un type d’événement';
-    if (!formData.eventDate) errs.eventDate = 'Indiquez une date';
-    if (!formData.guestCount || Number(formData.guestCount) < 20) {
-      errs.guestCount = 'Minimum 20 invités requis (tarif de base : 4 000 FCFA / invité)';
+    if (!formData.eventType) errs.eventType = 'Veuillez choisir un type d’événement';
+    if (!formData.eventDate) errs.eventDate = 'Veuillez indiquer la date souhaitée';
+    if (!formData.address.trim()) errs.address = 'Veuillez préciser le lieu ou quartier';
+    if (!formData.guestCount || formData.guestCount < 20) {
+      errs.guestCount = 'Le minimum est de 20 invités';
     }
-    if (!formData.address.trim()) errs.address = 'Indiquez l’adresse ou la ville de l’événement';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  // Step 2 validation
+  const validateStep2 = () => {
+    const errs: Record<string, string> = {};
+    if (!formData.selectedExperiences || formData.selectedExperiences.length === 0) {
+      errs.selectedExperiences = 'Veuillez sélectionner au moins une expérience';
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // Step 3 validation
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
-    if (!formData.firstName.trim()) errs.firstName = 'Prénom et nom requis';
+    if (!formData.personalization) {
+      errs.personalization = 'Veuillez faire un choix pour continuer';
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // Step 4 validation & Submit
+  const validateStep4 = () => {
+    const errs: Record<string, string> = {};
+    if (!formData.firstName.trim()) errs.firstName = 'Veuillez indiquer votre nom complet';
     if (!formData.phone.trim()) errs.phone = 'Numéro de téléphone requis';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleNextFromStep1 = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateStep1()) {
-      setCurrentStep(2);
-    }
-  };
-
-  const handleNextFromStep2 = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.mainBar) {
-      setErrors({ selectedBars: 'Veuillez sélectionner votre bar principal' });
-      return;
-    }
-
-    setErrors({});
-    setCurrentStep(3);
-  };
-
-  const handleSubmitStep3 = async (e?: React.FormEvent) => {
+  const handleNext = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (validateStep3()) {
-      setIsSubmitting(true);
-      let refToUse: string | undefined = undefined;
-      try {
-        const response = await fetch('/api/send-quote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            formData: {
-              ...formData,
-              name: `${formData.firstName} ${formData.lastName}`.trim() || formData.firstName,
-              location: formData.address,
-            },
-            orderChoices,
-            pricing,
-          }),
-        });
-        if (response.ok) {
-          const resData = await response.json();
-          setGeneratedQuote(resData);
-          if (resData.bookingRef) {
-            refToUse = resData.bookingRef;
-            setBookingRef(resData.bookingRef);
-          }
-          if (resData.status) {
-            setBookingStatus(resData.status);
-          }
-        }
-      } catch (err) {
-        console.error('[Booking Submit] Error requesting quote email:', err);
-      } finally {
-        if (!refToUse) {
-          const now = new Date();
-          const yy = String(now.getFullYear()).slice(-2);
-          const mm = String(now.getMonth() + 1).padStart(2, '0');
-          const dd = String(now.getDate()).padStart(2, '0');
-          refToUse = `SOL-${yy}${mm}${dd}-${Math.floor(100 + Math.random() * 900)}`;
-          setBookingRef(refToUse);
-        }
-        setIsSubmitting(false);
-        submitBooking(formData, refToUse);
+    if (currentStep === 1) {
+      if (validateStep1()) setCurrentStep(2);
+    } else if (currentStep === 2) {
+      if (validateStep2()) setCurrentStep(3);
+    } else if (currentStep === 3) {
+      if (validateStep3()) setCurrentStep(4);
+    } else if (currentStep === 4) {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((currentStep - 1) as 1 | 2 | 3 | 4);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep4()) return;
+    setIsSubmitting(true);
+
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const generatedRef = `SOL-${yy}${mm}${dd}-${Math.floor(100 + Math.random() * 900)}`;
+
+    try {
+      const response = await fetch('/api/send-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingRef: generatedRef,
+          formData: {
+            ...formData,
+            name: `${formData.firstName} ${formData.lastName}`.trim() || formData.firstName,
+            location: formData.address,
+            budgetMinimum: dynamicMinBudget,
+            budgetDesired: Math.max(dynamicMinBudget, formData.budgetDesired || dynamicMinBudget),
+            experiences: formData.selectedExperiences.map((id) => getExperienceLabel(id)),
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const resData = await response.json();
+        const refToUse = resData.bookingRef || generatedRef;
+        setBookingRef(refToUse);
+        await submitBooking(formData, refToUse);
+      } else {
+        setBookingRef(generatedRef);
+        await submitBooking(formData, generatedRef);
       }
+    } catch (err) {
+      console.error('[Booking Submit] Network or API error:', err);
+      setBookingRef(generatedRef);
+      await submitBooking(formData, generatedRef);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -702,19 +301,12 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
       })
     : 'Date à définir';
 
-  const selectedBarsSummary = () => {
-    const mainLabel = formData.mainBar ? getBarTitle(formData.mainBar) : 'À sélectionner';
-    const extras: string[] = [];
-    if (formData.extraBars && formData.extraBars.length > 0) {
-      formData.extraBars.forEach((b) => extras.push(getBarTitle(b)));
-    } else if (formData.hasExtraBar && formData.extraBarType) {
-      extras.push(getBarTitle(formData.extraBarType));
-    }
-    if (formData.hasDrinks) {
-      extras.push('Boissons Solly');
-    }
-    return extras.length > 0 ? `${mainLabel} + ${extras.join(' + ')}` : mainLabel;
-  };
+  const stepsList = [
+    { num: 1, label: 'Événement' },
+    { num: 2, label: 'Expériences' },
+    { num: 3, label: 'Personnalisation' },
+    { num: 4, label: 'Budget' },
+  ];
 
   return (
     <div
@@ -724,25 +316,70 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           : 'rounded-t-[32px] sm:rounded-[30px]'
       } overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]`}
     >
-      {/* 0. MOBILE BOTTOM SHEET DRAG HANDLE (Visible in modal on small screens) */}
+      {/* 0. MOBILE BOTTOM SHEET DRAG HANDLE */}
       {!isInline && (
         <div className="pt-2.5 pb-1 sm:hidden flex justify-center bg-white shrink-0">
           <div className="w-12 h-1.5 bg-solly-charcoal/20 rounded-full" />
         </div>
       )}
 
-      {/* 1. TOP HEADER & CLOSE BUTTON */}
-      <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-solly-border/70 flex items-center justify-between bg-white shrink-0">
+      {/* 1. TOP HEADER & PROGRESS BAR */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-solly-border/70 flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-2">
-          <SollyLogo height={26} />
+          <SollyLogo height={24} />
         </div>
 
-        {/* Step Indicator Badge on Mobile */}
-        {currentStep < 4 && (
+        {/* Step Indicator on Mobile */}
+        {!isSubmitted && (
           <div className="flex sm:hidden items-center gap-1.5 bg-solly-pink-soft px-3 py-1 rounded-full border border-solly-pink/20">
             <span className="text-[11px] font-extrabold text-solly-pink">
-              Étape {currentStep}/3
+              Étape {currentStep}/4
             </span>
+          </div>
+        )}
+
+        {/* Desktop Step Stepper */}
+        {!isSubmitted && (
+          <div className="hidden sm:flex items-center gap-3">
+            {stepsList.map((s, idx) => {
+              const isPast = currentStep > s.num;
+              const isCurrent = currentStep === s.num;
+              return (
+                <React.Fragment key={s.num}>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                        isCurrent
+                          ? 'bg-solly-pink text-white shadow-2xs'
+                          : isPast
+                          ? 'bg-solly-pink/20 text-solly-pink'
+                          : 'bg-solly-cream text-solly-muted'
+                      }`}
+                    >
+                      {isPast ? <Check className="w-3.5 h-3.5" /> : s.num}
+                    </span>
+                    <span
+                      className={`text-xs font-bold transition-colors ${
+                        isCurrent
+                          ? 'text-solly-pink'
+                          : isPast
+                          ? 'text-solly-charcoal'
+                          : 'text-solly-muted'
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  {idx < stepsList.length - 1 && (
+                    <div
+                      className={`w-6 h-0.5 rounded-full ${
+                        currentStep > s.num ? 'bg-solly-pink' : 'bg-solly-border'
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         )}
 
@@ -750,7 +387,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-solly-cream hover:bg-solly-cream-dark/60 border border-solly-border flex items-center justify-center text-solly-charcoal transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-solly-cream hover:bg-solly-cream-dark/60 border border-solly-border flex items-center justify-center text-solly-charcoal transition-colors cursor-pointer"
             aria-label="Fermer"
           >
             <X className="w-4 h-4" />
@@ -758,1989 +395,1005 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
         )}
       </div>
 
-      {/* 2. PROGRESS STEPPER (Steps 1, 2, 3) */}
-      {currentStep < 4 && (
-        <div className="pt-3.5 pb-2.5 px-4 sm:px-6 bg-white border-b border-solly-border/40 shrink-0">
-          <div className="max-w-md mx-auto flex items-center justify-between relative">
-            {/* Connecting Line 1-2 */}
-            <div
-              className={`absolute top-4 left-1/6 right-1/2 h-0.5 transition-colors duration-300 ${
-                currentStep >= 2 ? 'bg-solly-pink' : 'bg-solly-border'
-              }`}
-            />
-            {/* Connecting Line 2-3 */}
-            <div
-              className={`absolute top-4 left-1/2 right-1/6 h-0.5 transition-colors duration-300 ${
-                currentStep >= 3 ? 'bg-solly-pink' : 'bg-solly-border'
-              }`}
-            />
-
-            {/* Step 1: Événement */}
-            <button
-              type="button"
-              onClick={() => setCurrentStep(1)}
-              className="flex flex-col items-center relative z-10 cursor-pointer group focus:outline-none min-w-[64px]"
-            >
-              <div
-                className={`w-8 h-8 rounded-full font-display font-bold text-xs flex items-center justify-center transition-all duration-200 shadow-2xs ${
-                  currentStep === 1
-                    ? 'bg-solly-pink text-white scale-110 shadow-solly-pink'
-                    : 'bg-[#FCECEF] text-solly-pink border border-solly-pink/30'
-                }`}
-              >
-                {currentStep > 1 ? <Check className="w-4 h-4 stroke-[3]" /> : '1'}
-              </div>
-              <span
-                className={`text-[11px] font-bold mt-1 transition-colors ${
-                  currentStep === 1 ? 'text-solly-pink' : 'text-solly-charcoal/70'
-                }`}
-              >
-                Événement
-              </span>
-            </button>
-
-            {/* Step 2: Envies */}
-            <button
-              type="button"
-              onClick={() => currentStep > 1 && setCurrentStep(2)}
-              className={`flex flex-col items-center relative z-10 focus:outline-none min-w-[64px] ${
-                currentStep >= 2 ? 'cursor-pointer' : 'cursor-default'
-              }`}
-            >
-              <div
-                className={`w-8 h-8 rounded-full font-display font-bold text-xs flex items-center justify-center transition-all duration-200 shadow-2xs ${
-                  currentStep === 2
-                    ? 'bg-solly-pink text-white scale-110 shadow-solly-pink'
-                    : currentStep > 2
-                    ? 'bg-[#FCECEF] text-solly-pink border border-solly-pink/30'
-                    : 'bg-white border border-solly-border text-solly-muted'
-                }`}
-              >
-                {currentStep > 2 ? <Check className="w-4 h-4 stroke-[3]" /> : '2'}
-              </div>
-              <span
-                className={`text-[11px] font-bold mt-1 transition-colors ${
-                  currentStep === 2 ? 'text-solly-pink' : 'text-solly-charcoal/70'
-                }`}
-              >
-                Envies
-              </span>
-            </button>
-
-            {/* Step 3: Coordonnées */}
-            <button
-              type="button"
-              onClick={() => currentStep > 2 && setCurrentStep(3)}
-              className={`flex flex-col items-center relative z-10 focus:outline-none min-w-[64px] ${
-                currentStep >= 3 ? 'cursor-pointer' : 'cursor-default'
-              }`}
-            >
-              <div
-                className={`w-8 h-8 rounded-full font-display font-bold text-xs flex items-center justify-center transition-all duration-200 shadow-2xs ${
-                  currentStep === 3
-                    ? 'bg-solly-pink text-white scale-110 shadow-solly-pink'
-                    : 'bg-white border border-solly-border text-solly-muted'
-                }`}
-              >
-                3
-              </div>
-              <span
-                className={`text-[11px] font-bold mt-1 transition-colors ${
-                  currentStep === 3 ? 'text-solly-pink' : 'text-solly-charcoal/70'
-                }`}
-              >
-                Coordonnées
-              </span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 3. STEP CONTENT WITH SMOOTH MOBILE SCROLL */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 sm:p-8 overscroll-contain">
+      {/* 2. SCROLLABLE BODY */}
+      <div className="flex-1 overflow-y-auto px-4 py-5 sm:p-7 overscroll-contain">
         <AnimatePresence mode="wait">
           {/* ========================================================= */}
-          {/* STEP 01: VOTRE ÉVÉNEMENT */}
+          {/* SCREEN: CONFIRMATION APRÈS ENVOI */}
           {/* ========================================================= */}
-          {currentStep === 1 && (
-            <motion.form
-              key="step-1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.22 }}
-              onSubmit={handleNextFromStep1}
-              className="max-w-xl mx-auto space-y-5 sm:space-y-6 pb-2"
-            >
-              {/* Heading */}
-              <div className="text-center mb-4 sm:mb-6">
-                <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
-                  Parlons de votre fête.
-                </h2>
-                <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Quelques détails pour imaginer votre prestation personnalisée.
-                </p>
-              </div>
-
-              {/* Type d'événement & Date */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Type d'événement (No pre-selected choice) */}
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Type d’événement <span className="text-solly-pink">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.eventType}
-                      onChange={(e) => {
-                        setFormData((prev) => ({ ...prev, eventType: e.target.value as EventType }));
-                        setErrors((prev) => ({ ...prev, eventType: '' }));
-                      }}
-                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors"
-                    >
-                      <option value="" disabled>
-                        Sélectionnez un type...
-                      </option>
-                      {EVENT_TYPE_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-solly-charcoal/60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                  {errors.eventType && (
-                    <p className="text-[11px] text-red-500 font-bold mt-1">{errors.eventType}</p>
-                  )}
-                </div>
-
-                {/* Date (Blank initially) */}
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Date de l’événement <span className="text-solly-pink">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      min={new Date().toISOString().split('T')[0]}
-                      value={formData.eventDate}
-                      onChange={(e) => {
-                        setFormData((prev) => ({ ...prev, eventDate: e.target.value }));
-                        setErrors((prev) => ({ ...prev, eventDate: '' }));
-                      }}
-                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                    />
-                    <Calendar className="w-4 h-4 text-solly-charcoal/60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                  {errors.eventDate && (
-                    <p className="text-[11px] text-red-500 font-bold mt-1">{errors.eventDate}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Heure souhaitée : Quick Touch Chips + Custom Time */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Créneau ou heure souhaitée
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {TIME_SLOTS.map((slot) => {
-                    const isSelected = formData.eventTime === slot.value;
-                    return (
-                      <button
-                        key={slot.value}
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({ ...prev, eventTime: slot.value }));
-                          setShowCustomTime(false);
-                        }}
-                        className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between border cursor-pointer ${
-                          isSelected
-                            ? 'bg-solly-pink-soft text-solly-pink border-solly-pink shadow-2xs'
-                            : 'bg-[#FAF7F2] text-solly-charcoal/80 border-solly-border hover:border-solly-pink/40'
-                        }`}
-                      >
-                        <span>{slot.label}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-solly-pink shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-2 flex items-center justify-between">
-                  {!showCustomTime ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowCustomTime(true)}
-                      className="text-[11px] font-bold text-solly-pink hover:underline inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Clock className="w-3 h-3" />
-                      <span>Indiquer une heure précise (ex: 16h30)</span>
-                    </button>
-                  ) : (
-                    <div className="w-full pt-1 flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="time"
-                          value={formData.eventTime.includes(':') ? formData.eventTime : '16:00'}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, eventTime: e.target.value }))}
-                          className="w-full bg-[#FAF7F2] border border-solly-border rounded-xl px-3 py-2 text-base sm:text-xs text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomTime(false)}
-                        className="text-xs text-solly-muted hover:text-solly-charcoal px-2 py-1"
-                      >
-                        Annuler
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Adresse de l'événement & Dakar Quick Chips */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Lieu / Adresse <span className="text-solly-pink">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={formData.address}
-                    autoComplete="street-address"
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, address: e.target.value }));
-                      setErrors((prev) => ({ ...prev, address: '' }));
-                    }}
-                    placeholder="Ex: Almadies, Plateau, Domicile..."
-                    className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-4 py-3 text-base sm:text-sm text-solly-charcoal font-semibold placeholder:text-solly-charcoal/40 focus:outline-none focus:border-solly-pink/60 transition-colors"
-                  />
-                  <MapPin className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                </div>
-                {errors.address && (
-                  <p className="text-[11px] text-red-500 font-bold mt-1">{errors.address}</p>
-                )}
-
-                {/* Quick Area Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
-                  {DAKAR_QUICK_AREAS.map((area) => (
-                    <button
-                      key={area}
-                      type="button"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          address: prev.address ? `${prev.address}, ${area}` : area,
-                        }));
-                        setErrors((prev) => ({ ...prev, address: '' }));
-                      }}
-                      className="text-[11px] font-semibold bg-solly-cream border border-solly-border hover:border-solly-pink/50 hover:bg-solly-pink-soft hover:text-solly-pink px-2.5 py-1 rounded-lg text-solly-charcoal/80 transition-colors cursor-pointer"
-                    >
-                      + {area}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Nombre d'invités (Clean Counter with min 20) */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-solly-charcoal">
-                    Nombre d’invités estimé <span className="text-solly-pink">*</span>
-                  </label>
-                  <span className="text-[11px] font-bold text-solly-pink">
-                    Minimum 20 invités
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-3 bg-[#FAF7F2] border border-solly-border rounded-2xl p-1.5">
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      type="button"
-                      onClick={() => handleGuestChange(-5)}
-                      className="w-11 h-11 rounded-xl bg-white border border-solly-border flex items-center justify-center text-solly-charcoal hover:bg-solly-pink-soft hover:text-solly-pink transition-colors cursor-pointer shadow-2xs"
-                      aria-label="Diminuer le nombre d'invités"
-                    >
-                      <Minus className="w-5 h-5" />
-                    </motion.button>
-
-                    <input
-                      type="number"
-                      min="20"
-                      max="500"
-                      value={formData.guestCount}
-                      placeholder="20"
-                      onChange={(e) => {
-                        const v = e.target.value === '' ? '' : parseInt(e.target.value, 10);
-                        setFormData((prev) => ({ ...prev, guestCount: v }));
-                        setErrors((prev) => ({ ...prev, guestCount: '' }));
-                      }}
-                      className="w-16 text-center font-display font-black text-xl text-solly-charcoal bg-transparent focus:outline-none"
-                    />
-
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      type="button"
-                      onClick={() => handleGuestChange(5)}
-                      className="w-11 h-11 rounded-xl bg-white border border-solly-border flex items-center justify-center text-solly-charcoal hover:bg-solly-pink-soft hover:text-solly-pink transition-colors cursor-pointer shadow-2xs"
-                      aria-label="Augmenter le nombre d'invités"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </motion.button>
-                  </div>
-
-                  <span className="text-xs text-solly-muted font-medium">personnes</span>
-                </div>
-
-                {errors.guestCount && (
-                  <p className="text-[11px] text-red-500 font-bold mt-1">{errors.guestCount}</p>
-                )}
-
-                {/* Preset Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
-                  {GUEST_PRESETS.map((count) => (
-                    <button
-                      key={count}
-                      type="button"
-                      onClick={() => {
-                        setFormData((prev) => ({ ...prev, guestCount: count }));
-                        setErrors((prev) => ({ ...prev, guestCount: '' }));
-                      }}
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
-                        formData.guestCount === count
-                          ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                          : 'bg-white text-solly-charcoal/70 border-solly-border hover:bg-solly-cream'
-                      }`}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Encadré informatif simplifié */}
-              <div className="bg-[#FFF9E6] border border-[#FDE68A] text-solly-charcoal/90 rounded-2xl p-3.5 flex items-center gap-2.5 text-xs font-medium">
-                <Sparkle size={16} color="#DE1B52" className="shrink-0" />
-                <span>À partir de 4 000 FCFA / invité · minimum 20 invités</span>
-              </div>
-            </motion.form>
-          )}
-
-          {/* ========================================================= */}
-          {/* STEP 02: VOS ENVIES (GAMIFIED BARS & INLINE CUSTOMIZERS) */}
-          {/* ========================================================= */}
-          {currentStep === 2 && (
-            <motion.form
-              key="step-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.22 }}
-              onSubmit={handleNextFromStep2}
-              className="max-w-xl mx-auto space-y-5 sm:space-y-6 pb-2"
-            >
-              {/* Heading */}
-              <div className="text-center mb-4 sm:mb-6">
-                <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
-                  Qu’est-ce qui vous ferait plaisir ?
-                </h2>
-                <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Choisissez votre bar principal, puis ajoutez vos options selon vos envies.
-                </p>
-              </div>
-
-              {errors.selectedBars && (
-                <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-2.5 text-xs font-bold text-center">
-                  {errors.selectedBars}
-                </div>
-              )}
-
-              {/* 1. Bar principal (inclus à 4 000 FCFA / invité) */}
-              <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <label className="block text-xs font-bold text-solly-charcoal">
-                    1. Choisissez votre bar principal <span className="text-solly-pink">*</span>
-                  </label>
-                  <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full border border-solly-pink/20 inline-block w-fit">
-                    Inclus dans votre formule à 4 000 FCFA / invité
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {[
-                    {
-                      id: 'cake-bar' as MainBarType,
-                      title: 'Cake Bar',
-                      desc: formData.mainBar === 'cake-bar' ? '✦ Bar principal' : 'Gâteaux moelleux minute',
-                      image: '/images/solly-assets/05-experience/gateau-marshmallow.png',
-                      isNew: false,
-                    },
-                    {
-                      id: 'mini-pancakes' as MainBarType,
-                      title: 'Mini Pancakes',
-                      desc: formData.mainBar === 'mini-pancakes' ? '✦ Bar principal' : 'Moelleux & dorés minute',
-                      image: '/images/mini-pancakes/pancakes-preview.webp',
-                      isNew: true,
-                    },
-                    {
-                      id: 'croffles' as MainBarType,
-                      title: 'Croffles',
-                      desc: formData.mainBar === 'croffles' ? '✦ Bar principal' : 'Croustillant & doré',
-                      image: '/images/croffles/croffle-preview.webp',
-                      isNew: true,
-                    },
-                    {
-                      id: 'charcuterie' as MainBarType,
-                      title: 'Bar salé / Charcuterie',
-                      desc: formData.mainBar === 'charcuterie' ? '✦ Bar principal' : 'Cornets & pots salés',
-                      image: '/images/solly-assets/05-experience/pot-charcuterie-partage.png',
-                      isNew: false,
-                    },
-                  ].map((bar) => {
-                    const isSelected = formData.mainBar === bar.id;
-                    return (
-                      <motion.div
-                        key={bar.id}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleMainBarSelect(bar.id)}
-                        className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-200 bg-white flex flex-col group select-none ${
-                          isSelected
-                            ? 'border-solly-pink shadow-solly-card ring-2 ring-solly-pink/20'
-                            : 'border-solly-border hover:border-solly-pink/40'
-                        }`}
-                      >
-                        <div className="aspect-[4/3] bg-solly-cream overflow-hidden relative">
-                          <Image
-                            src={bar.image}
-                            alt={bar.title}
-                            fill
-                            sizes="(max-width: 640px) 50vw, 250px"
-                            loading="lazy"
-                            decoding="async"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          {bar.isNew && (
-                            <span className="absolute top-2 left-2 bg-solly-pink text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full shadow-xs tracking-wider z-10">
-                              Nouveau
-                            </span>
-                          )}
-                          <div
-                            className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 ${
-                              isSelected
-                                ? 'bg-solly-pink text-white shadow-sm scale-110'
-                                : 'bg-white/85 border border-solly-border text-transparent'
-                            }`}
-                          >
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                          <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-[10px] font-bold text-solly-charcoal px-2 py-0.5 rounded-md shadow-2xs">
-                            Inclus
-                          </span>
-                        </div>
-                        <div className="py-2 px-1.5 text-center">
-                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block truncate">
-                            {bar.title}
-                          </span>
-                          <span className="text-[10px] text-solly-muted block mt-0.5 truncate">
-                            {bar.desc}
-                          </span>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 2. Options gourmandes (Bars supplémentaires & Boissons) - Uniquement si un bar principal a été choisi */}
-              {Boolean(formData.mainBar) && (
-                <div className="space-y-2 pt-1">
-                  <label className="block text-xs font-bold text-solly-charcoal">
-                    2. Options gourmandes (à ajouter selon vos envies)
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { id: 'cake-bar' as MainBarType, title: '+ Cake Bar', image: '/images/solly-assets/05-experience/gateau-marshmallow.png', isNew: false },
-                      { id: 'mini-pancakes' as MainBarType, title: '+ Mini Pancakes', image: '/images/mini-pancakes/pancakes-preview.webp', isNew: true },
-                      { id: 'croffles' as MainBarType, title: '+ Croffles', image: '/images/croffles/croffle-preview.webp', isNew: true },
-                      { id: 'charcuterie' as MainBarType, title: '+ Bar salé / Charcuterie', image: '/images/solly-assets/05-experience/pot-charcuterie-partage.png', isNew: false },
-                    ]
-                      .filter((bar) => bar.id !== formData.mainBar)
-                      .map((bar) => {
-                        const isChecked = (formData.extraBars || []).includes(bar.id);
-                        const isCroffles = bar.id === 'croffles';
-                        const extraPriceText = isCroffles ? '+1 500 FCFA / invité' : '+1 000 FCFA / invité';
-                        return (
-                          <div
-                            key={bar.id}
-                            onClick={() => handleExtraBarToggle(bar.id)}
-                            className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                              isChecked
-                                ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                                : 'border-solly-border bg-white hover:border-solly-pink/40'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
-                                <Image
-                                  src={bar.image}
-                                  alt={bar.title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                                    {bar.title}
-                                  </span>
-                                  {bar.isNew && (
-                                    <span className="bg-solly-pink text-white text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full">
-                                      Nouveau
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[11px] font-bold text-solly-pink block">
-                                  {extraPriceText}
-                                </span>
-                              </div>
-                            </div>
-                            <div
-                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                                isChecked
-                                  ? 'bg-solly-pink text-white'
-                                  : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                              }`}
-                            >
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                    {/* Option Boissons Solly */}
-                    <div
-                      onClick={handleDrinksToggle}
-                      className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                        formData.hasDrinks
-                          ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                          : 'border-solly-border bg-white hover:border-solly-pink/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-solly-cream overflow-hidden relative shrink-0">
-                          <Image
-                            src="/images/solly-assets/05-experience/jus-glaces-ananas-bissap.png"
-                            alt="Boissons Solly"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                            + Boissons Solly
-                          </span>
-                          <span className="text-[11px] font-bold text-solly-pink block">
-                            +1 000 FCFA / invité
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                          formData.hasDrinks
-                            ? 'bg-solly-pink text-white'
-                            : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                        }`}
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ======================================================= */}
-              {/* INLINE CUSTOMIZERS FOR SELECTED BARS (Visible ONLY if bar is chosen) */}
-              {/* ======================================================= */}
-
-              {/* 1. CAKE BAR CUSTOMIZER */}
-              {Boolean(formData.mainBar && formData.selectedBars.includes('cake-bar')) && (
-                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🍰</span>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Personnalisation du Cake Bar
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      Étape par étape
-                    </span>
-                  </div>
-
-                  {/* Choix de la barquette */}
-                  <div>
-                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                      1. Votre barquette
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {CAKE_OPTIONS.barquettes.map((b) => {
-                        const isChosen = orderChoices.cakeBar?.barquette === b.id;
-                        return (
-                          <button
-                            key={b.id}
-                            type="button"
-                            onClick={() => handleCakeBarquette(b.id)}
-                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                              isChosen
-                                ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
-                                : 'bg-white/70 border-solly-border hover:bg-white'
-                            }`}
-                          >
-                            <span className="text-[10px] font-extrabold text-solly-pink uppercase tracking-wider block">
-                              {b.badge}
-                            </span>
-                            <span className="text-xs font-bold text-solly-charcoal block mt-0.5">
-                              {b.name}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Choix de la base */}
-                  <div>
-                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                      2. Votre base de gâteau
-                    </label>
-                    <div className="flex items-center gap-2">
-                      {CAKE_OPTIONS.bases.map((base) => {
-                        const isChosen = orderChoices.cakeBar?.base === base;
-                        return (
-                          <button
-                            key={base}
-                            type="button"
-                            onClick={() => handleCakeBase(base)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl border text-center font-bold text-xs transition-all cursor-pointer ${
-                              isChosen
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
-                            }`}
-                          >
-                            {base}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Choix des sauces (Max 2) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        3. Vos sauces préférées
-                      </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {CAKE_OPTIONS.sauces.map((sauce) => {
-                        const isSelected = orderChoices.cakeBar?.sauces?.includes(sauce);
-                        return (
-                          <button
-                            key={sauce}
-                            type="button"
-                            onClick={() => handleCakeSauceToggle(sauce)}
-                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
-                              isSelected
-                                ? 'bg-solly-pink-soft text-solly-pink border-solly-pink'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
-                            }`}
-                          >
-                            <span className="truncate">{sauce}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-solly-pink shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Choix des toppings (Exactement 6 obligatoires) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        4. Vos toppings & friandises <span className="text-solly-pink">*</span>
-                      </label>
-                      <span
-                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-                          (orderChoices.cakeBar?.composants?.length || 0) === 6
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-solly-pink-soft text-solly-pink'
-                        }`}
-                      >
-                        {orderChoices.cakeBar?.composants?.length || 0}/6 obligatoires
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-solly-muted mb-2 font-medium">
-                      {(orderChoices.cakeBar?.composants?.length || 0) === 6
-                        ? '✓ 6 toppings sélectionnés !'
-                        : `Veuillez sélectionner 6 toppings pour valider (encore ${6 - (orderChoices.cakeBar?.composants?.length || 0)} à choisir).`}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {CAKE_OPTIONS.toppings.map((top) => {
-                        const isSelected = orderChoices.cakeBar?.composants?.includes(top);
-                        const isMaxReached = (orderChoices.cakeBar?.composants?.length || 0) >= 6 && !isSelected;
-                        return (
-                          <button
-                            key={top}
-                            type="button"
-                            disabled={isMaxReached}
-                            onClick={() => handleCakeToppingToggle(top)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all inline-flex items-center gap-1 ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs cursor-pointer'
-                                : isMaxReached
-                                ? 'bg-white/40 text-solly-charcoal/40 border-solly-border/40 opacity-40 cursor-not-allowed'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30 cursor-pointer'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>{top}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {errors.cakeBarToppings && (
-                      <p className="text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-2 rounded-xl border border-red-200">
-                        {errors.cakeBarToppings}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 1.bis MINI PANCAKES CUSTOMIZER */}
-              {Boolean(formData.mainBar && formData.selectedBars.includes('mini-pancakes')) && (
-                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🥞</span>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Personnalisation des Mini Pancakes
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      Préparés minute
-                    </span>
-                  </div>
-
-                  {/* Choix des sauces (Max 2) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        1. Vos sauces préférées
-                      </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {PANCAKE_OPTIONS.sauces.map((sauce) => {
-                        const isSelected = orderChoices.miniPancakes?.sauces?.includes(sauce);
-                        return (
-                          <button
-                            key={sauce}
-                            type="button"
-                            onClick={() => handlePancakeSauceToggle(sauce)}
-                            className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
-                            }`}
-                          >
-                            <span>{sauce}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Choix des toppings & fruits frais (Max 3) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        2. Fruits frais & toppings gourmands
-                      </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Max 3 toppings</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {PANCAKE_OPTIONS.toppings.map((top) => {
-                        const isSelected = orderChoices.miniPancakes?.toppings?.includes(top);
-                        return (
-                          <button
-                            key={top}
-                            type="button"
-                            onClick={() => handlePancakeToppingToggle(top)}
-                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>{top}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 1.ter CROFFLES CUSTOMIZER */}
-              {Boolean(formData.mainBar && formData.selectedBars.includes('croffles')) && (
-                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🥐</span>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Personnalisation des Croffles
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      Croustillant & doré
-                    </span>
-                  </div>
-
-                  {/* Choix des sauces (Max 2) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        1. Vos sauces d’accompagnement
-                      </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Max 2 sauces</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {CROFFLE_OPTIONS.sauces.map((sauce) => {
-                        const isSelected = orderChoices.croffles?.sauces?.includes(sauce);
-                        return (
-                          <button
-                            key={sauce}
-                            type="button"
-                            onClick={() => handleCroffleSauceToggle(sauce)}
-                            className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal border-solly-border hover:bg-solly-cream'
-                            }`}
-                          >
-                            <span>{sauce}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Choix des toppings & fruits (Max 3) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        2. Garnitures & toppings
-                      </label>
-                      <span className="text-[11px] text-solly-muted font-medium">Max 3 toppings</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {CROFFLE_OPTIONS.toppings.map((top) => {
-                        const isSelected = orderChoices.croffles?.toppings?.includes(top);
-                        return (
-                          <button
-                            key={top}
-                            type="button"
-                            onClick={() => handleCroffleToppingToggle(top)}
-                            className={`p-2 rounded-xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                            <span>{top}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 2. DRINKS CUSTOMIZER */}
-              {Boolean(formData.mainBar && formData.selectedBars.includes('drinks')) && (
-                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🍹</span>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Saveurs du Bar à Boissons
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      {orderChoices.drinks?.length || 0}/3 jus max
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-solly-muted font-medium">
-                    Cochez jusqu’à 3 saveurs que vous aimeriez proposer à vos invités :
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {DRINK_OPTIONS.map((d) => {
-                      const isSelected = orderChoices.drinks?.includes(d.id);
-                      const isMaxReached = (orderChoices.drinks?.length || 0) >= 3 && !isSelected;
-                      return (
-                        <button
-                          key={d.id}
-                          type="button"
-                          disabled={isMaxReached}
-                          onClick={() => handleDrinkToggle(d.id)}
-                          className={`p-3 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
-                            isSelected
-                              ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink cursor-pointer'
-                              : isMaxReached
-                              ? 'bg-white/40 border-solly-border/40 opacity-40 cursor-not-allowed'
-                              : 'bg-white/70 border-solly-border hover:bg-white cursor-pointer'
-                          }`}
-                        >
-                          <div>
-                            <span className="text-xs font-bold text-solly-charcoal block">
-                              {d.name}
-                            </span>
-                            <span className="text-[11px] text-solly-muted font-medium block mt-0.5">
-                              {d.desc}
-                            </span>
-                          </div>
-                          <div
-                            className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                              isSelected
-                                ? 'bg-solly-pink text-white'
-                                : 'border border-solly-border bg-white text-transparent'
-                            }`}
-                          >
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. CHARCUTERIE CUSTOMIZER */}
-              {Boolean(formData.mainBar && formData.selectedBars.includes('charcuterie')) && (
-                <div className="bg-[#FAF7F2] border-2 border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-solly-border/70 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🧀</span>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Garnitures du Bar à Charcuterie
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-0.5 rounded-full">
-                      Plaisirs salés
-                    </span>
-                  </div>
-
-                  {/* Format */}
-                  <div>
-                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                      1. Format de service
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {CHARCUTERIE_OPTIONS.formats.map((f) => {
-                        const isChosen = orderChoices.charcuterie?.format === f.id;
-                        return (
-                          <button
-                            key={f.id}
-                            type="button"
-                            onClick={() => handleCharcuterieFormat(f.id)}
-                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                              isChosen
-                                ? 'bg-white border-solly-pink shadow-2xs ring-1 ring-solly-pink'
-                                : 'bg-white/70 border-solly-border hover:bg-white'
-                            }`}
-                          >
-                            <span className="text-xs font-bold text-solly-charcoal block">
-                              {f.name}
-                            </span>
-                            <span className="text-[10px] text-solly-muted block mt-0.5">
-                              {f.desc}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Composants salés (Exactement 6 obligatoires) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-solly-charcoal">
-                        2. Vos bouchées salées souhaitées <span className="text-solly-pink">*</span>
-                      </label>
-                      <span
-                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-                          (orderChoices.charcuterie?.composants?.length || 0) === 6
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-solly-pink-soft text-solly-pink'
-                        }`}
-                      >
-                        {orderChoices.charcuterie?.composants?.length || 0}/6 obligatoires
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-solly-muted mb-2 font-medium">
-                      {(orderChoices.charcuterie?.composants?.length || 0) === 6
-                        ? '✓ 6 composants sélectionnés !'
-                        : `Veuillez sélectionner 6 composants pour valider (encore ${6 - (orderChoices.charcuterie?.composants?.length || 0)} à choisir).`}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {CHARCUTERIE_OPTIONS.composants.map((comp) => {
-                        const isSelected = orderChoices.charcuterie?.composants?.includes(comp);
-                        const isMaxReached = (orderChoices.charcuterie?.composants?.length || 0) >= 6 && !isSelected;
-                        return (
-                          <button
-                            key={comp}
-                            type="button"
-                            disabled={isMaxReached}
-                            onClick={() => handleCharcuterieComposantToggle(comp)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all inline-flex items-center gap-1 ${
-                              isSelected
-                                ? 'bg-solly-pink text-white border-solly-pink shadow-2xs cursor-pointer'
-                                : isMaxReached
-                                ? 'bg-white/40 text-solly-charcoal/40 border-solly-border/40 opacity-40 cursor-not-allowed'
-                                : 'bg-white text-solly-charcoal/80 border-solly-border hover:border-solly-pink/30 cursor-pointer'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>{comp}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {errors.charcuterieComposants && (
-                      <p className="text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-2 rounded-xl border border-red-200">
-                        {errors.charcuterieComposants}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Large touch card: Je souhaite être conseillé(e) */}
-              <div
-                onClick={() => setFormData((prev) => ({ ...prev, isAdvised: !prev.isAdvised }))}
-                className="p-3.5 rounded-2xl border border-solly-border hover:border-solly-pink/40 bg-white flex items-center gap-3 cursor-pointer transition-colors"
-              >
-                <div
-                  className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${
-                    formData.isAdvised
-                      ? 'bg-solly-pink text-white'
-                      : 'border border-solly-border text-transparent bg-[#FAF7F2]'
-                  }`}
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-solly-charcoal">
-                  Je souhaite être conseillé(e) sur le choix et les quantités
-                </span>
-              </div>
-
-              {/* Compact, clean, non-cumbersome summary strip for choices */}
-              {Boolean(formData.mainBar && (orderChoices.cakeBar || orderChoices.miniPancakes || orderChoices.croffles || (orderChoices.drinks && orderChoices.drinks.length > 0) || orderChoices.charcuterie)) && (
-                <div className="bg-white border border-solly-border/90 rounded-xl p-3 shadow-2xs">
-                  <div
-                    onClick={() => setSummaryExpanded(!summaryExpanded)}
-                    className="flex items-center justify-between cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold text-solly-pink">✦ Vos choix en direct :</span>
-                      <span className="text-[11px] font-semibold text-solly-charcoal/80 truncate max-w-[200px] sm:max-w-xs">
-                        {formData.selectedBars.map((b) => (b === 'drinks' ? 'Boissons' : getBarTitle(b as MainBarType))).join(', ')}
-                      </span>
-                    </div>
-                    <button type="button" className="text-solly-charcoal/60 hover:text-solly-pink">
-                      {summaryExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  {summaryExpanded && (
-                    <div className="mt-2 pt-2 border-t border-solly-border/60 text-xs text-solly-charcoal/80 space-y-1">
-                      {orderChoices.cakeBar && formData.selectedBars.includes('cake-bar') && (
-                        <p>
-                          <span className="font-bold text-solly-charcoal">Cake Bar :</span> {orderChoices.cakeBar.barquette || 'Standard'} • {orderChoices.cakeBar.base || 'Vanille'} • {orderChoices.cakeBar.sauces.join(', ') || 'Chocolat'} • {orderChoices.cakeBar.composants.join(', ') || 'Toppings'}
-                        </p>
-                      )}
-                      {orderChoices.miniPancakes && formData.selectedBars.includes('mini-pancakes') && (
-                        <p>
-                          <span className="font-bold text-solly-charcoal">Mini Pancakes :</span> {orderChoices.miniPancakes.sauces.join(', ') || 'Chocolat'} • {orderChoices.miniPancakes.toppings.join(', ') || 'Toppings'}
-                        </p>
-                      )}
-                      {orderChoices.croffles && formData.selectedBars.includes('croffles') && (
-                        <p>
-                          <span className="font-bold text-solly-charcoal">Croffles :</span> {orderChoices.croffles.sauces.join(', ') || 'Chocolat'} • {orderChoices.croffles.toppings.join(', ') || 'Toppings'}
-                        </p>
-                      )}
-                      {orderChoices.drinks && orderChoices.drinks.length > 0 && formData.selectedBars.includes('drinks') && (
-                        <p>
-                          <span className="font-bold text-solly-charcoal">Boissons :</span> {orderChoices.drinks.join(', ')}
-                        </p>
-                      )}
-                      {orderChoices.charcuterie && formData.selectedBars.includes('charcuterie') && (
-                        <p>
-                          <span className="font-bold text-solly-charcoal">Charcuterie :</span> {orderChoices.charcuterie.format} • {orderChoices.charcuterie.composants.join(', ')}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Section Personnalisation : 2 Options claires */}
-              <div className="space-y-2.5">
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal">
-                    Options de personnalisation (facultatif)
-                  </label>
-                  <p className="text-[11px] text-solly-muted font-medium mt-0.5">
-                    Sublimez votre chariot ou vos contenants aux couleurs de votre célébration.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Option 1: Chariot */}
-                  <div
-                    onClick={handleCartCustomizationToggle}
-                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 ${
-                      formData.hasCartCustomization
-                        ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                        : 'border-solly-border bg-white hover:border-solly-pink/40'
-                    }`}
-                  >
-                    <div>
-                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                        Personnalisation du chariot
-                      </span>
-                      <span className="text-[11px] text-solly-muted block mt-0.5 leading-snug">
-                        Panneau prénom / logo sur la façade avant amovible
-                      </span>
-                      <span className="text-xs font-extrabold text-solly-pink block mt-1.5">
-                        +{formatPriceFCFA(PRICING_CONFIG.CART_CUSTOMIZATION)}
-                      </span>
-                    </div>
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 mt-0.5 ${
-                        formData.hasCartCustomization
-                          ? 'bg-solly-pink text-white'
-                          : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  </div>
-
-                  {/* Option 2: Contenants */}
-                  <div
-                    onClick={handleCustomPackagingToggle}
-                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 ${
-                      formData.hasCustomPackaging
-                        ? 'border-solly-pink bg-solly-pink-soft/30 shadow-2xs'
-                        : 'border-solly-border bg-white hover:border-solly-pink/40'
-                    }`}
-                  >
-                    <div>
-                      <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal block">
-                        Couverts & contenants personnalisés
-                      </span>
-                      <span className="text-[11px] text-solly-muted block mt-0.5 leading-snug">
-                        Stickers personnalisés sur les barquettes, pots ou serviettes
-                      </span>
-                      <span className="text-xs font-extrabold text-solly-pink block mt-1.5">
-                        +{formatPriceFCFA(PRICING_CONFIG.CUSTOM_PACKAGING)}
-                      </span>
-                    </div>
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shrink-0 mt-0.5 ${
-                        formData.hasCustomPackaging
-                          ? 'bg-solly-pink text-white'
-                          : 'border border-solly-border bg-[#FAF7F2] text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section Thème ou couleurs & Photos d'inspiration */}
-              <div className="space-y-2.5">
-                <label className="block text-xs font-bold text-solly-charcoal">
-                  Thème, couleurs ou inspirations visuelles
-                </label>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <input
-                    type="text"
-                    value={formData.themeColor}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, themeColor: e.target.value }))}
-                    placeholder="Ex: Pastel rose & or, Safari dinosaure, Bleu ciel..."
-                    className="flex-1 bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                  />
-                  
-                  {/* Invisible file input */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-
-                  {/* Trigger button */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={(formData.inspirationPhotos?.length || 0) >= 2}
-                    className={`px-4 py-3 rounded-2xl border text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-2xs ${
-                      (formData.inspirationPhotos?.length || 0) >= 2
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 opacity-90 cursor-default'
-                        : 'border-solly-pink text-solly-pink hover:bg-solly-pink-soft'
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>
-                      {(formData.inspirationPhotos?.length || 0) === 0
-                        ? 'Ajouter une inspiration'
-                        : (formData.inspirationPhotos?.length || 0) === 1
-                        ? '+ Ajouter 2e photo'
-                        : '2/2 photos jointes ✓'}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Counter & limits note */}
-                <div className="flex items-center justify-between text-[11px] text-solly-muted font-medium px-1">
-                  <span>Max. 2 photos (2 Mo max au total)</span>
-                  {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                    <span className="font-bold text-solly-pink">
-                      {formData.inspirationPhotos.length}/2 photo(s) •{' '}
-                      {(formData.inspirationPhotos.reduce((acc, p) => acc + p.size, 0) / 1024).toFixed(0)} Ko
-                    </span>
-                  )}
-                </div>
-
-                {/* Error message */}
-                {inspirationError && (
-                  <p className="text-[11px] text-red-500 font-bold bg-red-50 p-2.5 rounded-xl border border-red-200">
-                    {inspirationError}
-                  </p>
-                )}
-
-                {/* Attached photos thumbnails */}
-                {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {formData.inspirationPhotos.map((photo, idx) => (
-                      <div
-                        key={idx}
-                        className="relative bg-white border border-solly-border rounded-xl p-2 flex items-center justify-between gap-2.5 shadow-2xs"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <img
-                            src={photo.dataUrl}
-                            alt={photo.name}
-                            className="w-11 h-11 rounded-lg object-cover border border-solly-border shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-solly-charcoal truncate">
-                              {photo.name}
-                            </p>
-                            <p className="text-[10px] text-solly-muted">
-                              {(photo.size / 1024).toFixed(0)} Ko
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePhoto(idx)}
-                          className="w-7 h-7 rounded-full bg-solly-cream hover:bg-red-50 hover:text-red-500 border border-solly-border flex items-center justify-center text-solly-charcoal transition-colors cursor-pointer shrink-0"
-                          aria-label="Supprimer la photo"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.form>
-          )}
-
-          {/* ========================================================= */}
-          {/* STEP 03: VOS COORDONNÉES (NO EMAIL, COUNTRY SELECTOR) */}
-          {/* ========================================================= */}
-          {currentStep === 3 && (
-            <motion.form
-              key="step-3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.22 }}
-              onSubmit={handleSubmitStep3}
-              className="max-w-xl mx-auto space-y-4 sm:space-y-5 pb-2"
-            >
-              {/* Heading */}
-              <div className="text-center mb-4 sm:mb-6">
-                <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
-                  Comment vous contacter ?
-                </h2>
-                <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
-                  Pour vous transmettre votre devis et échanger directement sur WhatsApp.
-                </p>
-              </div>
-
-              {/* Nom & Téléphone avec sélecteur d'indicatif pays */}
-              <div className="space-y-4">
-                {/* Nom et prénom */}
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Nom et prénom <span className="text-solly-pink">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      autoComplete="name"
-                      value={formData.firstName}
-                      onChange={(e) => {
-                        setFormData((prev) => ({ ...prev, firstName: e.target.value }));
-                        setErrors((prev) => ({ ...prev, firstName: '' }));
-                      }}
-                      placeholder="Votre nom complet"
-                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                    />
-                    <User className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  </div>
-                  {errors.firstName && (
-                    <p className="text-[11px] text-red-500 font-bold mt-1">{errors.firstName}</p>
-                  )}
-                </div>
-
-                {/* Téléphone (WhatsApp) avec indicateur de pays */}
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Numéro de téléphone (WhatsApp) <span className="text-solly-pink">*</span>
-                  </label>
-                  <div className="flex gap-2">
-                    {/* Country code selector: Only flag and dial code */}
-                    <div className="relative shrink-0 w-[92px] sm:w-[98px]">
-                      <select
-                        value={formData.countryCode || '+221'}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, countryCode: e.target.value }))}
-                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-2.5 pr-6 py-3 text-sm sm:text-xs text-solly-charcoal font-bold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors cursor-pointer"
-                      >
-                        {COUNTRY_CODES.map((item) => (
-                          <option key={item.country} value={item.code}>
-                            {item.flag} {item.code}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3.5 h-3.5 text-solly-charcoal/60 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-
-                    {/* Phone input */}
-                    <div className="relative flex-1">
-                      <input
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        value={formData.phone}
-                        onChange={(e) => {
-                          setFormData((prev) => ({ ...prev, phone: e.target.value }));
-                          setErrors((prev) => ({ ...prev, phone: '' }));
-                        }}
-                        placeholder="77 000 00 00"
-                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                      />
-                      <Phone className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    </div>
-                  </div>
-                  {errors.phone && (
-                    <p className="text-[11px] text-red-500 font-bold mt-1">{errors.phone}</p>
-                  )}
-                </div>
-
-                {/* Email (optionnel) */}
-                <div>
-                  <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                    Adresse email <span className="text-solly-muted font-normal">(optionnel, pour recevoir votre confirmation)</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      autoComplete="email"
-                      value={formData.email || ''}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                      placeholder="exemple@email.com"
-                      className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
-                    />
-                    <Mail className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Un détail à nous préciser ? (optionnel) */}
-              <div>
-                <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
-                  Un détail à nous préciser ? <span className="text-solly-muted font-normal">(optionnel)</span>
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.message}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
-                  placeholder="Allergies, horaire d’installation, accès salle..."
-                  className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl p-3.5 text-base sm:text-sm text-solly-charcoal font-medium focus:outline-none focus:border-solly-pink/60 transition-colors resize-none"
-                />
-              </div>
-
-              {/* Summary Card: Estimation & Récapitulatif détaillé */}
-              <div className="bg-[#FCECEF] border border-solly-pink/25 rounded-2xl p-4 sm:p-5 text-solly-charcoal shadow-2xs space-y-3.5">
-                <div className="flex items-start justify-between gap-3 border-b border-solly-pink/20 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-white border border-solly-pink/30 flex items-center justify-center text-solly-pink shrink-0 shadow-2xs">
-                      <FileText className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
-                        Votre devis estimatif
-                      </h4>
-                      <p className="text-[11px] text-solly-muted font-medium mt-0.5">
-                        {formData.eventType || 'Événement'} • {formattedDate} {formData.eventTime ? `• ${formData.eventTime}` : ''} • {formData.address || 'Dakar'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(2)}
-                    className="text-xs font-bold text-solly-pink hover:underline inline-flex items-center gap-1 shrink-0 cursor-pointer"
-                  >
-                    <Pencil className="w-3 h-3" />
-                    <span>Modifier</span>
-                  </button>
-                </div>
-
-                {/* Itemized calculation breakdown */}
-                <div className="space-y-2 text-xs">
-                  {/* Base formula */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="font-bold text-solly-charcoal block">
-                        Formule de base ({pricing.effectiveGuests} invités × 4 000 FCFA)
-                      </span>
-                      <span className="text-[11px] text-solly-muted block">
-                        Bar principal inclus : {formData.mainBar ? getBarTitle(formData.mainBar) : 'Cake Bar'}
-                      </span>
-                    </div>
-                    <span className="font-bold text-solly-charcoal shrink-0">
-                      {formatPriceFCFA(pricing.basePrice)}
-                    </span>
-                  </div>
-
-                  {/* Extra bars if selected */}
-                  {formData.extraBars && formData.extraBars.length > 0 ? (
-                    formData.extraBars.map((extraBar) => {
-                      const rate = extraBar === 'croffles' ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
-                      return (
-                        <div key={extraBar} className="flex items-start justify-between gap-2">
-                          <div>
-                            <span className="font-bold text-solly-charcoal block">
-                              Bar supplémentaire : {getBarTitle(extraBar)}
-                            </span>
-                            <span className="text-[11px] text-solly-muted block">
-                              {pricing.effectiveGuests} invités × {rate === 1500 ? '1 500' : '1 000'} FCFA
-                            </span>
-                          </div>
-                          <span className="font-bold text-solly-pink shrink-0">
-                            +{formatPriceFCFA(pricing.effectiveGuests * rate)}
-                          </span>
-                        </div>
-                      );
-                    })
-                  ) : formData.hasExtraBar && formData.extraBarType ? (
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">
-                          Bar supplémentaire : {getBarTitle(formData.extraBarType)}
-                        </span>
-                        <span className="text-[11px] text-solly-muted block">
-                          {pricing.effectiveGuests} invités × {formData.extraBarType === 'croffles' ? '1 500' : '1 000'} FCFA
-                        </span>
-                      </div>
-                      <span className="font-bold text-solly-pink shrink-0">
-                        +{formatPriceFCFA(pricing.extraBarPrice)}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {/* Drinks if selected */}
-                  {formData.hasDrinks && (
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">
-                          Option Boissons Solly (3 jus frais)
-                        </span>
-                        <span className="text-[11px] text-solly-muted block">
-                          {pricing.effectiveGuests} invités × 1 000 FCFA
-                        </span>
-                      </div>
-                      <span className="font-bold text-solly-pink shrink-0">
-                        +{formatPriceFCFA(pricing.drinksPrice)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Cart customization if selected */}
-                  {formData.hasCartCustomization && (
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">
-                          Personnalisation du chariot
-                        </span>
-                        <span className="text-[11px] text-solly-muted block">
-                          Façade amovible personnalisée (forfait)
-                        </span>
-                      </div>
-                      <span className="font-bold text-solly-pink shrink-0">
-                        +{formatPriceFCFA(pricing.cartCustomizationPrice)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Packaging customization if selected */}
-                  {formData.hasCustomPackaging && (
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">
-                          Couverts & contenants personnalisés
-                        </span>
-                        <span className="text-[11px] text-solly-muted block">
-                          Stickers contenants de l’événement (forfait)
-                        </span>
-                      </div>
-                      <span className="font-bold text-solly-pink shrink-0">
-                        +{formatPriceFCFA(pricing.customPackagingPrice)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Inspirations */}
-                  {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                    <p className="text-[11px] text-solly-pink font-semibold pt-1">
-                      📸 {formData.inspirationPhotos.length} photo(s) d’inspiration jointe(s)
-                    </p>
-                  )}
-                </div>
-
-                {/* Total box */}
-                <div className="pt-2.5 border-t border-solly-pink/20 flex items-baseline justify-between">
-                  <div>
-                    <span className="text-xs sm:text-sm font-extrabold text-solly-charcoal block">
-                      Total estimé :
-                    </span>
-                    <span className="text-[11px] text-solly-muted block">
-                      Transport à confirmer selon l’adresse
-                    </span>
-                  </div>
-                  <span className="text-base sm:text-lg font-display font-black text-solly-pink">
-                    {formatPriceFCFA(pricing.total)}
-                  </span>
-                </div>
-
-                {/* Deposit & Balance Schedule */}
-                <div className="bg-white/80 rounded-xl p-2.5 border border-solly-pink/20 text-[11px] text-solly-charcoal space-y-1">
-                  <div className="flex justify-between font-bold">
-                    <span>Acompte 70% à la réservation :</span>
-                    <span className="text-solly-pink">{formatPriceFCFA(pricing.deposit70)}</span>
-                  </div>
-                  <div className="flex justify-between text-solly-muted font-medium">
-                    <span>Solde 30% à J-2 :</span>
-                    <span>{formatPriceFCFA(pricing.balance30)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notice */}
-              <div className="flex items-center gap-2 text-[11px] sm:text-xs text-solly-muted font-medium">
-                <Info className="w-4 h-4 text-solly-charcoal/60 shrink-0" />
-                <span>Réponse et devis gratuit sous 24h ouvrées. Sans engagement.</span>
-              </div>
-
-              {/* CGV & Remboursement notice */}
-              <p className="text-[10px] sm:text-[11px] text-solly-muted text-center pt-1 leading-normal">
-                En envoyant votre demande, vous acceptez nos{' '}
-                <Link href="/cgv" target="_blank" className="text-solly-pink underline font-semibold hover:text-solly-charcoal">
-                  CGV
-                </Link>
-                {' '}et notre{' '}
-                <Link href="/politique-de-remboursement" target="_blank" className="text-solly-pink underline font-semibold hover:text-solly-charcoal">
-                  politique d’annulation
-                </Link>.
-              </p>
-            </motion.form>
-          )}
-
-          {/* ========================================================= */}
-          {/* STEP 04: DEMANDE REÇUE (CONFIRMATION) */}
-          {/* ========================================================= */}
-          {currentStep === 4 && (
+          {isSubmitted ? (
             <motion.div
-              key="step-4"
-              initial={{ opacity: 0, scale: 0.95 }}
+              key="submitted-step"
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.28 }}
-              className="max-w-md mx-auto text-center py-2 sm:py-3 space-y-4"
+              className="max-w-md mx-auto text-center py-2 sm:py-4 space-y-4"
             >
-              {/* Graphic Illustration */}
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+              {/* Sparkle graphic */}
+              <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
                 <Sparkle size={18} color="#DE1B52" className="absolute -top-1 -right-1 animate-bounce" />
                 <Sparkle size={14} color="#DE1B52" className="absolute -bottom-1 -left-2 animate-pulse" />
-                <Sparkle size={12} color="#DE1B52" className="absolute top-1/2 -left-3" />
-                <Sparkle size={16} color="#DE1B52" className="absolute top-2 -left-2" />
-
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#FFF8E3] border-2 border-[#FDE68A] flex items-center justify-center shadow-solly-soft">
-                  <svg
-                    width="38"
-                    height="38"
-                    viewBox="0 0 46 46"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect x="7" y="12" width="32" height="24" rx="4" fill="white" stroke="#DE1B52" strokeWidth="2.5" />
-                    <path d="M7 15L23 27L39 15" stroke="#DE1B52" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <path
-                      d="M23 25C21.8 23.5 19.5 23.5 18.5 24.8C17.5 26.2 18 28.5 23 31.5C28 28.5 28.5 26.2 27.5 24.8C26.5 23.5 24.2 23.5 23 25Z"
-                      fill="#DE1B52"
-                    />
-                  </svg>
+                <div className="w-18 h-18 rounded-full bg-[#FFF8E3] border-2 border-[#FDE68A] flex items-center justify-center shadow-solly-soft">
+                  <CheckCircle2 className="w-10 h-10 text-solly-pink" />
                 </div>
               </div>
 
-              {/* Headline & Subtitles */}
-              <div className="space-y-1.5 px-1">
+              {/* Headline */}
+              <div className="space-y-1.5">
                 <h2 className="text-2xl sm:text-3xl font-display font-black text-solly-pink tracking-tight leading-tight">
-                  Votre demande Solly est bien partie ♡
+                  Votre demande est bien envoyée ✨
                 </h2>
-                <p className="text-xs sm:text-sm text-solly-charcoal/85 font-medium leading-relaxed">
-                  Nous vérifions maintenant la disponibilité de votre date et les détails de votre événement.
+                <p className="text-xs sm:text-sm text-solly-charcoal/90 font-semibold leading-relaxed">
+                  Notre équipe vous contacte sur WhatsApp pour imaginer la suite avec vous.
                 </p>
-                <p className="text-[11px] sm:text-xs text-solly-muted font-medium">
-                  Vous recevrez une confirmation avant le paiement de votre acompte.
-                </p>
-              </div>
-
-              {/* Badges : Numéro de demande & Statut */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
-                <div className="inline-flex items-center gap-1.5 bg-[#FAF7F2] border border-solly-border px-3 py-1 rounded-full text-xs font-bold text-solly-charcoal">
-                  <span>Demande</span>
-                  <span className="text-solly-pink font-extrabold font-mono">
-                    #{bookingRef || generatedQuote?.bookingRef || 'SOL-EN-COURS'}
+                <div className="pt-1">
+                  <span className="inline-flex items-center gap-1.5 bg-[#FAF7F2] border border-solly-border px-3 py-1 rounded-full text-xs font-bold text-solly-charcoal font-mono">
+                    Référence : #{bookingRef || 'SOL-DEMANDE'}
                   </span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 bg-[#FFF8E3] border border-[#FDE68A] px-3 py-1 rounded-full text-xs font-bold text-[#92400E]">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                  <span>Demande reçue</span>
                 </div>
               </div>
 
-              {/* Structured Recap Card */}
-              <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-4 sm:p-5 text-left text-xs text-solly-charcoal space-y-3.5 shadow-2xs">
-                {/* VOTRE ÉVÉNEMENT */}
-                <div className="space-y-1 border-b border-solly-border/70 pb-3">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
-                    Votre événement
+              {/* Simple Recap Card */}
+              <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-4 text-left text-xs text-solly-charcoal space-y-2.5 shadow-2xs">
+                <div className="flex justify-between items-center border-b border-solly-border/70 pb-2">
+                  <span className="font-bold text-solly-muted uppercase text-[10px] tracking-wider">
+                    Événement
                   </span>
-                  <p className="text-xs font-bold text-solly-charcoal capitalize">
-                    {formattedDate}
-                  </p>
-                  <p className="text-[11px] text-solly-charcoal/80 font-medium">
-                    {formData.eventTime || 'Horaire à convenir'} • {formData.address || 'Dakar'}
-                  </p>
-                  <p className="text-[11px] font-bold text-solly-pink">
-                    {pricing.effectiveGuests} invités
-                  </p>
+                  <span className="font-bold text-solly-charcoal">
+                    {formData.eventType || 'Événement'}
+                  </span>
                 </div>
 
-                {/* BAR PRINCIPAL */}
-                <div className="space-y-1 border-b border-solly-border/70 pb-3">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
-                    Bar principal
+                <div className="flex justify-between items-center border-b border-solly-border/70 pb-2">
+                  <span className="font-bold text-solly-muted uppercase text-[10px] tracking-wider">
+                    Date & Lieu
                   </span>
-                  <p className="text-xs font-bold text-solly-charcoal">
-                    {formData.mainBar ? getBarTitle(formData.mainBar) : 'Cake Bar'}
-                  </p>
+                  <span className="font-semibold text-right">
+                    {formattedDate} • {formData.address || 'Dakar'}
+                  </span>
                 </div>
 
-                {/* OPTIONS */}
-                <div className="space-y-1 border-b border-solly-border/70 pb-3">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink block">
-                    Options
+                <div className="flex justify-between items-center border-b border-solly-border/70 pb-2">
+                  <span className="font-bold text-solly-muted uppercase text-[10px] tracking-wider">
+                    Invités
                   </span>
-                  {(() => {
-                    const opts: string[] = [];
-                    if (formData.extraBars && formData.extraBars.length > 0) {
-                      formData.extraBars.forEach((b) => {
-                        const rateText = b === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA';
-                        opts.push(`Bar supplémentaire : ${getBarTitle(b)} (${rateText} / invité)`);
-                      });
-                    } else if (formData.hasExtraBar && formData.extraBarType) {
-                      const rateText = formData.extraBarType === 'croffles' ? '+1 500 FCFA' : '+1 000 FCFA';
-                      opts.push(
-                        `Bar supplémentaire : ${getBarTitle(formData.extraBarType)} (${rateText} / invité)`
-                      );
-                    }
-                    if (formData.hasDrinks) {
-                      opts.push('Boissons Solly (+1 000 FCFA / invité)');
-                    }
-                    if (formData.hasCartCustomization) {
-                      opts.push('Personnalisation du chariot (+15 000 FCFA)');
-                    }
-                    if (formData.hasCustomPackaging) {
-                      opts.push('Couverts & contenants personnalisés (+10 000 FCFA)');
-                    }
-                    if (opts.length === 0) {
-                      return (
-                        <p className="text-[11px] text-solly-muted italic">
-                          Aucune option supplémentaire
-                        </p>
-                      );
-                    }
-                    return (
-                      <ul className="space-y-1 text-[11px] font-medium text-solly-charcoal/85">
-                        {opts.map((opt, i) => (
-                          <li key={i} className="flex items-center gap-1.5">
-                            <span className="text-solly-pink font-bold">•</span>
-                            <span>{opt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  })()}
+                  <span className="font-bold text-solly-pink">
+                    {formData.guestCount || 20} personnes
+                  </span>
                 </div>
 
-                {/* TOTAL ESTIMÉ */}
-                <div className="space-y-1 border-b border-solly-border/70 pb-3">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-pink">
-                      Total estimé
-                    </span>
-                    <span className="text-base sm:text-lg font-display font-black text-solly-pink">
-                      {formatPriceFCFA(pricing.total)}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-solly-muted font-medium">
-                    Transport : À confirmer selon l’adresse
-                  </p>
+                <div className="flex justify-between items-start border-b border-solly-border/70 pb-2">
+                  <span className="font-bold text-solly-muted uppercase text-[10px] tracking-wider shrink-0 pt-0.5">
+                    Expériences
+                  </span>
+                  <span className="font-bold text-solly-charcoal text-right">
+                    {formData.selectedExperiences.map((id) => getExperienceLabel(id)).join(', ')}
+                  </span>
                 </div>
 
-                {/* MODALITÉS DE PAIEMENT */}
-                <div className="space-y-2 pt-0.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-solly-charcoal block">
-                    Modalités de paiement
+                <div className="flex justify-between items-center border-b border-solly-border/70 pb-2">
+                  <span className="font-bold text-solly-muted uppercase text-[10px] tracking-wider">
+                    Personnalisation
                   </span>
-                  <div className="bg-white rounded-xl p-3 border border-solly-pink/20 space-y-2 text-[11px]">
-                    <div className="flex justify-between items-baseline">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">
-                          Acompte après validation de la demande :
-                        </span>
-                        <span className="text-[10px] text-solly-muted">
-                          70 % pour bloquer définitivement votre date
-                        </span>
-                      </div>
-                      <span className="font-display font-extrabold text-solly-pink text-xs sm:text-sm shrink-0">
-                        {formatPriceFCFA(pricing.deposit70)}
-                      </span>
-                    </div>
-                    <div className="pt-1.5 border-t border-solly-border/60 flex justify-between items-baseline">
-                      <div>
-                        <span className="font-bold text-solly-charcoal block">Solde à J-2 :</span>
-                        <span className="text-[10px] text-solly-muted">30 % restant</span>
-                      </div>
-                      <span className="font-bold text-solly-charcoal text-xs shrink-0">
-                        {formatPriceFCFA(pricing.balance30)}
-                      </span>
-                    </div>
-                  </div>
+                  <span className="font-semibold text-solly-charcoal">
+                    {formData.personalization === 'oui' ? 'Oui' : formData.personalization === 'non' ? 'Non' : 'À définir'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-baseline pt-1">
+                  <span className="font-bold text-solly-charcoal uppercase text-[10px] tracking-wider">
+                    Budget envisagé
+                  </span>
+                  <span className="font-display font-black text-base text-solly-pink">
+                    {formatPriceFCFA(formData.budgetDesired || formData.budgetMinimum || 80000)}
+                  </span>
                 </div>
               </div>
 
-              {/* Photos d'inspiration mention if present */}
-              {formData.inspirationPhotos && formData.inspirationPhotos.length > 0 && (
-                <div className="bg-[#FFF8E3] border border-[#FDE68A] rounded-xl p-2.5 text-left text-[11px] text-amber-900 flex items-center gap-2">
-                  <span>📸</span>
-                  <span>{formData.inspirationPhotos.length} photo(s) d’inspiration transmise(s) avec votre demande.</span>
-                </div>
-              )}
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-2">
+                <a
+                  href={getWhatsAppUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-6 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white font-display font-bold text-sm sm:text-base shadow-md transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
+                  <span>Poursuivre sur WhatsApp maintenant</span>
+                </a>
 
-              {/* Message de réassurance : Et maintenant ? */}
-              <div className="bg-white border border-solly-border/80 rounded-2xl p-4 text-left space-y-2.5 shadow-2xs">
-                <h4 className="text-xs sm:text-sm font-display font-extrabold text-solly-charcoal flex items-center gap-1.5">
-                  <span>✨</span>
-                  <span>Et maintenant ?</span>
-                </h4>
-                <div className="space-y-2 text-xs text-solly-charcoal/85">
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-solly-pink text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-                      1
-                    </span>
-                    <p className="font-semibold pt-0.5">Nous vérifions votre date</p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-[#FFF8E3] text-[#92400E] border border-[#FDE68A] font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-                      2
-                    </span>
-                    <p className="font-semibold pt-0.5">Vous recevez votre confirmation et votre devis</p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF7F2] text-solly-charcoal/70 border border-solly-border font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-                      3
-                    </span>
-                    <p className="font-semibold pt-0.5">
-                      Vous réglez l’acompte de 70 % pour bloquer définitivement votre date
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions : Primary Retour au site + Secondary contact discret */}
-              <div className="space-y-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => {
                     if (onClose) onClose();
                     resetBooking();
                   }}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink/90 shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-6 rounded-full bg-solly-cream hover:bg-solly-cream-dark/60 text-solly-charcoal font-bold text-xs sm:text-sm border border-solly-border transition-colors cursor-pointer"
                 >
-                  <span>Retour au site</span>
+                  Retour au site
                 </button>
-
-                <div className="text-center pt-0.5">
-                  <a
-                    href={getWhatsAppUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-solly-charcoal/70 hover:text-solly-pink transition-colors py-1 cursor-pointer"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span>Une question ? Nous contacter</span>
-                  </a>
-                </div>
-              </div>
-
-              {/* Bottom Signature */}
-              <div className="pt-2 border-t border-solly-border/50 flex flex-col items-center">
-                <SollyLogo height={20} />
-                <p className="text-[10px] text-solly-charcoal/60 font-medium mt-0.5">
-                  La beauté en bouchées.
-                </p>
               </div>
             </motion.div>
+          ) : (
+            <>
+              {/* ========================================================= */}
+              {/* ÉTAPE 1 : VOTRE ÉVÉNEMENT */}
+              {/* ========================================================= */}
+              {currentStep === 1 && (
+                <motion.form
+                  key="step-1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleNext}
+                  className="max-w-xl mx-auto space-y-5 pb-2"
+                >
+                  {/* Heading */}
+                  <div className="text-center mb-4 sm:mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
+                      Votre événement
+                    </h2>
+                    <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
+                      Quelques informations essentielles pour imaginer votre prestation Solly.
+                    </p>
+                  </div>
+
+                  {/* Type d'événement & Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Type d'événement */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Type d’événement <span className="text-solly-pink">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={formData.eventType}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, eventType: e.target.value as EventType }));
+                            setErrors((prev) => ({ ...prev, eventType: '' }));
+                          }}
+                          className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors"
+                        >
+                          <option value="" disabled>
+                            Sélectionnez un type...
+                          </option>
+                          {EVENT_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-solly-charcoal/60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      {errors.eventType && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1">{errors.eventType}</p>
+                      )}
+                    </div>
+
+                    {/* Date */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Date de l’événement <span className="text-solly-pink">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          min={new Date().toISOString().split('T')[0]}
+                          value={formData.eventDate}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, eventDate: e.target.value }));
+                            setErrors((prev) => ({ ...prev, eventDate: '' }));
+                          }}
+                          className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl px-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                        />
+                        <Calendar className="w-4 h-4 text-solly-charcoal/60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      {errors.eventDate && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1">{errors.eventDate}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Créneau ou heure souhaitée */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      Créneau ou heure souhaitée
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {TIME_SLOTS.map((slot) => {
+                        const isSelected = formData.eventTime === slot.value;
+                        return (
+                          <button
+                            key={slot.value}
+                            type="button"
+                            onClick={() => {
+                              setFormData((prev) => ({ ...prev, eventTime: slot.value }));
+                              setShowCustomTime(false);
+                            }}
+                            className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between border cursor-pointer ${
+                              isSelected
+                                ? 'bg-solly-pink-soft text-solly-pink border-solly-pink shadow-2xs'
+                                : 'bg-[#FAF7F2] text-solly-charcoal/80 border-solly-border hover:border-solly-pink/40'
+                            }`}
+                          >
+                            <span>{slot.label}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-solly-pink shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between">
+                      {!showCustomTime ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomTime(true)}
+                          className="text-[11px] font-bold text-solly-pink hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Clock className="w-3 h-3" />
+                          <span>Indiquer une heure précise (ex: 16h30)</span>
+                        </button>
+                      ) : (
+                        <div className="w-full pt-1 flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={formData.eventTime.includes(':') ? formData.eventTime : '16:00'}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, eventTime: e.target.value }))}
+                            className="bg-[#FAF7F2] border border-solly-border rounded-xl px-3 py-2 text-xs text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCustomTime(false)}
+                            className="text-xs text-solly-muted hover:text-solly-charcoal px-2 py-1"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lieu de l'événement & Dakar Quick Chips */}
+                  <div>
+                    <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                      Lieu / Adresse <span className="text-solly-pink">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.address}
+                        autoComplete="street-address"
+                        onChange={(e) => {
+                          setFormData((prev) => ({ ...prev, address: e.target.value }));
+                          setErrors((prev) => ({ ...prev, address: '' }));
+                        }}
+                        placeholder="Ex: Almadies, Plateau, Domicile..."
+                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-4 py-3 text-base sm:text-sm text-solly-charcoal font-semibold placeholder:text-solly-charcoal/40 focus:outline-none focus:border-solly-pink/60 transition-colors"
+                      />
+                      <MapPin className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                    {errors.address && (
+                      <p className="text-[11px] text-red-500 font-bold mt-1">{errors.address}</p>
+                    )}
+
+                    {/* Quick Area Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
+                      {DAKAR_QUICK_AREAS.map((area) => (
+                        <button
+                          key={area}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              address: prev.address ? `${prev.address}, ${area}` : area,
+                            }));
+                            setErrors((prev) => ({ ...prev, address: '' }));
+                          }}
+                          className="text-[11px] font-semibold bg-solly-cream border border-solly-border hover:border-solly-pink/50 hover:bg-solly-pink-soft hover:text-solly-pink px-2.5 py-1 rounded-lg text-solly-charcoal/80 transition-colors cursor-pointer"
+                        >
+                          + {area}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Nombre d'invités */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-solly-charcoal">
+                        Nombre d’invités estimé <span className="text-solly-pink">*</span>
+                      </label>
+                      <span className="text-[11px] font-bold text-solly-pink">
+                        Minimum 20 invités
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 bg-[#FAF7F2] border border-solly-border rounded-2xl p-1.5">
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          type="button"
+                          onClick={() => handleGuestChange(-5)}
+                          className="w-11 h-11 rounded-xl bg-white border border-solly-border flex items-center justify-center text-solly-charcoal hover:bg-solly-pink-soft hover:text-solly-pink transition-colors cursor-pointer shadow-2xs"
+                          aria-label="Diminuer le nombre d'invités"
+                        >
+                          <Minus className="w-5 h-5" />
+                        </motion.button>
+
+                        <input
+                          type="number"
+                          min="20"
+                          max="500"
+                          value={formData.guestCount}
+                          placeholder="20"
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? '' : parseInt(e.target.value, 10);
+                            const nextCount = typeof v === 'number' ? v : 20;
+                            const nextMin = calculateMinimumBudget(nextCount);
+                            setFormData((prev) => ({
+                              ...prev,
+                              guestCount: v,
+                              budgetMinimum: nextMin,
+                              budgetDesired: Math.max(nextMin, prev.budgetDesired || nextMin),
+                            }));
+                            setErrors((prev) => ({ ...prev, guestCount: '' }));
+                          }}
+                          className="w-16 text-center font-display font-black text-xl text-solly-charcoal bg-transparent focus:outline-none"
+                        />
+
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          type="button"
+                          onClick={() => handleGuestChange(5)}
+                          className="w-11 h-11 rounded-xl bg-white border border-solly-border flex items-center justify-center text-solly-charcoal hover:bg-solly-pink-soft hover:text-solly-pink transition-colors cursor-pointer shadow-2xs"
+                          aria-label="Augmenter le nombre d'invités"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </motion.button>
+                      </div>
+
+                      <span className="text-xs text-solly-muted font-medium">personnes</span>
+                    </div>
+
+                    {errors.guestCount && (
+                      <p className="text-[11px] text-red-500 font-bold mt-1">{errors.guestCount}</p>
+                    )}
+
+                    {/* Preset Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="text-[11px] font-bold text-solly-muted mr-1">Raccourcis :</span>
+                      {GUEST_PRESETS.map((count) => (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => {
+                            const nextMin = calculateMinimumBudget(count);
+                            setFormData((prev) => ({
+                              ...prev,
+                              guestCount: count,
+                              budgetMinimum: nextMin,
+                              budgetDesired: Math.max(nextMin, prev.budgetDesired || nextMin),
+                            }));
+                            setErrors((prev) => ({ ...prev, guestCount: '' }));
+                          }}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                            formData.guestCount === count
+                              ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                              : 'bg-white text-solly-charcoal/70 border-solly-border hover:bg-solly-cream'
+                          }`}
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Encadré informatif épuré avec règle de calcul dynamique */}
+                  <div className="bg-[#FFF9E6] border border-[#FDE68A] text-solly-charcoal rounded-2xl p-3.5 flex items-center justify-between text-xs font-medium">
+                    <div className="flex items-center gap-2.5">
+                      <Sparkle size={16} color="#DE1B52" className="shrink-0" />
+                      <span>À partir de 4 000 FCFA / invité · minimum 20 invités</span>
+                    </div>
+                    <span className="font-extrabold text-solly-pink font-display whitespace-nowrap pl-2">
+                      Min. {formatPriceFCFA(dynamicMinBudget)}
+                    </span>
+                  </div>
+                </motion.form>
+              )}
+
+              {/* ========================================================= */}
+              {/* ÉTAPE 2 : CHOISISSEZ VOS EXPÉRIENCES */}
+              {/* ========================================================= */}
+              {currentStep === 2 && (
+                <motion.form
+                  key="step-2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleNext}
+                  className="max-w-xl mx-auto space-y-5 pb-2"
+                >
+                  {/* Heading */}
+                  <div className="text-center mb-3 sm:mb-5">
+                    <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
+                      Choisissez vos expériences
+                    </h2>
+                    <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
+                      Sélectionnez une ou plusieurs expériences gourmandes pour vos invités.
+                    </p>
+                  </div>
+
+                  {/* Grandes cartes visuelles avec photos */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    {EXPERIENCES_CATALOG.map((exp) => {
+                      const isSelected = formData.selectedExperiences.includes(exp.id);
+                      return (
+                        <div
+                          key={exp.id}
+                          onClick={() => toggleExperience(exp.id)}
+                          className={`group relative rounded-[22px] overflow-hidden border-2 transition-all cursor-pointer flex flex-col ${
+                            isSelected
+                              ? 'border-solly-pink bg-[#FFF4F7] shadow-solly-soft scale-[1.01]'
+                              : 'border-solly-border bg-white hover:border-solly-pink/40 hover:shadow-2xs'
+                          }`}
+                        >
+                          {/* Image Banner */}
+                          <div className="relative aspect-[16/10] w-full overflow-hidden bg-solly-cream">
+                            <Image
+                              src={exp.image}
+                              alt={exp.title}
+                              fill
+                              sizes="(max-width: 640px) 100vw, 300px"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+
+                            {/* Tag badge */}
+                            <div className="absolute top-2.5 left-2.5">
+                              <span className="bg-white/95 backdrop-blur-xs text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-2xs">
+                                {exp.tag}
+                              </span>
+                            </div>
+
+                            {/* Checkbox state */}
+                            <div className="absolute top-2.5 right-2.5">
+                              <div
+                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors shadow-2xs ${
+                                  isSelected
+                                    ? 'bg-solly-pink text-white'
+                                    : 'bg-white/90 text-transparent border border-solly-border'
+                                }`}
+                              >
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Text info */}
+                          <div className="p-3.5 flex flex-col flex-1 justify-between">
+                            <div>
+                              <h3
+                                className={`font-display font-extrabold text-base transition-colors ${
+                                  isSelected ? 'text-solly-pink' : 'text-solly-charcoal'
+                                }`}
+                              >
+                                {exp.title}
+                              </h3>
+                              <p className="text-xs text-solly-muted font-medium mt-1 leading-snug">
+                                {exp.subtitle}
+                              </p>
+                            </div>
+
+                            <div className="mt-3 pt-2 border-t border-solly-border/40 flex items-center justify-between">
+                              <span
+                                className={`text-[11px] font-bold ${
+                                  isSelected ? 'text-solly-pink' : 'text-solly-charcoal/60'
+                                }`}
+                              >
+                                {isSelected ? '✓ Sélectionné' : '+ Ajouter cette envie'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {errors.selectedExperiences && (
+                    <p className="text-xs text-red-500 font-bold text-center">
+                      {errors.selectedExperiences}
+                    </p>
+                  )}
+
+                  {/* Note essentielle sous les cartes */}
+                  <div className="bg-[#FAF7F2] border border-solly-border/80 rounded-2xl p-4 text-center">
+                    <p className="text-xs text-solly-charcoal font-semibold leading-relaxed">
+                      “Sélectionnez les expériences qui vous intéressent. Nous affinerons ensemble la composition selon votre événement et votre budget.”
+                    </p>
+                  </div>
+                </motion.form>
+              )}
+
+              {/* ========================================================= */}
+              {/* ÉTAPE 3 : PERSONNALISATION */}
+              {/* ========================================================= */}
+              {currentStep === 3 && (
+                <motion.form
+                  key="step-3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleNext}
+                  className="max-w-xl mx-auto space-y-6 pb-2"
+                >
+                  {/* Heading */}
+                  <div className="text-center mb-4 sm:mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
+                      Personnalisation
+                    </h2>
+                    <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
+                      Souhaitez-vous personnaliser votre expérience Solly ?
+                    </p>
+                  </div>
+
+                  {/* 3 Grands choix interactifs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      {
+                        value: 'oui',
+                        title: 'Oui',
+                        desc: 'Chariot, supports ou vaisselle sur mesure',
+                        icon: Sparkles,
+                      },
+                      {
+                        value: 'non',
+                        title: 'Non',
+                        desc: 'La formule standard officielle Solly',
+                        icon: Check,
+                      },
+                      {
+                        value: 'a-definir',
+                        title: 'Je ne sais pas encore',
+                        desc: 'À voir ensemble lors de notre échange',
+                        icon: HelpCircle,
+                      },
+                    ].map((opt) => {
+                      const isSelected = formData.personalization === opt.value;
+                      const IconComp = opt.icon;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              personalization: opt.value as 'oui' | 'non' | 'a-definir',
+                            }));
+                            setErrors((prev) => ({ ...prev, personalization: '' }));
+                          }}
+                          className={`p-4 rounded-2xl text-left border-2 transition-all flex flex-col justify-between cursor-pointer ${
+                            isSelected
+                              ? 'bg-solly-pink-soft border-solly-pink shadow-solly-soft'
+                              : 'bg-[#FAF7F2] border-solly-border hover:border-solly-pink/40'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                                  isSelected ? 'bg-solly-pink text-white' : 'bg-white text-solly-pink'
+                                }`}
+                              >
+                                <IconComp className="w-4 h-4" />
+                              </span>
+                              {isSelected && (
+                                <span className="w-2.5 h-2.5 rounded-full bg-solly-pink" />
+                              )}
+                            </div>
+                            <h4
+                              className={`font-display font-extrabold text-base ${
+                                isSelected ? 'text-solly-pink' : 'text-solly-charcoal'
+                              }`}
+                            >
+                              {opt.title}
+                            </h4>
+                            <p className="text-xs text-solly-muted font-medium mt-1 leading-snug">
+                              {opt.desc}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {errors.personalization && (
+                    <p className="text-xs text-red-500 font-bold text-center">
+                      {errors.personalization}
+                    </p>
+                  )}
+
+                  {/* Si OUI est choisi : Afficher les 2 sous-options simples */}
+                  {formData.personalization === 'oui' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-[#FFF4F7] border border-solly-pink/30 rounded-2xl p-4 sm:p-5 space-y-3"
+                    >
+                      <h4 className="font-display font-extrabold text-xs sm:text-sm text-solly-pink uppercase tracking-wider">
+                        Éléments que vous envisagez :
+                      </h4>
+
+                      <div className="space-y-2.5">
+                        <label
+                          className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                            formData.personalizationCart
+                              ? 'bg-white border-solly-pink shadow-2xs'
+                              : 'bg-white/70 border-solly-border hover:bg-white'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.personalizationCart}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                personalizationCart: e.target.checked,
+                              }))
+                            }
+                            className="mt-0.5 w-4 h-4 text-solly-pink rounded border-gray-300 focus:ring-solly-pink accent-solly-pink"
+                          />
+                          <div>
+                            <span className="font-bold text-xs sm:text-sm text-solly-charcoal block">
+                              Personnalisation du chariot / installation
+                            </span>
+                            <span className="text-[11px] text-solly-muted block mt-0.5">
+                              Façade imprimée, logo de marque, prénom ou thème décoratif
+                            </span>
+                          </div>
+                        </label>
+
+                        <label
+                          className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                            formData.personalizationTableware
+                              ? 'bg-white border-solly-pink shadow-2xs'
+                              : 'bg-white/70 border-solly-border hover:bg-white'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.personalizationTableware}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                personalizationTableware: e.target.checked,
+                              }))
+                            }
+                            className="mt-0.5 w-4 h-4 text-solly-pink rounded border-gray-300 focus:ring-solly-pink accent-solly-pink"
+                          />
+                          <div>
+                            <span className="font-bold text-xs sm:text-sm text-solly-charcoal block">
+                              Vaisselle et supports personnalisés
+                            </span>
+                            <span className="text-[11px] text-solly-muted block mt-0.5">
+                              Contenants, stickers, serviettes ou accessoires à vos couleurs
+                            </span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <p className="text-[11px] text-solly-charcoal/70 font-medium italic pt-1">
+                        Ces éléments seront définis et affinés directement avec l’équipe Solly sur WhatsApp.
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.form>
+              )}
+
+              {/* ========================================================= */}
+              {/* ÉTAPE 4 : VOTRE BUDGET & COORDONNÉES */}
+              {/* ========================================================= */}
+              {currentStep === 4 && (
+                <motion.form
+                  key="step-4"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleNext}
+                  className="max-w-xl mx-auto space-y-6 pb-2"
+                >
+                  {/* Heading */}
+                  <div className="text-center mb-4 sm:mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-solly-pink tracking-tight">
+                      Votre budget
+                    </h2>
+                    <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
+                      Quel budget souhaitez-vous consacrer à votre événement ?
+                    </p>
+                  </div>
+
+                  {/* Slider interactif de budget */}
+                  <div className="bg-[#FAF7F2] border border-solly-border rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
+                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                      <span className="text-xs font-bold text-solly-charcoal">
+                        Budget envisagé pour {effectiveGuests} invités :
+                      </span>
+                      <span className="text-2xl sm:text-3xl font-display font-black text-solly-pink">
+                        {formatPriceFCFA(formData.budgetDesired || dynamicMinBudget)}
+                        {formData.budgetDesired >= 1000000 && '+'}
+                      </span>
+                    </div>
+
+                    {/* Interactive Slider Input */}
+                    <div className="pt-2">
+                      <input
+                        type="range"
+                        min={dynamicMinBudget}
+                        max={1000000}
+                        step={10000}
+                        value={Math.max(dynamicMinBudget, formData.budgetDesired || dynamicMinBudget)}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setFormData((prev) => ({
+                            ...prev,
+                            budgetDesired: val,
+                          }));
+                        }}
+                        className="w-full h-3 bg-solly-border rounded-lg appearance-none cursor-pointer accent-solly-pink"
+                      />
+                    </div>
+
+                    {/* Minimum indicator notice directly below slider */}
+                    <div className="flex items-center justify-between text-[11px] font-bold text-solly-charcoal/80 pt-1">
+                      <span>Minimum estimé : {formatPriceFCFA(dynamicMinBudget)}</span>
+                      <span>1 000 000 FCFA+</span>
+                    </div>
+
+                    {/* Quick touch preset buttons */}
+                    <div className="pt-2 border-t border-solly-border/60">
+                      <span className="text-[11px] font-bold text-solly-muted block mb-2">
+                        Paliers rapides :
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BUDGET_PRESETS.map((amount) => {
+                          const isDisabled = amount < dynamicMinBudget;
+                          const isSelected = formData.budgetDesired === amount;
+                          return (
+                            <button
+                              key={amount}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  budgetDesired: amount,
+                                }));
+                              }}
+                              className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                                isDisabled
+                                  ? 'opacity-35 bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                  : isSelected
+                                  ? 'bg-solly-pink text-white border-solly-pink shadow-2xs'
+                                  : 'bg-white text-solly-charcoal/80 border-solly-border hover:bg-solly-cream'
+                              }`}
+                            >
+                              {formatPriceFCFA(amount)}
+                              {amount >= 1000000 && '+'}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coordonnées de contact */}
+                  <div className="bg-white border border-solly-border rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">
+                    <h3 className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal border-b border-solly-border/60 pb-2">
+                      Vos coordonnées pour vous contacter
+                    </h3>
+
+                    {/* Nom et prénom */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Nom et prénom <span className="text-solly-pink">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          autoComplete="name"
+                          value={formData.firstName}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, firstName: e.target.value }));
+                            setErrors((prev) => ({ ...prev, firstName: '' }));
+                          }}
+                          placeholder="Votre nom complet"
+                          className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                        />
+                        <User className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
+                      {errors.firstName && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1">{errors.firstName}</p>
+                      )}
+                    </div>
+
+                    {/* Téléphone (WhatsApp) avec indicatif pays */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Numéro de téléphone (WhatsApp) <span className="text-solly-pink">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <div className="relative shrink-0 w-[92px] sm:w-[98px]">
+                          <select
+                            value={formData.countryCode || '+221'}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, countryCode: e.target.value }))
+                            }
+                            className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-2.5 pr-6 py-3 text-sm sm:text-xs text-solly-charcoal font-bold appearance-none focus:outline-none focus:border-solly-pink/60 transition-colors cursor-pointer"
+                          >
+                            {COUNTRY_CODES.map((item) => (
+                              <option key={item.country} value={item.code}>
+                                {item.flag} {item.code}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-solly-charcoal/60 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+
+                        <div className="relative flex-1">
+                          <input
+                            type="tel"
+                            inputMode="tel"
+                            autoComplete="tel"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              setFormData((prev) => ({ ...prev, phone: e.target.value }));
+                              setErrors((prev) => ({ ...prev, phone: '' }));
+                            }}
+                            placeholder="77 000 00 00"
+                            className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                          />
+                          <Phone className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        </div>
+                      </div>
+                      {errors.phone && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1">{errors.phone}</p>
+                      )}
+                    </div>
+
+                    {/* Email optionnel */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Adresse email <span className="text-solly-muted font-normal">(optionnel)</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          value={formData.email || ''}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                          placeholder="exemple@email.com"
+                          className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl pl-10 pr-3.5 py-3 text-base sm:text-sm text-solly-charcoal font-semibold focus:outline-none focus:border-solly-pink/60 transition-colors"
+                        />
+                        <Mail className="w-4 h-4 text-solly-charcoal/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
+                    </div>
+
+                    {/* Précisions / note optionnelle */}
+                    <div>
+                      <label className="block text-xs font-bold text-solly-charcoal mb-1.5">
+                        Un détail à nous préciser ? <span className="text-solly-muted font-normal">(optionnel)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={formData.message}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+                        placeholder="Allergies, horaire particulier, souhaits spécifiques..."
+                        className="w-full bg-[#FAF7F2] border border-solly-border rounded-2xl p-3.5 text-base sm:text-sm text-solly-charcoal font-medium focus:outline-none focus:border-solly-pink/60 transition-colors resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Récapitulatif Final très simple */}
+                  <div className="bg-[#FFF4F7] border border-solly-pink/30 rounded-2xl p-4 sm:p-5 text-xs text-solly-charcoal space-y-2.5 shadow-2xs">
+                    <h4 className="font-display font-extrabold text-sm text-solly-pink border-b border-solly-pink/20 pb-2">
+                      Votre demande Solly
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div>
+                        <span className="text-solly-muted block">Événement :</span>
+                        <span className="font-bold text-solly-charcoal">
+                          {formData.eventType || 'À préciser'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-solly-muted block">Date :</span>
+                        <span className="font-bold text-solly-charcoal">{formattedDate}</span>
+                      </div>
+                      <div>
+                        <span className="text-solly-muted block">Lieu :</span>
+                        <span className="font-bold text-solly-charcoal">
+                          {formData.address || 'Dakar'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-solly-muted block">Invités :</span>
+                        <span className="font-bold text-solly-pink">{effectiveGuests}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-solly-pink/20">
+                      <span className="text-solly-muted block text-[11px]">Expériences :</span>
+                      <span className="font-bold text-solly-charcoal">
+                        {formData.selectedExperiences.map((id) => getExperienceLabel(id)).join(', ')}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-baseline pt-2 border-t border-solly-pink/20">
+                      <span className="font-bold text-solly-charcoal">Budget envisagé :</span>
+                      <span className="font-display font-black text-base text-solly-pink">
+                        {formatPriceFCFA(formData.budgetDesired || dynamicMinBudget)}
+                        {formData.budgetDesired >= 1000000 && '+'}
+                      </span>
+                    </div>
+                  </div>
+                </motion.form>
+              )}
+            </>
           )}
         </AnimatePresence>
       </div>
 
-      {/* 4. STICKY THUMB-ZONE ACTION FOOTER */}
-      {currentStep < 4 && (
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-md p-3 sm:px-6 sm:py-3.5 border-t border-solly-border/70 flex items-center justify-between gap-3 z-20 shrink-0">
-          <div className="flex items-center gap-2">
-            {currentStep === 1 ? (
-              <div className="flex items-center gap-1.5 pl-1 text-xs font-bold text-solly-charcoal/80">
-                <span className="w-2 h-2 rounded-full bg-solly-pink inline-block" />
-                <span>{formData.guestCount || 20} invités sélectionnés</span>
-              </div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(currentStep === 3 ? 2 : 1)}
-                  className="text-xs sm:text-sm font-bold text-solly-muted hover:text-solly-charcoal transition-colors cursor-pointer inline-flex items-center gap-1 px-2.5 py-2 rounded-xl hover:bg-solly-cream"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span className="hidden sm:inline">Retour</span>
-                </button>
+      {/* 3. BOTTOM ACTION BAR (Sticky at bottom) */}
+      {!isSubmitted && (
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-t border-solly-border bg-white flex items-center justify-between gap-3 shrink-0">
+          {/* Bouton Retour (Étapes 2, 3, 4) */}
+          {currentStep > 1 ? (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="px-4 py-2.5 rounded-full border border-solly-border text-solly-charcoal font-bold text-xs sm:text-sm hover:bg-solly-cream transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Retour</span>
+            </button>
+          ) : (
+            <div />
+          )}
 
-                {/* Live Pricing Estimation from Step 2 onwards */}
-                <div className="flex flex-col text-left pl-1">
-                  <span className="text-[10px] sm:text-xs text-solly-muted font-semibold leading-tight">
-                    Estimation ({pricing.effectiveGuests} pers.)
-                  </span>
-                  <span className="text-xs sm:text-base font-display font-black text-solly-pink leading-tight">
-                    {formatPriceFCFA(pricing.total)}
-                  </span>
-                  <span className="text-[9px] text-solly-muted/80 leading-none hidden sm:block">
-                    Hors transport • Acompte 70%
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {currentStep === 1 && (
-              <button
-                type="button"
-                onClick={handleNextFromStep1}
-                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <span>Continuer vers les bars</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            )}
-
-            {currentStep === 2 && (
-              <button
-                type="button"
-                onClick={handleNextFromStep2}
-                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer"
-              >
-                <span>Continuer</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            )}
-
-            {currentStep === 3 && (
-              <button
-                type="button"
-                onClick={handleSubmitStep3}
-                disabled={isSubmitting}
-                className="px-5 sm:px-8 py-3 rounded-full bg-solly-pink text-white font-display font-bold text-xs sm:text-base hover:bg-solly-pink-hover shadow-solly-pink transition-all duration-200 inline-flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Envoi...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Envoyer ma demande</span>
-                    <Sparkles className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+          {/* Bouton Continuer / Envoyer ma demande */}
+          {currentStep < 4 ? (
+            <button
+              type="button"
+              onClick={() => handleNext()}
+              className="py-3 px-7 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink/90 shadow-solly-pink transition-all inline-flex items-center gap-2 cursor-pointer ml-auto"
+            >
+              <span>Continuer</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit()}
+              className="py-3.5 px-8 rounded-full bg-solly-pink text-white font-display font-bold text-sm sm:text-base hover:bg-solly-pink/90 shadow-solly-pink transition-all inline-flex items-center gap-2 cursor-pointer ml-auto disabled:opacity-60"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Envoi en cours...</span>
+                </>
+              ) : (
+                <>
+                  <span>Envoyer ma demande</span>
+                  <Sparkles className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>

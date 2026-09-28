@@ -17,11 +17,11 @@ export default function ReservationPage() {
           </span>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-display font-black text-solly-charcoal tracking-tight">
-            Composez & Réservez votre bar
+            Votre projet en quelques clics
           </h1>
 
           <p className="mt-2 sm:mt-3 text-xs sm:text-base text-solly-muted max-w-lg mx-auto">
-            Renseignez votre projet en quelques clics ludiques. Formules gourmandes à partir de 4 000 FCFA / invité avec réponse sous 24h.
+            Renseignez votre événement, sélectionnez vos envies et votre budget. Notre équipe prend ensuite le relais sur WhatsApp pour imaginer la suite avec vous.
           </p>
         </div>
 
