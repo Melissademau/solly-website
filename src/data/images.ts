@@ -33,12 +33,12 @@ export const SOLLY_IMAGES = {
       aspectRatio: '3/4',
     },
     cakeBarPreview: {
-      src: '/images/solly-assets/01-accueil/cake-bar-preview.png',
-      alt: 'Cake Bar Solly : gâteau gourmand aux brisures d\'Oreo dans son moule doré',
+      src: '/images/cake-bar/cake-bar-two-cakes.jpg',
+      alt: 'Cake Bar Solly : gâteaux individuels gourmands fruits et chantilly avec drapeaux Solly',
       category: 'cake-bar',
-      width: 1536,
+      width: 768,
       height: 1024,
-      aspectRatio: '3/2',
+      aspectRatio: '3/4',
     },
     drinksPreview: {
       src: '/images/solly-assets/01-accueil/drinks-preview.png',
@@ -121,12 +121,12 @@ export const SOLLY_IMAGES = {
   // 02 - CAKE BAR ASSETS
   cakeBar: {
     hero: {
-      src: '/images/solly-assets/01-accueil/cake-bar-preview.png',
-      alt: 'Cake Bar Solly : gâteau gourmand aux brisures d\'Oreo dans son moule doré',
+      src: '/images/cake-bar/cake-bar-two-cakes.jpg',
+      alt: 'Cake Bar Solly : gâteaux individuels gourmands fruits et chantilly avec drapeaux Solly',
       category: 'cake-bar',
-      width: 1536,
+      width: 768,
       height: 1024,
-      aspectRatio: '3/2',
+      aspectRatio: '3/4',
     },
     cartHero: {
       src: '/images/solly-assets/02-cake-bar/cake-hero.png',

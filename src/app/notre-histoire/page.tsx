@@ -396,13 +396,6 @@ export default function NotreHistoirePage() {
         {/* Experience Pill Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-4xl mx-auto">
           <Link
-            href="/experiences#cake-bar"
-            className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
-          >
-            <span>Cake Bar</span>
-            <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
-          </Link>
-          <Link
             href="/experiences#mini-pancakes"
             className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
           >
@@ -416,6 +409,13 @@ export default function NotreHistoirePage() {
           >
             <span>Croffles</span>
             <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full">Nouveau</span>
+            <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
+          </Link>
+          <Link
+            href="/experiences#cake-bar"
+            className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
+          >
+            <span>Cake Bar</span>
             <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
           </Link>
           <Link

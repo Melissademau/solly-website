@@ -18,16 +18,16 @@ export type EventType =
   | "Autre événement"
   | (string & {});
 
-export type ExperienceId = 'cake-bar' | 'mini-pancakes' | 'croffles' | 'charcuterie';
+export type ExperienceId = 'mini-pancakes' | 'croffles' | 'cake-bar' | 'charcuterie';
 
 export function getExperienceLabel(id: ExperienceId | string): string {
   switch (id) {
-    case 'cake-bar':
-      return 'Cake Bar';
     case 'mini-pancakes':
       return 'Mini Pancakes';
     case 'croffles':
       return 'Croffles';
+    case 'cake-bar':
+      return 'Cake Bar';
     case 'charcuterie':
       return 'Charcuterie';
     default:

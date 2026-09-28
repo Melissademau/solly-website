@@ -29,7 +29,7 @@ export default function HomePage() {
               {/* Category Eyebrow & Taglines */}
               <div className="flex flex-col items-center lg:items-start gap-2 mb-4">
                 <span className="text-[11px] sm:text-xs font-black tracking-[0.16em] uppercase text-solly-pink bg-solly-pink/10 px-3.5 py-1 rounded-full">
-                  Croffles · Mini pancakes · Cakes · Charcuterie
+                  Mini Pancakes · Croffles · Cake Bar · Charcuterie
                 </span>
                 <p className="text-xs sm:text-[13px] font-bold tracking-[0.18em] uppercase text-solly-charcoal/80">
                   Chariot événement & animation gourmande à Dakar
@@ -146,7 +146,7 @@ export default function HomePage() {
           {/* Section Heading with 3 pink action dashes */}
           <div className="text-center mb-10 sm:mb-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-solly-pink/10 text-solly-pink text-xs font-bold uppercase tracking-wider mb-3">
-              <span>Croffles · Mini pancakes · Cakes · Charcuterie</span>
+              <span>Mini Pancakes · Croffles · Cake Bar · Charcuterie</span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
@@ -163,35 +163,7 @@ export default function HomePage() {
 
           {/* 4 Main Bars Grid: 2 cols on mobile, 4 cols on lg */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6 max-w-6xl mx-auto">
-            {/* Card 1: Cake Bar */}
-            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300">
-              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02]">
-                <SollyImage
-                  src={SOLLY_IMAGES.hero.cakeBarPreview.src}
-                  alt={SOLLY_IMAGES.hero.cakeBarPreview.alt}
-                  category="cake-bar"
-                  aspectRatioClass="aspect-[4/3]"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
-                Cake Bar
-              </h3>
-              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
-                Des douceurs à composer avec nappages et toppings.
-              </p>
-              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
-                Bar principal au choix
-              </span>
-              <Link
-                href="/experiences#cake-bar"
-                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
-              >
-                Découvrir →
-              </Link>
-            </div>
-
-            {/* Card 2: Mini Pancakes (Nouveau) */}
+            {/* Card 1: Mini Pancakes (Nouveau) */}
             <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
               <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FFF3D6] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
                 <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
@@ -222,7 +194,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Card 3: Croffles (Nouveau) */}
+            {/* Card 2: Croffles (Nouveau) */}
             <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
               <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
                 <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
@@ -247,6 +219,34 @@ export default function HomePage() {
               </span>
               <Link
                 href="/experiences#croffles"
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
+              >
+                Découvrir →
+              </Link>
+            </div>
+
+            {/* Card 3: Cake Bar */}
+            <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300">
+              <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FDE8EE] p-0 transition-transform duration-300 group-hover:scale-[1.02]">
+                <SollyImage
+                  src={SOLLY_IMAGES.hero.cakeBarPreview.src}
+                  alt={SOLLY_IMAGES.hero.cakeBarPreview.alt}
+                  category="cake-bar"
+                  aspectRatioClass="aspect-[4/3]"
+                  className="w-full h-auto object-cover object-[center_60%]"
+                />
+              </div>
+              <h3 className="font-display font-black text-base sm:text-lg text-solly-charcoal mt-3">
+                Cake Bar
+              </h3>
+              <p className="text-[11px] sm:text-xs text-solly-charcoal/80 font-medium mt-1 leading-snug line-clamp-2">
+                Des douceurs à composer avec nappages et toppings.
+              </p>
+              <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
+                Bar principal au choix
+              </span>
+              <Link
+                href="/experiences#cake-bar"
                 className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-solly-pink hover:underline mt-2 sm:mt-3"
               >
                 Découvrir →

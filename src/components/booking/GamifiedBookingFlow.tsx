@@ -78,13 +78,6 @@ const COUNTRY_CODES = [
 
 const EXPERIENCES_CATALOG = [
   {
-    id: 'cake-bar' as ExperienceId,
-    title: 'Cake Bar',
-    subtitle: 'Gâteaux individuels généreux découpés et nappés à la minute',
-    tag: 'Signature Solly',
-    image: '/images/solly-assets/01-accueil/cake-bar-preview.png',
-  },
-  {
     id: 'mini-pancakes' as ExperienceId,
     title: 'Mini Pancakes',
     subtitle: 'Moelleux, dorés à la machine officielle Solly et nappés minute',
@@ -97,6 +90,13 @@ const EXPERIENCES_CATALOG = [
     subtitle: 'Croustillants, dorés et caramélisés, servis chauds',
     tag: 'Tendance & Gourmand',
     image: '/images/croffles/croffle-preview.webp',
+  },
+  {
+    id: 'cake-bar' as ExperienceId,
+    title: 'Cake Bar',
+    subtitle: 'Gâteaux individuels généreux découpés et nappés à la minute',
+    tag: 'Signature Solly',
+    image: '/images/cake-bar/cake-bar-two-cakes.jpg',
   },
   {
     id: 'charcuterie' as ExperienceId,

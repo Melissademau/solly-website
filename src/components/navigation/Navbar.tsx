@@ -11,11 +11,6 @@ import { useBooking } from '@/context/BookingContext';
 
 const EXPERIENCE_SUBMENU = [
   {
-    label: 'Cake Bar',
-    description: 'Des douceurs à composer minute',
-    href: '/experiences#cake-bar',
-  },
-  {
     label: 'Mini Pancakes',
     description: 'Moelleux, nappés & préparés minute',
     badge: 'Nouveau',
@@ -26,6 +21,11 @@ const EXPERIENCE_SUBMENU = [
     description: 'Croustillants, dorés & servis chauds',
     badge: 'Nouveau',
     href: '/experiences#croffles',
+  },
+  {
+    label: 'Cake Bar',
+    description: 'Des douceurs à composer minute',
+    href: '/experiences#cake-bar',
   },
   {
     label: 'Bar à Charcuterie',

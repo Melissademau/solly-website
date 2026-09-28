@@ -59,7 +59,7 @@ const ADVANTAGES = [
     num: '03',
     title: 'Plusieurs expériences gourmandes',
     description:
-      'Croffles, mini pancakes, cakes, charcuterie… une offre modulable selon le format de votre opération, en sucré comme en salé.',
+      'Mini pancakes, croffles, cake bar, charcuterie… une offre modulable selon le format de votre opération, en sucré comme en salé.',
     icon: Utensils,
     bg: 'bg-[#FAF7F2]',
     border: 'border-solly-border',
@@ -98,9 +98,9 @@ const PROJECT_TYPES = [
 ];
 
 const EXPERIENCES_OPTIONS = [
-  { id: 'cake-bar', label: 'Cake Bar' },
   { id: 'mini-pancakes', label: 'Mini Pancakes' },
   { id: 'croffles', label: 'Croffles' },
+  { id: 'cake-bar', label: 'Cake Bar' },
   { id: 'charcuterie', label: 'Bar à Charcuterie' },
   { id: 'boissons', label: 'Bar à Boissons fraîches' },
 ];
@@ -447,10 +447,10 @@ export default function PartenairesPage() {
 
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xs border border-solly-border">
               <Image
-                src="/images/solly-assets/01-accueil/cake-bar-preview.png"
+                src="/images/cake-bar/cake-bar-two-cakes.jpg"
                 alt="Cake Bar traiteur événementiel"
                 fill
-                className="object-cover hover:scale-105 transition-transform duration-300"
+                className="object-cover object-[center_60%] hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
                 <span className="text-white text-xs font-bold">Cake Bar Découpé Minute</span>
