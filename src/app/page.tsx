@@ -429,7 +429,7 @@ export default function HomePage() {
                   src={SOLLY_IMAGES.hero.customPanel.src}
                   alt={SOLLY_IMAGES.hero.customPanel.alt}
                   category="events"
-                  aspectRatioClass="aspect-[16/10]"
+                  aspectRatioClass="aspect-[3/2]"
                   className="w-full h-auto object-cover"
                 />
               </div>
