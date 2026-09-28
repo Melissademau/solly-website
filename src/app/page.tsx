@@ -72,7 +72,7 @@ export default function HomePage() {
                     onClick={() => openBooking()}
                     className="w-full sm:w-auto !px-7 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink whitespace-nowrap"
                   >
-                    Composer mon événement →
+                    Réserver mon événement →
                   </Button>
 
                   <div className="relative flex items-center justify-center">
@@ -411,7 +411,7 @@ export default function HomePage() {
                 onClick={() => openBooking()}
                 className="!px-8 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink"
               >
-                Composer mon événement →
+                Réserver mon événement →
               </Button>
             </div>
           </div>
@@ -477,8 +477,8 @@ export default function HomePage() {
       {/* 7. CONVERSION BANNER */}
       <SollyCtaBanner
         title="Et si la prochaine histoire était la vôtre ?"
-        subtitle="Dites-nous combien vous serez, choisissez vos gourmandises et composez votre événement Solly."
-        buttonText="Composer mon événement"
+        subtitle="Dites-nous combien vous serez, sélectionnez vos bars et vos envies, nous nous occupons du reste."
+        buttonText="Réserver mon événement"
       />
     </div>
   );

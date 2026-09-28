@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Plus, Minus, Sparkles, RotateCcw } from 'lucide-react';
+import { Check, Plus, Minus, Sparkles, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SollyImage } from '@/components/ui/SollyImage';
 import { Sparkle, BurstDoodle, ScallopEdge } from '@/components/ui/Doodles';
@@ -27,429 +28,125 @@ const CAKE_ASSETS = {
     src: '/images/solly-assets/02-cake-bar/trois-panneaux.jpg',
     alt: 'Trois panneaux amovibles personnalisés Solly : anniversaire, logo et marque',
   },
-  barquettes: [
+  gallery: [
     {
-      id: 'Barquette standard Solly',
-      name: 'Barquette standard Solly',
-      desc: 'Barquette blanche signature aux motifs et logo Solly',
-      badge: 'Incontournable',
-      src: '/images/solly-assets/02-cake-bar/barquette-standard.png',
-      alt: 'Barquette standard Solly blanche et rose',
-    },
-    {
-      id: 'Barquette à thème',
-      name: 'Barquette à thème',
-      desc: 'Personnalisée aux couleurs, prénom et univers de votre fête',
-      badge: 'Personnalisée',
-      src: '/images/solly-assets/02-cake-bar/barquette-theme.png',
-      alt: 'Barquette personnalisée à thème Solly (ex: Noah)',
-    },
-    {
-      id: 'Barquette premium',
-      name: 'Barquette premium',
-      desc: 'Barquette dorée raffinée pour une dégustation chic et festive',
-      badge: 'Élégance',
-      src: '/images/solly-assets/02-cake-bar/barquette-premium.png',
-      alt: 'Barquette premium dorée Solly',
-    },
-  ],
-  bases: [
-    {
-      id: 'Vanille',
-      name: 'Vanille',
-      src: '/images/solly-assets/02-cake-bar/base-vanille.png',
-      alt: 'Génoise vanille dorée',
-    },
-    {
-      id: 'Chocolat',
-      name: 'Chocolat',
       src: '/images/solly-assets/02-cake-bar/base-chocolat.png',
-      alt: 'Gâteau éponge au chocolat noir',
+      title: 'Bases moelleuses',
+      desc: 'Vanille parfumée ou chocolat fondant',
     },
-  ],
-  sauces: [
     {
-      id: 'Chocolat',
-      name: 'Chocolat',
       src: '/images/solly-assets/02-cake-bar/sauce-chocolat.png',
-      alt: 'Sauce chocolat brillante',
+      title: 'Sauces gourmandes',
+      desc: 'Chocolat chaud, caramel beurre salé, fruits rouges',
     },
     {
-      id: 'Caramel',
-      name: 'Caramel',
-      src: '/images/solly-assets/02-cake-bar/sauce-caramel.png',
-      alt: 'Sauce caramel dorée',
-    },
-    {
-      id: 'Fruits rouges',
-      name: 'Fruits rouges',
-      src: '/images/solly-assets/02-cake-bar/sauce-fruits-rouges.png',
-      alt: 'Coulis de fruits rouges',
-    },
-    {
-      id: 'Lait concentré sucré',
-      name: 'Lait concentré sucré',
-      src: '/images/solly-assets/02-cake-bar/lait-concentre.jpg',
-      alt: 'Bol de lait concentré sucré onctueux',
-    },
-  ],
-  toppings: [
-    {
-      id: 'Oreo',
-      name: 'Oreo',
       src: '/images/solly-assets/02-cake-bar/topping-oreo.png',
-      alt: 'Brisures de biscuits Oreo',
+      title: 'Toppings croquants',
+      desc: 'Oreo, spéculoos, vermicelles & guimauves',
     },
     {
-      id: 'Spéculoos',
-      name: 'Spéculoos',
-      src: '/images/solly-assets/02-cake-bar/topping-speculoos.png',
-      alt: 'Miettes de spéculoos dorées',
-    },
-    {
-      id: 'Vermicelles',
-      name: 'Vermicelles',
-      src: '/images/solly-assets/02-cake-bar/topping-vermicelles.png',
-      alt: 'Vermicelles festifs colorés',
-    },
-    {
-      id: 'Mangue',
-      name: 'Mangue',
-      src: '/images/solly-assets/02-cake-bar/topping-mangue.png',
-      alt: 'Cubes de mangue fraîche',
-    },
-    {
-      id: 'Marshmallow',
-      name: 'Marshmallow',
-      src: '/images/solly-assets/02-cake-bar/marshmallow.png',
-      alt: 'Mini guimauves roses et blanches',
-    },
-    {
-      id: 'Fraises',
-      name: 'Fraises',
-      src: '/images/solly-assets/02-cake-bar/fraises.jpg',
-      alt: 'Fraises fraîches coupées en morceaux',
-    },
-    {
-      id: 'Banane',
-      name: 'Banane',
-      src: '/images/solly-assets/02-cake-bar/banane.png',
-      alt: 'Rondelles de banane fraîches',
-    },
-    {
-      id: 'Autres (à préciser)',
-      name: 'Autres',
-      isCustom: true,
-      customNote: 'À préciser avec l’équipe',
-      alt: 'Garniture sur mesure à convenir avec Solly',
+      src: '/images/solly-assets/02-cake-bar/barquette-standard.png',
+      title: 'Barquettes Solly',
+      desc: 'Portions individuelles soignées & pratiques',
     },
   ],
 };
 
 const DRINK_OPTIONS = [
   {
-    id: 'Bissap glacé',
+    id: 'bissap',
     name: 'Bissap glacé',
-    desc: 'Infusion fraîche d’hibiscus, menthe douce et vanille',
+    desc: 'Infusion d’hibiscus rouge, menthe fraîche et touche de vanille',
     src: '/images/solly-assets/03-boissons/bissap.png',
-    alt: 'Bissap glacé à l’hibiscus rouge Solly',
+    alt: 'Bissap glacé traditionnel Solly',
   },
   {
-    id: 'Jus d’ananas',
-    name: 'Jus d’ananas',
-    desc: 'Pur jus d’ananas doux et frais pressé',
+    id: 'ananas',
+    name: 'Jus d’ananas frais',
+    desc: 'Pur jus d’ananas doux et parfumé au soleil',
     src: '/images/solly-assets/03-boissons/ananas.png',
-    alt: 'Jus d’ananas doux et frais pressé Solly',
+    alt: 'Jus d’ananas frais pressé Solly',
   },
   {
-    id: 'Gingembre-agrumes',
+    id: 'gingembre',
     name: 'Gingembre-agrumes',
-    desc: 'Gingembre tonique, jus d’oranges et citron vert',
+    desc: 'Gingembre tonique, oranges douces et pointe de citron vert',
     src: '/images/solly-assets/03-boissons/gingembre.png',
-    alt: 'Boisson glacée au gingembre et agrumes Solly',
+    alt: 'Jus de gingembre pur glacé aux agrumes',
   },
   {
-    id: 'Jus orange-passion',
+    id: 'passion',
     name: 'Jus orange-passion',
-    desc: 'Nectar acidulé et doux aux fruits de la passion',
+    desc: 'Nectar fruité acidulé aux fruits de la passion exotiques',
     src: '/images/solly-assets/03-boissons/passion.png',
     alt: 'Jus orange-passion glacé Solly',
   },
 ];
 
 const CHARCUTERIE_ASSETS = {
-  formats: [
-    {
-      id: 'Le Cornet',
-      name: 'Le Cornet',
-      desc: 'Cône rose individuel, idéal pour picorer debout',
-      src: '/images/solly-assets/04-charcuterie/cornet.png',
-      alt: 'Cornet rose gourmand de charcuterie Solly',
-    },
-    {
-      id: 'Le Pot',
-      name: 'Le Pot',
-      desc: 'Pot rose généreux, facile à déguster et poser',
-      src: '/images/solly-assets/04-charcuterie/pot.png',
-      alt: 'Pot rose garni de bouchées apéritives Solly',
-    },
-  ],
-  composants: [
-    {
-      id: 'Rosettes de salami',
-      name: 'Rosettes de salami',
-      src: '/images/solly-assets/04-charcuterie/salami.png',
-      alt: 'Rosettes de salami délicatement pliées',
-    },
-    {
-      id: 'Jambon cuit',
-      name: 'Jambon cuit',
-      src: '/images/solly-assets/04-charcuterie/jambon.png',
-      alt: 'Fines tranches de jambon cuit',
-    },
-    {
-      id: 'Gouda doré',
-      name: 'Gouda doré',
-      src: '/images/solly-assets/04-charcuterie/gouda.png',
-      alt: 'Cubes de gouda doré',
-    },
-    {
-      id: 'Fromage doux',
-      name: 'Fromage doux',
-      src: '/images/solly-assets/04-charcuterie/fromage.png',
-      alt: 'Cubes de fromage doux',
-    },
-    {
-      id: 'Olives marinées',
-      name: 'Olives marinées',
-      src: '/images/solly-assets/04-charcuterie/olives.png',
-      alt: 'Coupelle d’olives vertes et noires',
-    },
-    {
-      id: 'Raisins frais',
-      name: 'Raisins frais',
-      src: '/images/solly-assets/04-charcuterie/raisins.png',
-      alt: 'Grappe de raisins rouges frais',
-    },
-    {
-      id: 'Mini bretzels',
-      name: 'Mini bretzels',
-      src: '/images/solly-assets/04-charcuterie/bretzels.png',
-      alt: 'Mini bretzels dorés au sel',
-    },
-    {
-      id: 'Crackers dorés',
-      name: 'Crackers dorés',
-      src: '/images/solly-assets/04-charcuterie/crackers.png',
-      alt: 'Crackers dorés aux graines',
-    },
-    {
-      id: 'Autres (à préciser)',
-      name: 'Autres',
-      isCustom: true,
-      customNote: 'À préciser avec l’équipe',
-      alt: 'Composant salé sur mesure à convenir avec Solly',
-    },
-  ],
-  previews: {
-    cornet: {
-      src: '/images/solly-assets/04-charcuterie/preview-cornet.png',
-      alt: 'Trois cônes roses gourmands de charcuterie à picorer',
-    },
-    pot: {
-      src: '/images/solly-assets/04-charcuterie/preview-pot.png',
-      alt: 'Trois pots gourmands roses au salami Solly',
-    },
+  hero: {
+    src: '/images/solly-assets/04-charcuterie/aperitif-gourmand.png',
+    alt: 'Grand apéritif gourmand Solly avec cornets et pots salés',
   },
+  gallery: [
+    {
+      src: '/images/solly-assets/04-charcuterie/cornet.png',
+      title: 'Le Cornet chic',
+      desc: 'Cône individuel rose élégant à picorer debout',
+    },
+    {
+      src: '/images/solly-assets/04-charcuterie/pot.png',
+      title: 'Le Pot gourmand',
+      desc: 'Format généreux facile à poser pour trinquer',
+    },
+    {
+      src: '/images/solly-assets/04-charcuterie/salami.png',
+      title: 'Salaisons & Fromages',
+      desc: 'Rosettes de salami, jambon fin et gouda doré',
+    },
+    {
+      src: '/images/solly-assets/04-charcuterie/bacs-inox.png',
+      title: 'Service au chariot',
+      desc: 'Bacs inox intégrés et service traiteur soigné',
+    },
+  ],
 };
 
 const FAQ_ITEMS = [
   {
-    question: 'Comment choisit-on les garnitures ?',
+    question: 'Combien d’invités minimum pour une prestation Solly ?',
     answer:
-      'Vous composez à l’avance votre assortiment de bases (vanille, chocolat), vos sauces gourmandes (jusqu’à 2 sauces) et vos composants selon vos préférences. Le jour J, vos invités choisissent minute leurs associations directement au comptoir du chariot !',
+      'Notre formule de base commence à partir de 20 invités (80 000 FCFA). Nous nous déplaçons pour des événements privés et d’entreprise de 20 à plusieurs centaines de personnes.',
   },
   {
-    question: 'Peut-on personnaliser le chariot ?',
+    question: 'Comment mes invités sont-ils servis le jour de l’événement ?',
     answer:
-      'Absolument ! La façade du chariot peut être personnalisée aux couleurs et au thème de votre événement (+15 000 FCFA : prénom, âge, thème ou logo d’entreprise). Vous pouvez également opter pour des contenants et couverts personnalisés (+10 000 FCFA).',
+      'Notre équipe arrive avec le chariot Solly équipé, installe le stand et assure le service en direct. Chaque invité choisit ses garnitures préférées pour une dégustation minute personnalisée.',
   },
   {
-    question: 'Peut-on ajouter des boissons ou un second bar ?',
+    question: 'Peut-on combiner plusieurs bars lors d’un même événement ?',
     answer:
-      'Oui, nos formules sont 100% modulables ! Vous pouvez ajouter l’option Boissons Solly (+1 000 FCFA / invité) avec des fontaines de jus et infusions fraîches locales (bissap, ananas, gingembre-agrumes), ou même combiner deux bars (par exemple Cake Bar + Bar salé) pour seulement +1 000 FCFA / invité supplémentaire.',
+      'Oui ! Vous pouvez choisir un bar principal inclus dans votre forfait (Cake Bar, Mini Pancakes, Croffles ou Charcuterie) et ajouter un ou plusieurs bars complémentaires pour varier les plaisirs salés et sucrés.',
+  },
+  {
+    question: 'Le chariot peut-il être personnalisé à notre thème ou marque ?',
+    answer:
+      'Absolument. Nous proposons des façades interchangeables imprimées au prénom de l’enfant, au thème de la fête ou au logo de votre entreprise, ainsi que des supports et emballages assortis.',
+  },
+  {
+    question: 'Comment se passe la réservation et le paiement ?',
+    answer:
+      'Vous envoyez votre demande sur le site en indiquant vos envies et votre budget. Notre équipe vous contacte sur WhatsApp pour confirmer les disponibilités. Un acompte de 70% bloque définitivement votre date, et le solde de 30% est réglé à J-2 de la prestation.',
   },
 ];
 
-export default function CakeBarPage() {
+export default function ExperiencesPage() {
   const { openBooking } = useBooking();
-
-  // Configurator interactive selections for Cake Bar (all unselected by default)
-  const [selectedBarquette, setSelectedBarquette] = useState('');
-  const [selectedBase, setSelectedBase] = useState('');
-  // Maximum 2 sauces
-  const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
-  // Composants selection (max 6)
-  const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
-
-  // Drinks selections (max 3)
-  const [selectedDrinks, setSelectedDrinks] = useState<string[]>([]);
-
-  // Charcuterie interactive selections: format & bacs (max 6)
-  const [selectedCharcuterieFormat, setSelectedCharcuterieFormat] = useState('');
-  const [selectedCharcuterieComponents, setSelectedCharcuterieComponents] = useState<string[]>([]);
-
-  // FAQ open/close state
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  const toggleSauce = (sauceId: string) => {
-    setSelectedSauces((prev) => {
-      if (prev.includes(sauceId)) {
-        return prev.filter((s) => s !== sauceId);
-      }
-      if (prev.length >= 2) {
-        return [prev[1], sauceId]; // keep max 2 by replacing the oldest
-      }
-      return [...prev, sauceId];
-    });
+  const handleAddToBooking = (experienceName?: string) => {
+    openBooking(experienceName || 'Cake Bar');
   };
-
-  const toggleTopping = (toppingId: string) => {
-    setSelectedToppings((prev) => {
-      if (prev.includes(toppingId)) {
-        return prev.filter((t) => t !== toppingId);
-      }
-      if (prev.length >= 6) {
-        return prev;
-      }
-      return [...prev, toppingId];
-    });
-  };
-
-  const toggleDrink = (drinkId: string) => {
-    setSelectedDrinks((prev) => {
-      if (prev.includes(drinkId)) {
-        return prev.filter((d) => d !== drinkId);
-      }
-      if (prev.length >= 3) {
-        return prev;
-      }
-      return [...prev, drinkId];
-    });
-  };
-
-  const toggleCharcuterieComponent = (itemId: string) => {
-    setSelectedCharcuterieComponents((prev) => {
-      if (prev.includes(itemId)) {
-        return prev.filter((i) => i !== itemId);
-      }
-      if (prev.length >= 6) {
-        return prev;
-      }
-      return [...prev, itemId];
-    });
-  };
-
-  const handleAddToBooking = (customPackage?: string) => {
-    openBooking({
-      experience: 'Cake Bar',
-      packageType: customPackage || 'Cake Bar à composer',
-      cakeBar: {
-        barquette: selectedBarquette,
-        base: selectedBase,
-        sauces: selectedSauces,
-        composants: selectedToppings,
-      },
-      drinks: selectedDrinks,
-      charcuterie: {
-        format: selectedCharcuterieFormat,
-        composants: selectedCharcuterieComponents,
-      },
-    });
-  };
-
-  const handleAddDrinksToBooking = () => {
-    openBooking({
-      experience: 'Boissons',
-      packageType: 'Bar à boissons fraîches',
-      drinks: selectedDrinks,
-      cakeBar: {
-        barquette: selectedBarquette,
-        base: selectedBase,
-        sauces: selectedSauces,
-        composants: selectedToppings,
-      },
-      charcuterie: {
-        format: selectedCharcuterieFormat,
-        composants: selectedCharcuterieComponents,
-      },
-    });
-  };
-
-  const handleAddCharcuterieToBooking = () => {
-    openBooking({
-      experience: 'Charcuterie',
-      packageType: `Bar à charcuterie (${selectedCharcuterieFormat})`,
-      charcuterie: {
-        format: selectedCharcuterieFormat,
-        composants: selectedCharcuterieComponents,
-      },
-      cakeBar: {
-        barquette: selectedBarquette,
-        base: selectedBase,
-        sauces: selectedSauces,
-        composants: selectedToppings,
-      },
-      drinks: selectedDrinks,
-    });
-  };
-
-  // Dynamic summary string for Cake Bar
-  const saucesSummary = selectedSauces.join(' & ');
-  const creationSummary = [
-    selectedBarquette,
-    selectedBase,
-    saucesSummary,
-    ...selectedToppings,
-  ]
-    .filter(Boolean)
-    .join(' • ');
-
-  // Dynamic summary string for Charcuterie
-  const charcuterieSummary = [
-    selectedCharcuterieFormat,
-    ...selectedCharcuterieComponents,
-  ]
-    .filter(Boolean)
-    .join(' • ');
-
-  // Clear selection functions for each section
-  const clearCakeBarSelection = () => {
-    setSelectedBarquette('');
-    setSelectedBase('');
-    setSelectedSauces([]);
-    setSelectedToppings([]);
-  };
-
-  const clearDrinksSelection = () => {
-    setSelectedDrinks([]);
-  };
-
-  const clearCharcuterieSelection = () => {
-    setSelectedCharcuterieFormat('');
-    setSelectedCharcuterieComponents([]);
-  };
-
-  const hasCakeBarSelection = Boolean(
-    selectedBarquette || selectedBase || selectedSauces.length > 0 || selectedToppings.length > 0
-  );
-
-  // Dynamic preview image according to selected barquette
-  const currentBarquetteAsset = CAKE_ASSETS.barquettes.find((b) => b.id === selectedBarquette);
-  const previewImageSrc = currentBarquetteAsset?.src || CAKE_ASSETS.preview.src;
-  const previewImageAlt = currentBarquetteAsset?.alt || CAKE_ASSETS.preview.alt;
-  const hasDrinksSelection = selectedDrinks.length > 0;
-  const hasCharcuterieSelection = Boolean(selectedCharcuterieFormat || selectedCharcuterieComponents.length > 0);
 
   return (
     <div className="flex flex-col min-h-screen bg-solly-cream">
@@ -499,7 +196,7 @@ export default function CakeBarPage() {
                   onClick={() => handleAddToBooking()}
                   className="!px-7 !py-3.5 text-sm sm:text-base font-bold shadow-solly-pink whitespace-nowrap"
                 >
-                  Composer mon événement →
+                  Réserver mon événement →
                 </Button>
               </div>
             </motion.div>
@@ -512,7 +209,7 @@ export default function CakeBarPage() {
               className="lg:col-span-7 xl:col-span-7 relative"
             >
               <div className="relative rounded-[28px] sm:rounded-[36px] overflow-hidden">
-                {/* Floating Handwritten Price Badge at top right */}
+                {/* Floating Handwritten Price Badge */}
                 <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex flex-col items-center select-none pointer-events-none">
                   <div className="font-handwriting text-base sm:text-lg font-bold text-solly-charcoal leading-tight rotate-[6deg] text-center drop-shadow-sm bg-solly-cream/90 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-solly-charcoal/10 shadow-xs">
                     À partir de <br />
@@ -573,14 +270,14 @@ export default function CakeBarPage() {
             className="px-3.5 py-1.5 rounded-full text-xs font-bold text-solly-charcoal hover:text-solly-pink hover:bg-white transition-all shrink-0 border border-solly-border/50 bg-white/70 inline-flex items-center gap-1.5"
           >
             <span>🥞 Mini Pancakes</span>
-            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full">Nouveau</span>
+            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full">Nouveau</span>
           </a>
           <a
             href="#croffles"
             className="px-3.5 py-1.5 rounded-full text-xs font-bold text-solly-charcoal hover:text-solly-pink hover:bg-white transition-all shrink-0 border border-solly-border/50 bg-white/70 inline-flex items-center gap-1.5"
           >
             <span>🥐 Croffles</span>
-            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full">Nouveau</span>
+            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full">Nouveau</span>
           </a>
           <a
             href="#charcuterie"
@@ -598,298 +295,278 @@ export default function CakeBarPage() {
       </div>
 
       {/* 3. PACKAGES SECTION: Choisissez votre bar principal */}
-      <section id="formules" className="relative w-full">
-        <ScallopEdge color="#FCECEF" height={14} />
-        <div className="bg-[#FCECEF] py-16 sm:py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* Section Heading */}
-            <div className="text-center mb-12 flex flex-col items-center justify-center">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-solly-pink/10 text-solly-pink text-xs font-bold uppercase tracking-wider mb-3">
-                <span>Croffles · Mini pancakes · Cakes · Charcuterie</span>
-              </div>
-              <div className="inline-flex items-center justify-center gap-2">
-                <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-                  Choisissez votre bar principal
-                </h2>
-                <div className="-mt-3 select-none pointer-events-none">
-                  <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/80 mt-2 max-w-xl mx-auto">
-                Votre bar gourmand, préparé minute. Le bar principal est compris dans notre tarif de base à 4 000 FCFA / invité (minimum 20 invités), chariot et service inclus.
-              </p>
+      <section id="formules" className="relative w-full py-16 sm:py-24 bg-[#FAF7F2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10 sm:mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-solly-pink/10 text-solly-pink text-xs font-bold uppercase tracking-wider mb-3">
+              <span>Croffles · Mini pancakes · Cakes · Charcuterie</span>
             </div>
-
-            {/* 4 Packages Cards Grid: 4 Main Bars */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-8">
-              {/* Card 1: Cake Bar */}
-              <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between">
-                <div>
-                  <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-solly-cream/50 mb-4">
-                    <SollyImage
-                      src={CAKE_ASSETS.packageSolly.src}
-                      alt={CAKE_ASSETS.packageSolly.alt}
-                      category="cake-bar"
-                      aspectRatioClass="aspect-[4/3]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-5">
-                    <h3 className="font-display font-black text-xl text-solly-pink">
-                      Cake Bar
-                    </h3>
-                    <div className="mt-1 mb-3">
-                      <p className="text-xs font-bold text-solly-charcoal">
-                        Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
-                      </p>
-                      <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                        Minimum 20 invités
-                      </span>
-                    </div>
-                    <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
-                      Des cakes moelleux vanille & chocolat à composer avec sauces gourmandes et toppings.
-                    </p>
-                    <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Bases moelleuses vanille & chocolat</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Sauces fondantes & toppings</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot & service inclus</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("Cake Bar")}
-                  className="!py-2.5 text-xs sm:text-sm font-bold"
-                >
-                  Choisir le Cake Bar →
-                </Button>
-              </div>
-
-              {/* Card 2: Mini Pancakes (Nouveau) */}
-              <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative">
-                <div>
-                  <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FFF3D6] mb-4 relative">
-                    <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                      Nouveau
-                    </span>
-                    <SollyImage
-                      src="/images/mini-pancakes/pancakes-preview.webp"
-                      alt="Mini pancakes préparés minute Solly"
-                      category="cake-bar"
-                      aspectRatioClass="aspect-[4/3]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-display font-black text-xl text-solly-pink">
-                        Mini Pancakes
-                      </h3>
-                    </div>
-                    <div className="mt-1 mb-3">
-                      <p className="text-xs font-bold text-solly-charcoal">
-                        Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
-                      </p>
-                      <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                        Minimum 20 invités
-                      </span>
-                    </div>
-                    <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
-                      Des mini pancakes préparés minute, moelleux et généreusement nappés, à composer.
-                    </p>
-                    <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Cuisson & service minute au chariot</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Sauces chaudes & toppings au choix</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot & service inclus</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("Mini Pancakes")}
-                  className="!py-2.5 text-xs sm:text-sm font-bold"
-                >
-                  Choisir Mini Pancakes →
-                </Button>
-              </div>
-
-              {/* Card 3: Croffles (Nouveau) */}
-              <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative">
-                <div>
-                  <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FEEED8] mb-4 relative">
-                    <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                      Nouveau
-                    </span>
-                    <SollyImage
-                      src="/images/croffles/croffle-preview.webp"
-                      alt="Croffles dorés croustillants Solly"
-                      category="cake-bar"
-                      aspectRatioClass="aspect-[4/3]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-display font-black text-xl text-solly-pink">
-                        Croffles
-                      </h3>
-                    </div>
-                    <div className="mt-1 mb-3">
-                      <p className="text-xs font-bold text-solly-charcoal">
-                        Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
-                      </p>
-                      <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                        Minimum 20 invités
-                      </span>
-                    </div>
-                    <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
-                      Le croissant rencontre la gaufre : croustillant, doré et servi chaud avec sauces et toppings.
-                    </p>
-                    <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Pâte feuilletée pressée & dorée minute</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Servis chauds nappés de chocolat</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot & service inclus</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("Croffles")}
-                  className="!py-2.5 text-xs sm:text-sm font-bold"
-                >
-                  Choisir les Croffles →
-                </Button>
-              </div>
-
-              {/* Card 4: Bar salé / Charcuterie */}
-              <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between">
-                <div>
-                  <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FFF2CE] mb-4">
-                    <SollyImage
-                      src="/images/solly-assets/04-charcuterie/preview-cornet.png"
-                      alt="Bar à charcuterie et bouchées salées Solly"
-                      category="charcuterie"
-                      aspectRatioClass="aspect-[4/3]"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                  <div className="text-left mb-5">
-                    <h3 className="font-display font-black text-xl text-solly-pink">
-                      Bar à charcuterie
-                    </h3>
-                    <div className="mt-1 mb-3">
-                      <p className="text-xs font-bold text-solly-charcoal">
-                        Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
-                      </p>
-                      <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                        Minimum 20 invités
-                      </span>
-                    </div>
-                    <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
-                      Des bouchées salées raffinées en cornets pour une ambiance conviviale et élégante.
-                    </p>
-                    <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Charcuteries fines & fromages doux</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Présentation en cornets élégants</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-solly-pink font-bold">✓</span>
-                        <span>Chariot & service inclus</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="md"
-                  fullWidth
-                  onClick={() => handleAddToBooking("Bar salé / Charcuterie")}
-                  className="!py-2.5 text-xs sm:text-sm font-bold"
-                >
-                  Choisir le Bar salé →
-                </Button>
+            <div className="inline-flex items-center justify-center gap-2">
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+                Choisissez votre bar principal
+              </h2>
+              <div className="-mt-3 select-none pointer-events-none">
+                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
               </div>
             </div>
+            <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/80 mt-2 max-w-xl mx-auto">
+              Votre bar gourmand, préparé minute. Le bar principal est compris dans notre tarif de base à 4 000 FCFA / invité (minimum 20 invités), chariot et service inclus.
+            </p>
+          </div>
 
-            {/* Bar supplémentaire & Options Callout */}
-            <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft max-w-5xl mx-auto mb-8">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="text-center md:text-left">
-                  <div className="inline-flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-solly-pink" />
-                    <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal">
-                      Envie de mixer les plaisirs ?
-                    </h3>
+          {/* 4 Packages Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-8">
+            {/* Card 1: Cake Bar */}
+            <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between">
+              <div>
+                <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-solly-cream/50 mb-4">
+                  <SollyImage
+                    src={CAKE_ASSETS.packageSolly.src}
+                    alt={CAKE_ASSETS.packageSolly.alt}
+                    category="cake-bar"
+                    aspectRatioClass="aspect-[4/3]"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="text-left mb-5">
+                  <h3 className="font-display font-black text-xl text-solly-pink">
+                    Cake Bar
+                  </h3>
+                  <div className="mt-1 mb-3">
+                    <p className="text-xs font-bold text-solly-charcoal">
+                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                      Minimum 20 invités
+                    </span>
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/85 max-w-xl">
-                    Ajoutez un ou plusieurs bars supplémentaires à votre événement à partir de <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> par bar (+1 500 FCFA pour les Croffles).
+                  <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
+                    Des cakes moelleux vanille & chocolat découpés et nappés minute au chariot.
                   </p>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mt-4 text-[11px] sm:text-xs font-bold text-solly-charcoal/80">
-                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
-                      🥤 Boissons Solly : +1 000 FCFA / invité
-                    </span>
-                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
-                      🎨 Personnalisation du chariot : +15 000 FCFA
-                    </span>
-                    <span className="bg-solly-cream px-3 py-1.5 rounded-full border border-solly-border">
-                      ✨ Contenants personnalisés : +10 000 FCFA
-                    </span>
-                  </div>
+                  <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Bases moelleuses vanille & chocolat</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Sauces fondantes & toppings</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Chariot & service inclus</span>
+                    </li>
+                  </ul>
                 </div>
-                <Button
-                  variant="pink"
-                  size="md"
-                  onClick={() => handleAddToBooking('Formule 2 Bars')}
-                  className="!py-3.5 !px-6 text-sm font-bold whitespace-nowrap shadow-solly-pink shrink-0"
-                >
-                  Composer mon mix →
-                </Button>
               </div>
+
+              <Button
+                variant="pink"
+                size="md"
+                fullWidth
+                onClick={() => handleAddToBooking('Cake Bar')}
+                className="!py-2.5 text-xs sm:text-sm font-bold"
+              >
+                Choisir le Cake Bar →
+              </Button>
             </div>
 
-            {/* Footnote */}
+            {/* Card 2: Mini Pancakes */}
+            <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative">
+              <div>
+                <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FFF3D6] mb-4 relative">
+                  <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+                    Nouveau
+                  </span>
+                  <SollyImage
+                    src="/images/mini-pancakes/pancakes-preview.webp"
+                    alt="Mini pancakes préparés minute Solly"
+                    category="cake-bar"
+                    aspectRatioClass="aspect-[4/3]"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="text-left mb-5">
+                  <h3 className="font-display font-black text-xl text-solly-pink">
+                    Mini Pancakes
+                  </h3>
+                  <div className="mt-1 mb-3">
+                    <p className="text-xs font-bold text-solly-charcoal">
+                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                      Minimum 20 invités
+                    </span>
+                  </div>
+                  <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
+                    Des mini pancakes préparés minute, moelleux et généreusement nappés.
+                  </p>
+                  <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Cuisson & service minute au chariot</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Sauces chaudes & toppings au choix</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Chariot & service inclus</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <Button
+                variant="pink"
+                size="md"
+                fullWidth
+                onClick={() => handleAddToBooking('Mini Pancakes')}
+                className="!py-2.5 text-xs sm:text-sm font-bold"
+              >
+                Choisir Mini Pancakes →
+              </Button>
+            </div>
+
+            {/* Card 3: Croffles */}
+            <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative">
+              <div>
+                <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FEEED8] mb-4 relative">
+                  <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+                    Nouveau
+                  </span>
+                  <SollyImage
+                    src="/images/croffles/croffle-preview.webp"
+                    alt="Croffles dorés croustillants Solly"
+                    category="cake-bar"
+                    aspectRatioClass="aspect-[4/3]"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="text-left mb-5">
+                  <h3 className="font-display font-black text-xl text-solly-pink">
+                    Croffles
+                  </h3>
+                  <div className="mt-1 mb-3">
+                    <p className="text-xs font-bold text-solly-charcoal">
+                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                      Minimum 20 invités
+                    </span>
+                  </div>
+                  <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
+                    Le croissant rencontre la gaufre : croustillant, caramélisé et servi chaud.
+                  </p>
+                  <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Croffles dorés et croustillants</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Sauces fondantes & toppings</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Chariot & service inclus</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <Button
+                variant="pink"
+                size="md"
+                fullWidth
+                onClick={() => handleAddToBooking('Croffles')}
+                className="!py-2.5 text-xs sm:text-sm font-bold"
+              >
+                Choisir les Croffles →
+              </Button>
+            </div>
+
+            {/* Card 4: Bar à Charcuterie */}
+            <div className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between">
+              <div>
+                <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#F5EFE6] mb-4">
+                  <SollyImage
+                    src={CHARCUTERIE_ASSETS.hero.src}
+                    alt={CHARCUTERIE_ASSETS.hero.alt}
+                    category="charcuterie"
+                    aspectRatioClass="aspect-[4/3]"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="text-left mb-5">
+                  <h3 className="font-display font-black text-xl text-solly-pink">
+                    Charcuterie
+                  </h3>
+                  <div className="mt-1 mb-3">
+                    <p className="text-xs font-bold text-solly-charcoal">
+                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
+                      Minimum 20 invités
+                    </span>
+                  </div>
+                  <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
+                    Une formule salée chic avec charcuteries fines, fromages et crackers.
+                  </p>
+                  <ul className="space-y-1.5 text-xs font-semibold text-solly-charcoal/90">
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Cornets & pots élégants</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Charcuteries, gouda & raisins</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-solly-pink font-bold">✓</span>
+                      <span>Chariot & service inclus</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <Button
+                variant="pink"
+                size="md"
+                fullWidth
+                onClick={() => handleAddToBooking('Charcuterie')}
+                className="!py-2.5 text-xs sm:text-sm font-bold"
+              >
+                Choisir le Bar Salé →
+              </Button>
+            </div>
+          </div>
+
+          {/* Formule 2 Bars Banner */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-[#FFF4F7] rounded-[24px] p-6 sm:p-7 border border-solly-pink/20 shadow-solly-soft flex flex-col md:flex-row items-center justify-between gap-6 mb-4">
+              <div className="text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-solly-pink text-white text-xs font-black uppercase tracking-wider mb-2">
+                  <span>✦ Formule 2 Bars</span>
+                </div>
+                <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal">
+                  Envie de combiner 2 expériences ?
+                </h3>
+                <p className="text-xs sm:text-sm text-solly-charcoal/85 font-medium mt-1 max-w-xl">
+                  Associez un bar sucré et un bar salé, ou deux douceurs (ex. Mini Pancakes + Cake Bar). Vous pouvez sélectionner plusieurs bars lors de votre demande de devis.
+                </p>
+              </div>
+              <Button
+                variant="pink"
+                size="md"
+                onClick={() => handleAddToBooking('Formule 2 Bars')}
+                className="!py-3.5 !px-6 text-sm font-bold whitespace-nowrap shadow-solly-pink shrink-0"
+              >
+                Réserver une formule 2 bars →
+              </Button>
+            </div>
+
             <p className="text-center text-[11px] sm:text-xs text-solly-charcoal/70 font-medium">
               Base minimum 20 invités. Transport calculé selon le lieu. Acompte de 70% à la réservation, solde à J-2.
             </p>
@@ -897,393 +574,113 @@ export default function CakeBarPage() {
         </div>
       </section>
 
-      {/* 4. INTERACTIVE CONFIGURATOR: Composez votre cake bar */}
+      {/* 4. CAKE BAR SECTION (Mouth-watering presentation) */}
       <section id="cake-bar" className="py-16 sm:py-24 bg-solly-cream">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Heading */}
           <div className="text-center mb-12 sm:mb-14">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold text-solly-pink uppercase tracking-wider">
+                Bar gourmand signature
+              </span>
+            </div>
             <div className="inline-flex items-center justify-center gap-2">
               <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-                Composez votre cake bar
+                Le Cake Bar Solly
               </h2>
               <div className="-mt-3 select-none pointer-events-none">
                 <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
               </div>
             </div>
             <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1">
-              C’est vous qui choisissez ! Préparez vos envies pour votre demande de devis.
+              Des gâteaux individuels généreux découpés et nappés à la minute devant vos invités.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-            {/* Left Side: 3 Steps Selectors */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Clear All bar for Cake Bar */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-solly-charcoal/60">
-                  Votre composition étape par étape
-                </span>
-                {hasCakeBarSelection && (
-                  <button
-                    type="button"
-                    onClick={clearCakeBarSelection}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-solly-pink hover:text-white bg-solly-pink-soft hover:bg-solly-pink px-3 py-1.5 rounded-full border border-solly-pink/20 transition-all cursor-pointer shadow-2xs"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Effacer toute la sélection</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Row 01: Votre barquette */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      01
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Votre barquette
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Choisissez le format de présentation de vos gâteaux.
-                      </p>
-                    </div>
-                  </div>
-                  {selectedBarquette && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedBarquette('')}
-                      className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                    >
-                      Effacer
-                    </button>
-                  )}
+          {/* 4 Visuals Gallery */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
+            {CAKE_ASSETS.gallery.map((item) => (
+              <div
+                key={item.title}
+                className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
+                  <Image
+                    src={item.src}
+                    alt={item.title}
+                    width={400}
+                    height={300}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  {CAKE_ASSETS.barquettes.map((barquette) => {
-                    const isSelected = selectedBarquette === barquette.id;
-                    return (
-                      <button
-                        key={barquette.id}
-                        type="button"
-                        onClick={() => setSelectedBarquette((prev) => (prev === barquette.id ? '' : barquette.id))}
-                        className={`relative group rounded-[20px] p-3 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm ring-1 ring-solly-pink/20'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs z-10">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-[3/2] rounded-[14px] overflow-hidden bg-solly-cream/40 mb-2.5 relative">
-                          <SollyImage
-                            src={barquette.src}
-                            alt={barquette.alt}
-                            category="cake-bar"
-                            aspectRatioClass="aspect-[3/2]"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/90 backdrop-blur-xs text-solly-charcoal border border-solly-border/40 shadow-2xs">
-                            {barquette.badge}
-                          </span>
-                        </div>
-                        <span className="font-display font-black text-xs sm:text-sm text-solly-charcoal leading-snug">
-                          {barquette.name}
-                        </span>
-                        <p className="text-[11px] text-solly-charcoal/70 leading-tight mt-1">
-                          {barquette.desc}
-                        </p>
-                      </button>
-                    );
-                  })}
+                <div className="p-3 text-center">
+                  <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">{item.title}</p>
+                  <p className="text-[11px] text-solly-charcoal/70">{item.desc}</p>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Row 02: Votre base */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      02
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Votre base
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Choisissez le cake de votre choix.
-                      </p>
-                    </div>
-                  </div>
-                  {selectedBase && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedBase('')}
-                      className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                    >
-                      Effacer
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {CAKE_ASSETS.bases.map((base) => {
-                    const isSelected = selectedBase === base.id;
-                    return (
-                      <button
-                        key={base.id}
-                        type="button"
-                        onClick={() => setSelectedBase((prev) => (prev === base.id ? '' : base.id))}
-                        className={`relative group rounded-[18px] p-2 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-[4/3] rounded-[12px] overflow-hidden bg-solly-cream/40 mb-2">
-                          <SollyImage
-                            src={base.src}
-                            alt={base.alt}
-                            category="cake-bar"
-                            aspectRatioClass="aspect-[4/3]"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <span className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">
-                          {base.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Row 03: Votre sauce (Multiple choice up to max 2 sauces) */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      03
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Votre sauce
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Choisissez jusqu’à 2 sauces gourmandes.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-solly-pink bg-solly-pink-soft px-2.5 py-1 rounded-full border border-solly-pink/20">
-                      Max 2 sauces ({selectedSauces.length}/2)
-                    </span>
-                    {selectedSauces.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSauces([])}
-                        className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                      >
-                        Effacer
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {CAKE_ASSETS.sauces.map((sauce) => {
-                    const isSelected = selectedSauces.includes(sauce.id);
-                    return (
-                      <button
-                        key={sauce.id}
-                        type="button"
-                        onClick={() => toggleSauce(sauce.id)}
-                        className={`relative group rounded-[18px] p-2 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-[4/3] rounded-[12px] overflow-hidden bg-solly-cream/40 mb-2">
-                          <SollyImage
-                            src={sauce.src}
-                            alt={sauce.alt}
-                            category="cake-bar"
-                            aspectRatioClass="aspect-[4/3]"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <span className="font-display font-bold text-xs sm:text-sm text-solly-charcoal leading-tight">
-                          {sauce.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Row 04: Vos composants (Maximum 6 composants) */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      04
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Vos composants
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Finalisez avec vos composants préférés.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                        selectedToppings.length >= 6
-                          ? 'bg-solly-pink text-white border-solly-pink'
-                          : 'text-solly-pink bg-solly-pink-soft border-solly-pink/20'
-                      }`}
-                    >
-                      Max 6 composants ({selectedToppings.length}/6)
-                    </span>
-                    {selectedToppings.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedToppings([])}
-                        className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                      >
-                        Effacer
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {CAKE_ASSETS.toppings.map((topping) => {
-                    const isSelected = selectedToppings.includes(topping.id);
-                    const isMaxReached = selectedToppings.length >= 6 && !isSelected;
-                    return (
-                      <button
-                        key={topping.id}
-                        type="button"
-                        onClick={() => toggleTopping(topping.id)}
-                        disabled={isMaxReached}
-                        className={`relative group rounded-[18px] p-2 flex flex-col items-center text-center transition-all duration-200 ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm cursor-pointer'
-                            : isMaxReached
-                            ? 'border border-solly-border/40 bg-white/60 opacity-50 cursor-not-allowed'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white cursor-pointer'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs z-10">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-[4/3] rounded-[12px] overflow-hidden bg-solly-cream/40 mb-2 relative">
-                          {topping.src ? (
-                            <SollyImage
-                              src={topping.src}
-                              alt={topping.alt}
-                              category="cake-bar"
-                              aspectRatioClass="aspect-[4/3]"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-solly-yellow/10">
-                              <Sparkles className="w-8 h-8 text-solly-yellow" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="font-display font-bold text-xs sm:text-sm text-solly-charcoal leading-tight">
-                          {topping.name}
-                        </span>
-                        {topping.customNote && (
-                          <span className="text-[10px] text-solly-charcoal/60 mt-0.5">
-                            {topping.customNote}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side: Dynamic Creation Preview Card - "C'est vous qui choisissez !" */}
-            <div className="lg:col-span-5 sticky top-28">
-              <div className="bg-[#FCECEF] rounded-[28px] p-6 sm:p-7 border border-solly-pink/15 shadow-solly-soft flex flex-col items-center text-center">
-                {/* Title: C'est vous qui choisissez ! */}
-                <div className="inline-flex items-center gap-1.5 mb-1.5">
-                  <h3 className="font-display font-black text-2xl sm:text-3xl text-solly-charcoal">
-                    C’est vous qui choisissez !
-                  </h3>
-                  <div className="-mt-2 select-none pointer-events-none">
-                    <BurstDoodle direction="top-right" color="#DE1B52" size={24} />
-                  </div>
-                </div>
-
-                {/* Dynamic Summary Tagline */}
-                <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/80 mb-5">
-                  {creationSummary || 'Choisissez vos ingrédients'}
+          {/* Informative Presentation Card */}
+          <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal mb-3">
+                  Une animation pâtissière en direct
+                </h3>
+                <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mb-6 leading-relaxed">
+                  Sur le chariot Solly, nos pâtissiers découpent chaque portion à la commande. Chaque invité choisit sa base (moelleux vanille ou chocolat noir), son nappage chaud et ses garnitures pour une dégustation gourmande et festive.
                 </p>
 
-                {/* Real Preview Photo of Assembled Cake */}
-                <div className="w-full rounded-[22px] overflow-hidden bg-white shadow-2xs mb-6 relative">
-                  <SollyImage
-                    src={previewImageSrc}
-                    alt={previewImageAlt}
-                    category="cake-bar"
-                    aspectRatioClass="aspect-[3/2]"
-                    className="w-full h-auto object-cover transition-all duration-300"
-                  />
-                  {selectedBarquette && (
-                    <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/95 text-solly-pink border border-solly-pink/20 shadow-xs">
-                      ✨ {selectedBarquette}
-                    </span>
-                  )}
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
+                      🍫 Nappages & sauces au choix
+                    </h4>
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Chocolat fondant</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Caramel beurre salé</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Coulis fruits rouges</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Lait concentré sucré</span>
+                    </div>
+                  </div>
 
-                {/* Action Button */}
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
+                      🍓 Toppings croquants & fruités
+                    </h4>
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Fraises fraîches</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Mangue dorée</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Brisures d’Oreo</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Spéculoos</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Guimauves</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Vermicelles festifs</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real Photo & CTA */}
+              <div className="flex flex-col items-center">
+                <div className="w-full aspect-[4/3] rounded-[20px] overflow-hidden shadow-solly-soft border border-solly-border mb-4">
+                  <Image
+                    src={CAKE_ASSETS.packageSolly.src}
+                    alt="Cake Bar Solly prêt pour le service"
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <Button
                   variant="pink"
                   size="lg"
                   fullWidth
-                  onClick={() => handleAddToBooking()}
+                  onClick={() => handleAddToBooking('Cake Bar')}
                   className="!py-3.5 text-sm sm:text-base font-bold shadow-solly-pink"
                 >
-                  Ajouter à ma demande →
+                  Choisir le Cake Bar pour mon événement →
                 </Button>
-
-                {hasCakeBarSelection && (
-                  <button
-                    type="button"
-                    onClick={clearCakeBarSelection}
-                    className="mt-3 text-xs font-bold text-solly-charcoal/60 hover:text-solly-pink transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Effacer toute la sélection</span>
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -1312,18 +709,12 @@ export default function CakeBarPage() {
               </div>
             </div>
             <p className="text-sm sm:text-base text-solly-charcoal/80 font-medium mt-2 max-w-2xl mx-auto">
-              Des mini pancakes préparés minute, moelleux et généreusement nappés, à composer avec sauces et toppings.
+              Des mini pancakes préparés minute, moelleux et généreusement nappés, cuits directement sur la plaque officielle Solly.
             </p>
-            <div className="mt-3 inline-flex items-center gap-3 text-xs sm:text-sm font-bold text-solly-charcoal">
-              <span className="text-solly-pink">Compris dans la formule de base (4 000 FCFA / invité)</span>
-              <span>•</span>
-              <span className="text-solly-charcoal/70">Ou en bar supplémentaire (+1 000 FCFA / invité)</span>
-            </div>
           </div>
 
-          {/* Real Solly Visuals Gallery (Cuisson, service, toppings, portions) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5 mb-12">
-            {/* Photo 1: Cuisson & service au chariot */}
+          {/* Real Solly Visuals Gallery */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
@@ -1338,11 +729,10 @@ export default function CakeBarPage() {
               </div>
             </div>
 
-            {/* Photo 2: Nappage chocolat généreux */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
-                  src="/images/mini-pancakes/pancakes-host.webp"
+                  src="/images/mini-pancakes/pancakes-preview.webp"
                   alt="Nappage généreux au chocolat chaud Solly"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -1353,7 +743,6 @@ export default function CakeBarPage() {
               </div>
             </div>
 
-            {/* Photo 3: Toppings gourmands */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
@@ -1368,7 +757,6 @@ export default function CakeBarPage() {
               </div>
             </div>
 
-            {/* Photo 4: Portions prêtes à déguster */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
@@ -1384,12 +772,12 @@ export default function CakeBarPage() {
             </div>
           </div>
 
-          {/* Composition & Ingredients Card */}
+          {/* Presentation Card */}
           <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal mb-3">
-                  Comment vos invités composent leur portion ?
+                  Une animation chaude & parfumée
                 </h3>
                 <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mb-6 leading-relaxed">
                   Sur le chariot Solly, chaque invité reçoit une barquette de mini pancakes tout chauds et choisit ses nappages et toppings préférés pour une dégustation 100% personnalisée.
@@ -1458,7 +846,7 @@ export default function CakeBarPage() {
                 Nouveau
               </span>
               <span className="text-xs font-bold text-solly-pink uppercase tracking-wider">
-                Tendance gourmande
+                Croustillant & Doré
               </span>
             </div>
             <div className="flex items-center justify-center gap-2">
@@ -1470,123 +858,113 @@ export default function CakeBarPage() {
               </div>
             </div>
             <p className="text-sm sm:text-base text-solly-charcoal/80 font-medium mt-2 max-w-2xl mx-auto">
-              Le croissant rencontre la gaufre : croustillant, doré et servi chaud avec sauces et toppings.
+              Le croissant rencontre la gaufre : croustillant, caramélisé et servi chaud à vos invités.
             </p>
-            <div className="mt-3 inline-flex items-center gap-3 text-xs sm:text-sm font-bold text-solly-charcoal">
-              <span className="text-solly-pink">Compris dans la formule de base (4 000 FCFA / invité)</span>
-              <span>•</span>
-              <span className="text-solly-charcoal/70">Ou en bar supplémentaire (+1 500 FCFA / invité)</span>
-            </div>
           </div>
 
-          {/* Real Solly Visuals Gallery (Cuisson, texture feuilletée, pluie de croffles, croffle garni) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5 mb-12">
-            {/* Photo 1: Croffle chaud devant le chariot */}
+          {/* Real Solly Visuals Gallery for Croffles */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
-                  src="/images/croffles/croffle-hero.webp"
-                  alt="Croffle croustillant et chaud servi devant le chariot Solly"
+                  src="/images/croffles/croffle-preview.webp"
+                  alt="Croffle croustillant nappé au chocolat"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="p-3 text-center">
-                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Servi chaud minute</p>
-                <p className="text-[11px] text-solly-charcoal/70">Au comptoir du chariot</p>
+                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Croffles dorés</p>
+                <p className="text-[11px] text-solly-charcoal/70">Caramélisés & croustillants</p>
               </div>
             </div>
 
-            {/* Photo 2: Texture gaufrée dorée */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
                   src="/images/croffles/croffle-texture.webp"
-                  alt="Texture dorée et feuilletée du croissant pressé au gaufrier"
+                  alt="Détail du croustillant alvéolé de la gaufre croissant"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="p-3 text-center">
-                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Pâte feuilletée dorée</p>
-                <p className="text-[11px] text-solly-charcoal/70">Croustillant incomparable</p>
+                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Pâte feuilletée</p>
+                <p className="text-[11px] text-solly-charcoal/70">Beurre fin & alvéoles dorées</p>
               </div>
             </div>
 
-            {/* Photo 3: La pluie de croffles */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
                   src="/images/croffles/croffle-pluie.webp"
-                  alt="Boîte Solly La pluie de croffles"
+                  alt="Sauces et toppings d’accompagnement pour croffles"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="p-3 text-center">
-                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">La pluie de croffles</p>
-                <p className="text-[11px] text-solly-charcoal/70">Signature festive Solly</p>
+                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Service minute</p>
+                <p className="text-[11px] text-solly-charcoal/70">Préparés & garnis en direct</p>
               </div>
             </div>
 
-            {/* Photo 4: Croffle garni prêt à déguster */}
             <div className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all">
               <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
                 <img
-                  src="/images/croffles/croffle-garnished.webp"
-                  alt="Croffle nappé de chocolat et fraises fraîches"
+                  src="/images/croffles/croffle-hero.webp"
+                  alt="Planche de croffles généreuse servie au chariot"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="p-3 text-center">
-                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Croffles garnis</p>
-                <p className="text-[11px] text-solly-charcoal/70">Chocolat & fraises</p>
+                <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">Portions généreuses</p>
+                <p className="text-[11px] text-solly-charcoal/70">Présentation soignée Solly</p>
               </div>
             </div>
           </div>
 
-          {/* Details & Composition Box */}
+          {/* Presentation Card */}
           <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal mb-3">
-                  La fusion parfaite du croissant et de la gaufre
+                  La tendance gourmande incontournable
                 </h3>
                 <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mb-6 leading-relaxed">
-                  Préparé à base de viennoiserie pur beurre caramélisée au fer à gaufre, le croffle offre un contraste divin entre son extérieur croustillant et son cœur fondant et feuilleté.
+                  Pressés au gaufrier en direct sur le chariot, nos croffles offrent le feuilletage croustillant du croissant pur beurre et la texture caramélisée de la gaufre liégeoise.
                 </p>
 
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
-                      🍫 Sauces chaudes & nappages
+                      🍫 Coulis fondants
                     </h4>
                     <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Chocolat noir & au lait</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Caramel beurre salé</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Coulis de framboises</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Lait concentré sucré</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Chocolat noir fondant</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Caramel beurre salé</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Coulis de framboise</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Miel doux & cannelle</span>
                     </div>
                   </div>
 
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
-                      ✨ Toppings croquants & gourmands
+                      🍓 Toppings croustillants
                     </h4>
                     <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Fraises fraîches</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Éclats de noisettes / amandes</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Brisures de spéculoos</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Morceaux d’Oreo</span>
-                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Bananes fraîches</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Fraises fraîches</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Noisettes torréfiées</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Éclats de spéculoos</span>
+                      <span className="px-3 py-1 bg-[#FFFBF2] rounded-full border border-solly-border">Pépites de chocolat</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Hero Image & CTA */}
+              {/* Image & CTA */}
               <div className="flex flex-col items-center">
                 <div className="w-full aspect-[4/3] rounded-[20px] overflow-hidden shadow-solly-soft border border-solly-border mb-4">
                   <img
                     src="/images/croffles/croffle-preview.webp"
-                    alt="Croffle gourmand Solly"
+                    alt="Bar à croffles au chariot Solly"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -1605,7 +983,118 @@ export default function CakeBarPage() {
         </div>
       </section>
 
-      {/* 7. BAR À BOISSONS SECTION */}
+      {/* 7. CHARCUTERIE SECTION (Mouth-watering presentation) */}
+      <section id="charcuterie" className="py-16 sm:py-24 bg-[#FFFBF2] border-t border-solly-border/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Heading */}
+          <div className="text-center mb-12 sm:mb-14">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold text-solly-pink uppercase tracking-wider">
+                L’accord salé chic
+              </span>
+            </div>
+            <div className="inline-flex items-center justify-center gap-2">
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
+                Le Bar à Charcuterie Solly
+              </h2>
+              <div className="-mt-3 select-none pointer-events-none">
+                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1">
+              Des cornets apéritifs et pots gourmands raffinés pour trinquer avec élégance.
+            </p>
+          </div>
+
+          {/* 4 Visuals Gallery for Charcuterie */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
+            {CHARCUTERIE_ASSETS.gallery.map((item) => (
+              <div
+                key={item.title}
+                className="group rounded-[20px] overflow-hidden bg-white border border-solly-border shadow-solly-soft hover:shadow-md transition-all"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-solly-cream">
+                  <Image
+                    src={item.src}
+                    alt={item.title}
+                    width={400}
+                    height={300}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3 text-center">
+                  <p className="font-display font-bold text-xs sm:text-sm text-solly-charcoal">{item.title}</p>
+                  <p className="text-[11px] text-solly-charcoal/70">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Presentation Card */}
+          <div className="bg-white rounded-[26px] p-6 sm:p-8 border border-solly-border shadow-solly-soft">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="font-display font-black text-xl sm:text-2xl text-solly-charcoal mb-3">
+                  Une pause salée chic & conviviale
+                </h3>
+                <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mb-6 leading-relaxed">
+                  Idéal pour vos cocktails, apéritifs dînatoires ou mariages à Dakar : une sélection généreuse de salaisons de qualité, fromages dorés, olives marinées, fruits frais et crackers croustillants servis dans des contenants élégants.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
+                      🧀 Les fromages & salaisons
+                    </h4>
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Rosettes de salami</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Jambon cuit fin</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Cubes de gouda doré</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Fromage doux</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-solly-pink mb-2">
+                      🍇 Les accompagnements croquants & frais
+                    </h4>
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-solly-charcoal">
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Raisins frais</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Olives marinées</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Mini bretzels dorés</span>
+                      <span className="px-3 py-1 bg-solly-cream rounded-full border border-solly-border">Crackers aux graines</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Photo & CTA */}
+              <div className="flex flex-col items-center">
+                <div className="w-full aspect-[4/3] rounded-[20px] overflow-hidden shadow-solly-soft border border-solly-border mb-4">
+                  <Image
+                    src={CHARCUTERIE_ASSETS.hero.src}
+                    alt="Bar à charcuterie servi au chariot Solly"
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <Button
+                  variant="pink"
+                  size="lg"
+                  fullWidth
+                  onClick={() => handleAddToBooking('Charcuterie')}
+                  className="!py-3.5 text-sm sm:text-base font-bold shadow-solly-pink"
+                >
+                  Choisir le Bar Salé pour mon événement →
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. BOISSONS SECTION */}
       <section id="boissons" className="py-16 sm:py-24 bg-solly-cream border-t border-solly-border/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Heading */}
@@ -1619,116 +1108,52 @@ export default function CakeBarPage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1">
-              Option à <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> à ajouter à votre bar principal : infusions glacées et purs jus locaux servis minute à la fontaine (jusqu’à 3 jus au choix).
+              Option à <span className="text-solly-pink font-bold">+1 000 FCFA / invité</span> à ajouter à votre bar principal : infusions glacées et purs jus servis minute à la fontaine.
             </p>
-            <div className="mt-3 inline-flex items-center gap-2">
-              <span
-                className={`text-[11px] font-bold px-3 py-1 rounded-full border transition-colors ${
-                  selectedDrinks.length >= 3
-                    ? 'bg-solly-pink text-white border-solly-pink'
-                    : 'text-solly-pink bg-solly-pink-soft border-solly-pink/20'
-                }`}
-              >
-                3 jus maximum ({selectedDrinks.length}/3)
-              </span>
-              {hasDrinksSelection && (
-                <button
-                  type="button"
-                  onClick={clearDrinksSelection}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-solly-pink hover:text-white bg-solly-pink-soft hover:bg-solly-pink px-3 py-1 rounded-full border border-solly-pink/20 transition-all cursor-pointer shadow-2xs"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Effacer toute la sélection</span>
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Grid of 4 Drinks */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
-            {DRINK_OPTIONS.map((drink) => {
-              const isSelected = selectedDrinks.includes(drink.id);
-              const isMaxReached = selectedDrinks.length >= 3 && !isSelected;
-              return (
-                <button
-                  key={drink.id}
-                  type="button"
-                  onClick={() => toggleDrink(drink.id)}
-                  disabled={isMaxReached}
-                  className={`group rounded-[22px] p-3 text-left transition-all duration-200 flex flex-col justify-between ${
-                    isSelected
-                      ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm cursor-pointer'
-                      : isMaxReached
-                      ? 'border border-solly-border/40 bg-white/60 opacity-50 cursor-not-allowed'
-                      : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white cursor-pointer'
-                  }`}
-                >
-                  <div>
-                    <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden bg-solly-cream/40 mb-3 relative">
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs z-10">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </div>
-                      )}
-                      <SollyImage
-                        src={drink.src}
-                        alt={drink.alt}
-                        category="drinks"
-                        aspectRatioClass="aspect-[4/3]"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <h4 className="font-display font-black text-sm text-solly-charcoal mb-1">
-                      {drink.name}
-                    </h4>
-                    <p className="text-[11px] text-solly-charcoal/70 leading-snug">
-                      {drink.desc}
-                    </p>
+            {DRINK_OPTIONS.map((drink) => (
+              <div
+                key={drink.id}
+                className="group rounded-[22px] p-3 text-left bg-white border border-solly-border shadow-solly-soft hover:border-solly-pink/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden bg-solly-cream/40 mb-3 relative">
+                    <SollyImage
+                      src={drink.src}
+                      alt={drink.alt}
+                      category="drinks"
+                      aspectRatioClass="aspect-[4/3]"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                  <div className="mt-3 pt-2 border-t border-solly-border/40 flex items-center justify-between text-[11px] font-bold">
-                    <span
-                      className={
-                        isSelected
-                          ? 'text-solly-pink'
-                          : isMaxReached
-                          ? 'text-solly-charcoal/40'
-                          : 'text-solly-charcoal/60'
-                      }
-                    >
-                      {isSelected ? '✓ Sélectionné' : isMaxReached ? 'Limite atteinte' : '+ Sélectionner'}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                  <h4 className="font-display font-black text-sm text-solly-charcoal mb-1">
+                    {drink.name}
+                  </h4>
+                  <p className="text-[11px] text-solly-charcoal/70 leading-snug">
+                    {drink.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Action Bar for Drinks */}
           <div className="bg-[#FEEED8] rounded-[22px] p-4 sm:p-5 border border-solly-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-solly-charcoal block">
-                  Vos boissons choisies ({selectedDrinks.length}/3 max)
-                </span>
-                {hasDrinksSelection && (
-                  <button
-                    type="button"
-                    onClick={clearDrinksSelection}
-                    className="text-[11px] font-bold text-solly-pink hover:underline cursor-pointer inline-flex items-center gap-1"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Effacer
-                  </button>
-                )}
-              </div>
+              <span className="text-xs font-black uppercase tracking-wider text-solly-charcoal block">
+                Fontaines de jus frais au chariot
+              </span>
               <p className="text-xs text-solly-charcoal/80 mt-0.5">
-                {selectedDrinks.length > 0 ? selectedDrinks.join(' • ') : 'Aucune boisson sélectionnée'}
+                Bissap, ananas, gingembre et fruits de la passion servis frais tout au long de la réception.
               </p>
             </div>
             <Button
               variant="pink"
               size="md"
-              onClick={handleAddDrinksToBooking}
+              onClick={() => handleAddToBooking('Boissons')}
               className="!py-3 !px-6 text-xs sm:text-sm font-bold whitespace-nowrap shadow-solly-pink"
             >
               Ajouter l’option boissons (+1 000 FCFA / invité) →
@@ -1737,320 +1162,51 @@ export default function CakeBarPage() {
         </div>
       </section>
 
-      {/* 6. BAR À CHARCUTERIE SECTION: Composez votre bar à charcuterie */}
-      <section id="charcuterie" className="py-16 sm:py-24 bg-[#FFFBF2] border-t border-solly-border/50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Heading */}
-          <div className="text-center mb-12 sm:mb-14">
-            <div className="inline-flex items-center justify-center gap-2">
-              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-solly-charcoal tracking-tight">
-                Composez votre bar à charcuterie
-              </h2>
-              <div className="-mt-3 select-none pointer-events-none">
-                <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
-              </div>
-            </div>
-            <p className="text-xs sm:text-sm text-solly-charcoal/80 font-medium mt-1">
-              C’est vous qui choisissez ! Préparez vos envies salées pour votre demande de devis.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-            {/* Left Side: 2 Steps Selectors */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Clear All bar for Charcuterie */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-solly-charcoal/60">
-                  Votre composition salée
-                </span>
-                {hasCharcuterieSelection && (
-                  <button
-                    type="button"
-                    onClick={clearCharcuterieSelection}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-solly-pink hover:text-white bg-solly-pink-soft hover:bg-solly-pink px-3 py-1.5 rounded-full border border-solly-pink/20 transition-all cursor-pointer shadow-2xs"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Effacer toute la sélection</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Row 01: Votre contenant / format */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      01
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Votre format
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Choisissez entre le cornet à picorer ou le pot gourmand.
-                      </p>
-                    </div>
-                  </div>
-                  {selectedCharcuterieFormat && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCharcuterieFormat('')}
-                      className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                    >
-                      Effacer
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {CHARCUTERIE_ASSETS.formats.map((format) => {
-                    const isSelected = selectedCharcuterieFormat === format.id;
-                    return (
-                      <button
-                        key={format.id}
-                        type="button"
-                        onClick={() => setSelectedCharcuterieFormat((prev) => (prev === format.id ? '' : format.id))}
-                        className={`relative group rounded-[18px] p-3 flex flex-col items-center text-center transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs z-10">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-[4/3] rounded-[14px] overflow-hidden bg-solly-cream/40 mb-2.5">
-                          <SollyImage
-                            src={format.src}
-                            alt={format.alt}
-                            category="charcuterie"
-                            aspectRatioClass="aspect-[4/3]"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <span className="font-display font-bold text-sm sm:text-base text-solly-charcoal">
-                          {format.name}
-                        </span>
-                        <span className="text-[11px] text-solly-charcoal/70 mt-0.5">
-                          {format.desc}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Row 02: Composition des bacs (Max 6 composants) */}
-              <div className="bg-white rounded-[22px] p-5 sm:p-6 border border-solly-border shadow-2xs">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-solly-pink text-white font-display font-bold flex items-center justify-center shrink-0 text-xs">
-                      02
-                    </div>
-                    <div>
-                      <h3 className="font-display font-black text-sm sm:text-base text-solly-charcoal leading-none">
-                        Composition des bacs
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-solly-charcoal/70 font-medium mt-0.5">
-                        Sélectionnez jusqu’à 6 composants pour garnir les bacs inox.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                        selectedCharcuterieComponents.length >= 6
-                          ? 'bg-solly-pink text-white border-solly-pink'
-                          : 'text-solly-pink bg-solly-pink-soft border-solly-pink/20'
-                      }`}
-                    >
-                      Max 6 composants ({selectedCharcuterieComponents.length}/6)
-                    </span>
-                    {selectedCharcuterieComponents.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedCharcuterieComponents([])}
-                        className="text-[11px] font-bold text-solly-charcoal/50 hover:text-solly-pink transition-colors cursor-pointer underline"
-                      >
-                        Effacer
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {CHARCUTERIE_ASSETS.composants.map((item) => {
-                    const isSelected = selectedCharcuterieComponents.includes(item.id);
-                    const isMaxReached = selectedCharcuterieComponents.length >= 6 && !isSelected;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => toggleCharcuterieComponent(item.id)}
-                        disabled={isMaxReached}
-                        className={`relative group rounded-[18px] p-2 flex flex-col items-center text-center transition-all duration-200 ${
-                          isSelected
-                            ? 'border-2 border-solly-pink bg-solly-pink/5 shadow-sm cursor-pointer'
-                            : isMaxReached
-                            ? 'border border-solly-border/40 bg-white/60 opacity-50 cursor-not-allowed'
-                            : 'border border-solly-border/70 hover:border-solly-pink/40 bg-white cursor-pointer'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-solly-pink text-white flex items-center justify-center shadow-xs z-10">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="w-full aspect-square rounded-[12px] overflow-hidden bg-solly-cream/40 mb-2 relative flex items-center justify-center">
-                          {item.isCustom ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-solly-pink-soft text-solly-pink p-2">
-                              <Sparkles className="w-6 h-6 mb-1" />
-                              <span className="text-[10px] font-bold text-center leading-tight">
-                                Sur-mesure
-                              </span>
-                            </div>
-                          ) : (
-                            <SollyImage
-                              src={item.src!}
-                              alt={item.alt}
-                              category="charcuterie"
-                              aspectRatioClass="aspect-square"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          )}
-                        </div>
-                        <span className="font-display font-bold text-xs text-solly-charcoal leading-tight">
-                          {item.name}
-                        </span>
-                        {item.customNote && (
-                          <span className="text-[10px] font-medium text-solly-muted mt-0.5 leading-none">
-                            {item.customNote}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side: Sticky Preview Card - "C'est vous qui choisissez !" */}
-            <div className="lg:col-span-5 sticky top-28">
-              <div className="bg-[#FFF2CE] rounded-[28px] p-6 sm:p-7 border border-[#FAD02C]/40 shadow-solly-soft flex flex-col items-center text-center">
-                <div className="inline-flex items-center gap-1.5 mb-1.5">
-                  <h3 className="font-display font-black text-2xl sm:text-3xl text-solly-charcoal">
-                    C’est vous qui choisissez !
-                  </h3>
-                  <div className="-mt-2 select-none pointer-events-none">
-                    <BurstDoodle direction="top-right" color="#DE1B52" size={24} />
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm font-semibold text-solly-charcoal/80 mb-5">
-                  {charcuterieSummary || 'Choisissez votre contenant et vos composants'}
-                </p>
-
-                <div className="w-full rounded-[22px] overflow-hidden bg-white shadow-2xs mb-6">
-                  <SollyImage
-                    src={
-                      selectedCharcuterieFormat === 'Le Cornet'
-                        ? CHARCUTERIE_ASSETS.previews.cornet.src
-                        : selectedCharcuterieFormat === 'Le Pot'
-                        ? CHARCUTERIE_ASSETS.previews.pot.src
-                        : '/images/solly-assets/04-charcuterie/chariot-charcuterie.png'
-                    }
-                    alt={
-                      selectedCharcuterieFormat === 'Le Cornet'
-                        ? CHARCUTERIE_ASSETS.previews.cornet.alt
-                        : selectedCharcuterieFormat === 'Le Pot'
-                        ? CHARCUTERIE_ASSETS.previews.pot.alt
-                        : 'Bar à charcuterie Solly avec bacs inox'
-                    }
-                    category="charcuterie"
-                    aspectRatioClass="aspect-[4/3]"
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-
-                <Button
-                  variant="pink"
-                  size="lg"
-                  fullWidth
-                  onClick={handleAddCharcuterieToBooking}
-                  className="!py-3.5 text-sm sm:text-base font-bold shadow-solly-pink"
-                >
-                  Ajouter à ma demande →
-                </Button>
-
-                {hasCharcuterieSelection && (
-                  <button
-                    type="button"
-                    onClick={clearCharcuterieSelection}
-                    className="mt-3 text-xs font-bold text-solly-charcoal/60 hover:text-solly-pink transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Effacer toute la sélection</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. FAQ SECTION: Les petites questions gourmandes */}
-      <section className="py-16 sm:py-20 bg-solly-cream">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Heading */}
-          <div className="text-center mb-10 flex items-center justify-center gap-2">
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-solly-charcoal tracking-tight">
-              Les petites questions gourmandes
+      {/* 9. FAQ ACCORDION */}
+      <section className="py-16 sm:py-20 bg-white border-t border-solly-border">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="text-xs font-bold uppercase tracking-wider text-solly-pink bg-solly-pink-soft px-3 py-1 rounded-full">
+              Questions fréquentes
+            </span>
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-solly-charcoal mt-2">
+              Tout ce que vous devez savoir
             </h2>
-            <div className="-mt-3 select-none pointer-events-none">
-              <BurstDoodle direction="top-right" color="#DE1B52" size={26} />
-            </div>
           </div>
 
-          {/* Accordion List */}
           <div className="space-y-3">
-            {FAQ_ITEMS.map((item, index) => {
+            {FAQ_ITEMS.map((faq, index) => {
               const isOpen = openFaqIndex === index;
               return (
                 <div
-                  key={index}
-                  className="bg-white rounded-[20px] border border-solly-border overflow-hidden transition-shadow duration-200 shadow-2xs"
+                  key={faq.question}
+                  className="rounded-2xl border border-solly-border bg-solly-cream/40 overflow-hidden transition-colors"
                 >
                   <button
                     type="button"
                     onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left cursor-pointer hover:bg-solly-cream/30 transition-colors"
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/80 transition-colors"
                   >
-                    <span className="font-display font-bold text-sm sm:text-base text-solly-charcoal">
-                      {item.question}
+                    <span className="font-display font-extrabold text-sm sm:text-base text-solly-charcoal">
+                      {faq.question}
                     </span>
-                    <div className="w-7 h-7 rounded-full bg-solly-pink/10 text-solly-pink flex items-center justify-center shrink-0 ml-3">
-                      {isOpen ? (
-                        <Minus className="w-4 h-4 stroke-[2.5]" />
-                      ) : (
-                        <Plus className="w-4 h-4 stroke-[2.5]" />
-                      )}
-                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-solly-pink shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
-
                   <AnimatePresence>
                     {isOpen && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
                       >
-                        <div className="px-6 pb-4 pt-1 text-xs sm:text-sm text-solly-charcoal/80 font-medium leading-relaxed border-t border-solly-border/40">
-                          {item.answer}
-                        </div>
+                        <p className="px-4 pb-4 sm:px-5 sm:pb-5 text-xs sm:text-sm text-solly-charcoal/80 font-medium leading-relaxed">
+                          {faq.answer}
+                        </p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -2061,8 +1217,12 @@ export default function CakeBarPage() {
         </div>
       </section>
 
-      {/* 6. CONVERSION BANNER */}
-      <SollyCtaBanner onButtonClick={handleAddToBooking} />
+      {/* 10. CONVERSION BANNER */}
+      <SollyCtaBanner
+        title="Prêt à imaginer votre fête ?"
+        subtitle="Renseignez votre événement, choisissez vos expériences et votre budget en quelques clics."
+        buttonText="Réserver mon événement"
+      />
     </div>
   );
 }
