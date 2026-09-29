@@ -211,10 +211,10 @@ export default function ExperiencesPage() {
                   </h3>
                   <div className="mt-1 mb-3">
                     <p className="text-xs font-bold text-solly-charcoal">
-                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      Bar principal : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
                     </p>
                     <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                      Minimum 20 invités
+                      Minimum 20 invités · ou +1 000 FCFA en bar supp.
                     </span>
                   </div>
                   <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
@@ -266,10 +266,10 @@ export default function ExperiencesPage() {
                   </h3>
                   <div className="mt-1 mb-3">
                     <p className="text-xs font-bold text-solly-charcoal">
-                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      Bar principal : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
                     </p>
                     <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                      Minimum 20 invités
+                      Minimum 20 invités · ou +1 500 FCFA en bar supp.
                     </span>
                   </div>
                   <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
@@ -321,10 +321,10 @@ export default function ExperiencesPage() {
                   </h3>
                   <div className="mt-1 mb-3">
                     <p className="text-xs font-bold text-solly-charcoal">
-                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      Bar principal : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
                     </p>
                     <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                      Minimum 20 invités
+                      Minimum 20 invités · ou +1 000 FCFA en bar supp.
                     </span>
                   </div>
                   <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">
@@ -376,10 +376,10 @@ export default function ExperiencesPage() {
                   </h3>
                   <div className="mt-1 mb-3">
                     <p className="text-xs font-bold text-solly-charcoal">
-                      Compris : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
+                      Bar principal : <span className="text-solly-pink font-black">4 000 FCFA</span> / invité
                     </p>
                     <span className="inline-block text-[10px] font-bold text-solly-charcoal/60 uppercase tracking-wide">
-                      Minimum 20 invités
+                      Minimum 20 invités · ou +2 000 FCFA en bar supp.
                     </span>
                   </div>
                   <p className="text-xs text-solly-charcoal/85 mb-3 leading-relaxed font-medium">

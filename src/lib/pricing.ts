@@ -5,8 +5,9 @@
 
 export const PRICING_CONFIG = {
   BASE_PRICE_PER_GUEST: 4000,     // 4 000 FCFA / invité (comprend 1 bar principal)
-  EXTRA_BAR_PER_GUEST: 1000,      // +1 000 FCFA / invité par bar supplémentaire standard
+  EXTRA_BAR_PER_GUEST: 1000,      // +1 000 FCFA / invité par bar supplémentaire standard (Mini Pancakes, Cake Bar)
   EXTRA_CROFFLES_PER_GUEST: 1500, // +1 500 FCFA / invité pour l'option Croffles en bar supplémentaire
+  EXTRA_CHARCUTERIE_PER_GUEST: 2000, // +2 000 FCFA / invité pour l'option Charcuterie en bar supplémentaire
   DRINKS_PER_GUEST: 1000,         // +1 000 FCFA / invité pour l'option Boissons Solly
   CART_CUSTOMIZATION: 15000,      // +15 000 FCFA forfaitaire (façade avant amovible)
   CUSTOM_PACKAGING: 10000,        // +10 000 FCFA forfaitaire (couverts / contenants personnalisés)
@@ -58,18 +59,22 @@ export function calculateBookingPrice(params: BookingPricingParams): BookingPric
   if (params.extraBars && params.extraBars.length > 0) {
     countOfExtraBars = params.extraBars.length;
     params.extraBars.forEach((bar) => {
-      const pricePerGuest =
-        bar === 'croffles'
-          ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST
-          : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
+      let pricePerGuest: number = PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
+      if (bar === 'croffles') {
+        pricePerGuest = PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST;
+      } else if (bar === 'charcuterie' || bar?.includes('charcuterie')) {
+        pricePerGuest = PRICING_CONFIG.EXTRA_CHARCUTERIE_PER_GUEST;
+      }
       extraBarPrice += effectiveGuests * pricePerGuest;
     });
   } else if (params.extraBarType) {
     countOfExtraBars = 1;
-    const pricePerGuest =
-      params.extraBarType === 'croffles'
-        ? PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST
-        : PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
+    let pricePerGuest: number = PRICING_CONFIG.EXTRA_BAR_PER_GUEST;
+    if (params.extraBarType === 'croffles') {
+      pricePerGuest = PRICING_CONFIG.EXTRA_CROFFLES_PER_GUEST;
+    } else if (params.extraBarType === 'charcuterie' || params.extraBarType?.includes('charcuterie')) {
+      pricePerGuest = PRICING_CONFIG.EXTRA_CHARCUTERIE_PER_GUEST;
+    }
     extraBarPrice = effectiveGuests * pricePerGuest;
   } else {
     countOfExtraBars =

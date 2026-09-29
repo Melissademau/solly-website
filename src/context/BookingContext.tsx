@@ -123,9 +123,27 @@ interface BookingContextType {
   getWhatsAppUrl: () => string;
 }
 
-export const calculateMinimumBudget = (guestCount: number | '' | undefined): number => {
+export const calculateMinimumBudget = (
+  guestCount: number | '' | undefined,
+  selectedExperiences?: ExperienceId[]
+): number => {
   const count = typeof guestCount === 'number' && !isNaN(guestCount) && guestCount > 0 ? guestCount : 20;
-  return Math.max(80000, count * 4000);
+  const base = Math.max(80000, count * 4000);
+  if (!selectedExperiences || selectedExperiences.length <= 1) {
+    return base;
+  }
+  const extraExps = selectedExperiences.slice(1);
+  let extraTotal = 0;
+  extraExps.forEach((exp) => {
+    if (exp === 'charcuterie') {
+      extraTotal += count * 2000;
+    } else if (exp === 'croffles') {
+      extraTotal += count * 1500;
+    } else {
+      extraTotal += count * 1000;
+    }
+  });
+  return base + extraTotal;
 };
 
 const initialFormData: BookingFormData = {

@@ -82,6 +82,7 @@ const EXPERIENCES_CATALOG = [
     title: 'Mini Pancakes',
     subtitle: 'Moelleux, dorés à la machine officielle Solly et nappés minute',
     tag: 'Gourmand & Ludique',
+    priceInfo: 'Principal ou +1 000 FCFA',
     image: '/images/mini-pancakes/pancakes-preview.webp',
   },
   {
@@ -89,6 +90,7 @@ const EXPERIENCES_CATALOG = [
     title: 'Croffles',
     subtitle: 'Croustillants, dorés et caramélisés, servis chauds',
     tag: 'Tendance & Gourmand',
+    priceInfo: 'Principal ou +1 500 FCFA',
     image: '/images/croffles/croffle-preview.webp',
   },
   {
@@ -96,6 +98,7 @@ const EXPERIENCES_CATALOG = [
     title: 'Cake Bar',
     subtitle: 'Gâteaux individuels généreux découpés et nappés à la minute',
     tag: 'Signature Solly',
+    priceInfo: 'Principal ou +1 000 FCFA',
     image: '/images/cake-bar/cake-bar-two-cakes.jpg',
   },
   {
@@ -103,6 +106,7 @@ const EXPERIENCES_CATALOG = [
     title: 'Charcuterie',
     subtitle: 'Cornets et pots apéritifs chics avec fromages, salaisons et fruits',
     tag: 'L’accord salé chic',
+    priceInfo: 'Principal ou +2 000 FCFA',
     image: '/images/solly-assets/04-charcuterie/aperitif-gourmand.png',
   },
 ];
@@ -133,7 +137,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
       ? formData.guestCount
       : 20;
 
-  const dynamicMinBudget = calculateMinimumBudget(effectiveGuests);
+  const dynamicMinBudget = calculateMinimumBudget(effectiveGuests, formData.selectedExperiences);
 
   // Synchronize budgetDesired if it falls below the dynamic min budget
   useEffect(() => {
@@ -155,7 +159,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
   const handleGuestChange = (delta: number) => {
     const current = typeof formData.guestCount === 'number' ? formData.guestCount : 20;
     const nextVal = Math.max(20, current + delta);
-    const nextMin = calculateMinimumBudget(nextVal);
+    const nextMin = calculateMinimumBudget(nextVal, formData.selectedExperiences);
     setFormData((prev) => ({
       ...prev,
       guestCount: nextVal,
@@ -741,7 +745,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                           onChange={(e) => {
                             const v = e.target.value === '' ? '' : parseInt(e.target.value, 10);
                             const nextCount = typeof v === 'number' ? v : 20;
-                            const nextMin = calculateMinimumBudget(nextCount);
+                            const nextMin = calculateMinimumBudget(nextCount, formData.selectedExperiences);
                             setFormData((prev) => ({
                               ...prev,
                               guestCount: v,
@@ -779,7 +783,7 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                           key={count}
                           type="button"
                           onClick={() => {
-                            const nextMin = calculateMinimumBudget(count);
+                            const nextMin = calculateMinimumBudget(count, formData.selectedExperiences);
                             setFormData((prev) => ({
                               ...prev,
                               guestCount: count,
@@ -896,13 +900,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                               </p>
                             </div>
 
-                            <div className="mt-3 pt-2 border-t border-solly-border/40 flex items-center justify-between">
+                            <div className="mt-3 pt-2 border-t border-solly-border/40 flex items-center justify-between gap-2">
+                              <span className="text-[10px] sm:text-[11px] font-bold text-solly-charcoal/75 bg-solly-cream/80 px-2 py-0.5 rounded-full">
+                                {exp.priceInfo}
+                              </span>
                               <span
-                                className={`text-[11px] font-bold ${
+                                className={`text-[11px] font-bold whitespace-nowrap ${
                                   isSelected ? 'text-solly-pink' : 'text-solly-charcoal/60'
                                 }`}
                               >
-                                {isSelected ? '✓ Sélectionné' : '+ Ajouter cette envie'}
+                                {isSelected ? '✓ Sélectionné' : '+ Ajouter'}
                               </span>
                             </div>
                           </div>

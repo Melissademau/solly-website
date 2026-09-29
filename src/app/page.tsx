@@ -237,7 +237,7 @@ export default function HomePage() {
                 Des douceurs à composer avec nappages et toppings.
               </p>
               <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
-                Bar principal au choix
+                Bar principal ou +1 000 FCFA
               </span>
               <Link
                 href="/experiences#cake-bar"
@@ -265,7 +265,7 @@ export default function HomePage() {
                 Cornets raffinés avec charcuteries, gouda et fruits secs.
               </p>
               <span className="text-[10px] sm:text-[11px] font-bold text-solly-pink/90 mt-2 bg-solly-pink/10 px-2.5 py-0.5 rounded-full">
-                Bar principal ou +1 000 FCFA
+                Bar principal ou +2 000 FCFA
               </span>
               <Link
                 href="/experiences#charcuterie"
