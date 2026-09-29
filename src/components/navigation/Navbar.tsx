@@ -21,13 +21,11 @@ const EXPERIENCE_SUBMENU: SubmenuItem[] = [
     id: 'mini-pancakes',
     label: 'Mini Pancakes',
     description: 'Moelleux, nappés & préparés minute',
-    badge: 'Nouveau',
   },
   {
     id: 'croffles',
     label: 'Croffles',
     description: 'Croustillants, dorés & servis chauds',
-    badge: 'Nouveau',
   },
   {
     id: 'cake-bar',

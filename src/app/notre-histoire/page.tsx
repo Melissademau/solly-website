@@ -400,7 +400,6 @@ export default function NotreHistoirePage() {
             className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
           >
             <span>Mini Pancakes</span>
-            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full">Nouveau</span>
             <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
           </Link>
           <Link
@@ -408,7 +407,6 @@ export default function NotreHistoirePage() {
             className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
           >
             <span>Croffles</span>
-            <span className="bg-solly-yellow text-solly-charcoal text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full">Nouveau</span>
             <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
           </Link>
           <Link

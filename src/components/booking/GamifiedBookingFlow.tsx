@@ -81,7 +81,7 @@ const EXPERIENCES_CATALOG = [
     id: 'mini-pancakes' as ExperienceId,
     title: 'Mini Pancakes',
     subtitle: 'Moelleux, dorés à la machine officielle Solly et nappés minute',
-    tag: 'Nouveau & Ludique',
+    tag: 'Gourmand & Ludique',
     image: '/images/mini-pancakes/pancakes-preview.webp',
   },
   {

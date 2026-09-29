@@ -163,12 +163,9 @@ export default function HomePage() {
 
           {/* 4 Main Bars Grid: 2 cols on mobile, 4 cols on lg */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6 max-w-6xl mx-auto">
-            {/* Card 1: Mini Pancakes (Nouveau) */}
+            {/* Card 1: Mini Pancakes */}
             <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
               <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FFF3D6] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
-                <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
-                  Nouveau
-                </span>
                 <SollyImage
                   src={SOLLY_IMAGES.hero.miniPancakesPreview.src}
                   alt={SOLLY_IMAGES.hero.miniPancakesPreview.alt}
@@ -194,12 +191,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Card 2: Croffles (Nouveau) */}
+            {/* Card 2: Croffles */}
             <div className="flex flex-col items-center text-center group bg-white/70 sm:bg-white p-3.5 sm:p-4 rounded-[22px] border border-solly-border/70 shadow-solly-soft hover:shadow-md transition-all duration-300 relative">
               <div className="w-full rounded-[16px] sm:rounded-[18px] overflow-hidden bg-[#FEEED8] p-0 transition-transform duration-300 group-hover:scale-[1.02] relative">
-                <span className="absolute top-2 left-2 z-10 bg-solly-yellow text-solly-charcoal text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
-                  Nouveau
-                </span>
                 <SollyImage
                   src={SOLLY_IMAGES.hero.crofflesPreview.src}
                   alt={SOLLY_IMAGES.hero.crofflesPreview.alt}

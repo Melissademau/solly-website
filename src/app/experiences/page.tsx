@@ -197,9 +197,6 @@ export default function ExperiencesPage() {
             <div id="mini-pancakes" className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative scroll-mt-24">
               <div>
                 <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FFF3D6] mb-4 relative">
-                  <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                    Nouveau
-                  </span>
                   <SollyImage
                     src="/images/mini-pancakes/pancakes-preview.webp"
                     alt="Mini pancakes préparés minute Solly"
@@ -255,9 +252,6 @@ export default function ExperiencesPage() {
             <div id="croffles" className="bg-white rounded-[24px] p-5 sm:p-6 border border-solly-border shadow-solly-soft flex flex-col justify-between relative scroll-mt-24">
               <div>
                 <div className="w-full aspect-[4/3] rounded-[16px] overflow-hidden shrink-0 bg-[#FEEED8] mb-4 relative">
-                  <span className="absolute top-2.5 left-2.5 z-10 bg-solly-yellow text-solly-charcoal text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                    Nouveau
-                  </span>
                   <SollyImage
                     src="/images/croffles/croffle-preview.webp"
                     alt="Croffles dorés croustillants Solly"
