@@ -425,13 +425,6 @@ export default function NotreHistoirePage() {
             <span>Bar à charcuterie</span>
             <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
           </Link>
-          <Link
-            href="/experiences#boissons"
-            className="px-6 py-2.5 rounded-full border-2 border-solly-pink text-solly-pink bg-white font-display font-bold text-sm hover:bg-solly-pink hover:text-white transition-all duration-200 shadow-2xs inline-flex items-center gap-1.5 group"
-          >
-            <span>Bar à boissons</span>
-            <span className="transition-transform group-hover:translate-x-0.5 font-bold">→</span>
-          </Link>
         </div>
       </section>
 

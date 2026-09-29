@@ -197,6 +197,24 @@ export function Navbar() {
           </div>
 
           <Link
+            href="/notre-histoire"
+            className={`relative py-1 transition-colors hover:text-solly-pink ${
+              pathname === '/notre-histoire' || pathname === '/a-propos'
+                ? 'text-solly-pink font-extrabold'
+                : 'text-solly-charcoal'
+            }`}
+          >
+            Notre histoire
+            {(pathname === '/notre-histoire' || pathname === '/a-propos') && (
+              <motion.div
+                layoutId="navbar-underline"
+                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-solly-pink rounded-full"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+          </Link>
+
+          <Link
             href="/partenaires"
             className={`relative py-1 transition-colors hover:text-solly-pink ${
               pathname === '/partenaires'
@@ -335,6 +353,17 @@ export function Navbar() {
                   </div>
                 )}
               </div>
+
+              <Link
+                href="/notre-histoire"
+                className={`px-4 py-3 rounded-2xl text-base font-bold transition-colors ${
+                  pathname === '/notre-histoire' || pathname === '/a-propos'
+                    ? 'bg-solly-pink-soft text-solly-pink'
+                    : 'text-solly-charcoal hover:bg-white'
+                }`}
+              >
+                Notre histoire
+              </Link>
 
               <Link
                 href="/partenaires"

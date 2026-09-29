@@ -72,6 +72,13 @@ export function Footer() {
         <div className="pt-3 border-t border-solly-border/30 flex flex-col sm:flex-row items-center sm:justify-between text-[11px] text-solly-muted gap-2 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
             <Link
+              href="/notre-histoire"
+              className="hover:text-solly-pink transition-colors font-bold text-solly-charcoal/90 hover:underline"
+            >
+              Notre histoire
+            </Link>
+            <span className="text-solly-border">•</span>
+            <Link
               href="/partenaires"
               className="hover:text-solly-pink transition-colors font-bold text-solly-charcoal/90 hover:underline"
             >
