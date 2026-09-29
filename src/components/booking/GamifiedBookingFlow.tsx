@@ -537,6 +537,16 @@ export function GamifiedBookingFlow({ onClose, isInline = false }: GamifiedBooki
                     <p className="text-xs sm:text-sm text-solly-muted font-medium mt-1">
                       Quelques informations essentielles pour imaginer votre prestation Solly.
                     </p>
+                    {formData.selectedExperiences && formData.selectedExperiences.length > 0 && (
+                      <div className="flex items-center justify-center mt-2.5">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-solly-pink/10 border border-solly-pink/20 text-solly-pink text-xs font-bold">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>
+                            Bar présélectionné : {formData.selectedExperiences.map((id) => getExperienceLabel(id)).join(' + ')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Type d'événement & Date */}

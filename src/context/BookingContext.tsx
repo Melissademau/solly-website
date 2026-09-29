@@ -185,33 +185,57 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const openBooking = (options?: string | OpenBookingOptions) => {
     if (typeof options === 'string') {
       const optLower = options.toLowerCase();
-      let exp: ExperienceId = 'cake-bar';
-      if (optLower.includes('pancake')) exp = 'mini-pancakes';
-      else if (optLower.includes('croffle')) exp = 'croffles';
-      else if (optLower.includes('charcuterie') || optLower.includes('salé')) exp = 'charcuterie';
-      else if (optLower.includes('cake')) exp = 'cake-bar';
+      if (optLower.includes('2 bar') || optLower.includes('formule 2')) {
+        setFormData((prev) => ({
+          ...prev,
+          selectedExperiences: ['mini-pancakes', 'croffles'],
+          selectedBars: ['mini-pancakes', 'croffles'],
+          mainBar: 'mini-pancakes',
+          experience: 'Formule 2 Bars',
+        }));
+      } else {
+        let exp: ExperienceId = 'cake-bar';
+        if (optLower.includes('pancake')) exp = 'mini-pancakes';
+        else if (optLower.includes('croffle')) exp = 'croffles';
+        else if (optLower.includes('charcuterie') || optLower.includes('salé')) exp = 'charcuterie';
+        else if (optLower.includes('cake')) exp = 'cake-bar';
 
-      setFormData((prev) => ({
-        ...prev,
-        selectedExperiences: [exp],
-        mainBar: exp,
-        experience: options,
-      }));
+        setFormData((prev) => ({
+          ...prev,
+          selectedExperiences: [exp],
+          selectedBars: [exp],
+          mainBar: exp,
+          experience: getExperienceLabel(exp),
+        }));
+      }
+      setCurrentStep(1);
     } else if (options && typeof options === 'object') {
       const expStr = options.experience?.toLowerCase() || options.packageType?.toLowerCase() || '';
-      let exp: ExperienceId = 'cake-bar';
-      if (expStr.includes('pancake')) exp = 'mini-pancakes';
-      else if (expStr.includes('croffle')) exp = 'croffles';
-      else if (expStr.includes('charcuterie') || expStr.includes('salé')) exp = 'charcuterie';
-      else if (expStr.includes('cake')) exp = 'cake-bar';
+      if (expStr.includes('2 bar') || expStr.includes('formule 2')) {
+        setFormData((prev) => ({
+          ...prev,
+          selectedExperiences: ['mini-pancakes', 'croffles'],
+          selectedBars: ['mini-pancakes', 'croffles'],
+          mainBar: 'mini-pancakes',
+          experience: options.experience || options.packageType || 'Formule 2 Bars',
+          eventType: options.eventType || prev.eventType,
+        }));
+      } else {
+        let exp: ExperienceId = 'cake-bar';
+        if (expStr.includes('pancake')) exp = 'mini-pancakes';
+        else if (expStr.includes('croffle')) exp = 'croffles';
+        else if (expStr.includes('charcuterie') || expStr.includes('salé')) exp = 'charcuterie';
+        else if (expStr.includes('cake')) exp = 'cake-bar';
 
-      setFormData((prev) => ({
-        ...prev,
-        selectedExperiences: [exp],
-        mainBar: exp,
-        experience: options.experience || options.packageType || prev.experience,
-        eventType: options.eventType || prev.eventType,
-      }));
+        setFormData((prev) => ({
+          ...prev,
+          selectedExperiences: [exp],
+          selectedBars: [exp],
+          mainBar: exp,
+          experience: options.experience || options.packageType || getExperienceLabel(exp),
+          eventType: options.eventType || prev.eventType,
+        }));
+      }
 
       if (options.initialStep) {
         setCurrentStep(options.initialStep);

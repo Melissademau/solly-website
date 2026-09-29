@@ -7,35 +7,37 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Calendar, ChevronDown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SollyLogo } from '@/components/ui/Doodles';
-import { useBooking } from '@/context/BookingContext';
+import { useBooking, ExperienceId } from '@/context/BookingContext';
 
-const EXPERIENCE_SUBMENU = [
+interface SubmenuItem {
+  id: ExperienceId;
+  label: string;
+  description: string;
+  badge?: string;
+}
+
+const EXPERIENCE_SUBMENU: SubmenuItem[] = [
   {
+    id: 'mini-pancakes',
     label: 'Mini Pancakes',
     description: 'Moelleux, nappés & préparés minute',
     badge: 'Nouveau',
-    href: '/experiences#mini-pancakes',
   },
   {
+    id: 'croffles',
     label: 'Croffles',
     description: 'Croustillants, dorés & servis chauds',
     badge: 'Nouveau',
-    href: '/experiences#croffles',
   },
   {
+    id: 'cake-bar',
     label: 'Cake Bar',
     description: 'Des douceurs à composer minute',
-    href: '/experiences#cake-bar',
   },
   {
+    id: 'charcuterie',
     label: 'Bar à Charcuterie',
     description: 'Cornets apéritifs & bouchées salées',
-    href: '/experiences#charcuterie',
-  },
-  {
-    label: 'Bar à Boissons',
-    description: 'Bissap, ananas et jus signature',
-    href: '/experiences#boissons',
   },
 ];
 
@@ -149,11 +151,14 @@ export function Navbar() {
                 >
                   <div className="flex flex-col gap-1">
                     {EXPERIENCE_SUBMENU.map((subItem) => (
-                      <Link
+                      <button
                         key={subItem.label}
-                        href={subItem.href}
-                        onClick={() => setExperienceDropdownOpen(false)}
-                        className="px-3.5 py-2.5 rounded-xl hover:bg-solly-pink-soft text-left transition-colors group flex items-start justify-between"
+                        type="button"
+                        onClick={() => {
+                          setExperienceDropdownOpen(false);
+                          openBooking(subItem.id);
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl hover:bg-solly-pink-soft text-left transition-colors group flex items-start justify-between cursor-pointer"
                       >
                         <div>
                           <div className="flex items-center gap-1.5">
@@ -173,8 +178,18 @@ export function Navbar() {
                         <span className="text-solly-pink font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
                           ✦
                         </span>
-                      </Link>
+                      </button>
                     ))}
+                  </div>
+
+                  <div className="pt-2 mt-1.5 border-t border-solly-border/70 px-1">
+                    <Link
+                      href="/experiences"
+                      onClick={() => setExperienceDropdownOpen(false)}
+                      className="block text-center text-xs font-bold text-solly-pink hover:underline py-1"
+                    >
+                      Voir toutes les formules →
+                    </Link>
                   </div>
                 </motion.div>
               )}
@@ -286,10 +301,15 @@ export function Navbar() {
                 {mobileSubmenuOpen && (
                   <div className="pl-6 pr-2 py-2 flex flex-col gap-1.5">
                     {EXPERIENCE_SUBMENU.map((subItem) => (
-                      <Link
+                      <button
                         key={subItem.label}
-                        href={subItem.href}
-                        className="px-3.5 py-2 rounded-xl text-sm font-bold text-solly-charcoal/80 hover:text-solly-pink hover:bg-white/80 transition-colors flex items-center justify-between"
+                        type="button"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setMobileSubmenuOpen(false);
+                          openBooking(subItem.id);
+                        }}
+                        className="w-full px-3.5 py-2 rounded-xl text-sm font-bold text-solly-charcoal/80 hover:text-solly-pink hover:bg-white/80 transition-colors flex items-center justify-between text-left cursor-pointer"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-solly-pink text-xs font-bold">✦</span>
@@ -300,8 +320,18 @@ export function Navbar() {
                             {subItem.badge}
                           </span>
                         )}
-                      </Link>
+                      </button>
                     ))}
+                    <Link
+                      href="/experiences"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileSubmenuOpen(false);
+                      }}
+                      className="px-3.5 py-1.5 text-xs font-bold text-solly-pink hover:underline text-left"
+                    >
+                      Voir toutes les formules →
+                    </Link>
                   </div>
                 )}
               </div>
